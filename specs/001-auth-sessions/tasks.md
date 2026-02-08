@@ -50,16 +50,17 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T01: Create Solution Structure & Project Skeleton
 
-- [ ] T01 Create .NET 10 project structure in `src/MAA.API/`
-  - [ ] Create `MAA.Domain/` project (.NET 10 class library)
-  - [ ] Create `MAA.Application/` project (.NET 10 class library)
-  - [ ] Create `MAA.Infrastructure/` project (.NET 10 class library)
-  - [ ] Create `MAA.API/` project (ASP.NET Core Web API)
-  - [ ] Create `MAA.Tests/` project (xUnit test library)
-  - [ ] Configure project references: API → Application → Domain, Infrastructure → Domain
-  - [ ] Add NuGet dependencies: EF Core, FluentValidation, AutoMapper, Serilog
-  - **Deliverable**: `.sln` file with projects in place; compilation successful (`dotnet build`)
-  - **File Path**: `src/MAA.sln`
+- [x] T01 Create .NET 10 project structure in `src/MAA.API/`
+  - [x] Create `MAA.Domain/` project (.NET 10 class library)
+  - [x] Create `MAA.Application/` project (.NET 10 class library)
+  - [x] Create `MAA.Infrastructure/` project (.NET 10 class library)
+  - [x] Create `MAA.API/` project (ASP.NET Core Web API)
+  - [x] Create `MAA.Tests/` project (xUnit test library)
+  - [x] Configure project references: API → Application → Domain, Infrastructure → Domain
+  - [x] Add NuGet dependencies: EF Core, FluentValidation, AutoMapper, Serilog
+  - **Deliverable**: `.slnx` file with projects in place; compilation successful (`dotnet build`)
+  - **File Path**: `src/MAA.slnx`
+  - **Completed**: 2026-02-08 ✅
 
 ### T02: [P] Initialize PostgreSQL Database & Migrations
 
