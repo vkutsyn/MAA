@@ -28,10 +28,11 @@ public class SessionAnswerDto
     public string FieldType { get; set; } = string.Empty;
 
     /// <summary>
-    /// Plain text answer value (for non-PII fields only).
-    /// Null if field is PII (never expose encrypted values in DTOs).
+    /// Decrypted answer value (for display/use in application logic).
+    /// For PII fields, this is the decrypted value; for non-PII, it's the plain value.
+    /// Never exposes raw encrypted ciphertext.
     /// </summary>
-    public string? AnswerPlain { get; set; }
+    public string? AnswerValue { get; set; }
 
     /// <summary>
     /// Is this field marked as containing PII?

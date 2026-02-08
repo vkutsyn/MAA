@@ -614,6 +614,259 @@ public class SessionApiIntegrationTests : IAsyncLifetime
     }
 
     #endregion
+
+    #region US2: Session Answer Persistence Tests (T019)
+
+    /// <summary>
+    /// Integration Test: Save answer via API → Persist to DB → Retrieve → Verify data matches.
+    /// US2 Acceptance Scenario 1: User submits income=$2100; encrypted before DB insert.
+    /// Validates:
+    /// - POST /api/sessions/{id}/answers saves answer
+    /// - PII fields are encrypted (AnswerEncrypted populated, AnswerPlain null)
+    /// - Non-PII fields are plain text (AnswerPlain populated, AnswerEncrypted null)
+    /// - GET /api/sessions/{id}/answers retrieves all answers
+    /// - Encryption/decryption round-trip works correctly
+    /// </summary>
+    [Fact]
+    public async Task SaveAnswer_PersistsEncrypted_AndRetrievesCorrectly()
+    {
+        // Arrange - Create session
+        var createSessionRequest = new CreateSessionDto
+        {
+            IpAddress = "192.168.1.100",
+            UserAgent = "Chrome/120.0"
+        };
+
+        var sessionResponse = await _httpClient!.PostAsJsonAsync("/api/sessions", createSessionRequest);
+        var session = await sessionResponse.Content.ReadAsAsync<SessionDto>();
+        var sessionId = session!.Id;
+
+        // Arrange - Prepare answer (PII: income)
+        var saveAnswerRequest = new SaveAnswerDto
+        {
+            FieldKey = "income_annual_2025",
+            FieldType = "currency",
+            AnswerValue = "2100",
+            IsPii = true
+        };
+
+        // Act - Save answer
+        var saveResponse = await _httpClient.PostAsJsonAsync($"/api/sessions/{sessionId}/answers", saveAnswerRequest);
+        saveResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Saving answer should return 201");
+
+        var savedAnswer = await saveResponse.Content.ReadAsAsync<SessionAnswerDto>();
+        
+        // Assert - Response validation
+        savedAnswer.Should().NotBeNull();
+        savedAnswer!.FieldKey.Should().Be("income_annual_2025");
+        savedAnswer.FieldType.Should().Be("currency");
+        savedAnswer.IsPii.Should().BeTrue();
+        savedAnswer.AnswerValue.Should().Be("2100", "Decrypted value should match original");
+
+        // Act - Verify database encryption
+        using (var context = _databaseFixture.CreateContext())
+        {
+            var dbAnswer = await context.SessionAnswers.FirstAsync(a => a.SessionId == sessionId);
+            
+            // Assert - PII encrypted in DB
+            dbAnswer.AnswerEncrypted.Should().NotBeNullOrEmpty("PII should be encrypted");
+            dbAnswer.AnswerPlain.Should().BeNull("PII should not be stored plain");
+            dbAnswer.IsPii.Should().BeTrue();
+            dbAnswer.KeyVersion.Should().BeGreaterThan(0, "Encryption key version should be set");
+        }
+
+        // Act - Retrieve all answers
+        var getResponse = await _httpClient.GetAsync($"/api/sessions/{sessionId}/answers");
+        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var answers = await getResponse.Content.ReadAsAsync<List<SessionAnswerDto>>();
+        
+        // Assert - Retrieved answers match saved
+        answers.Should().NotBeNull();
+        answers!.Count.Should().Be(1);
+        answers[0].FieldKey.Should().Be("income_annual_2025");
+        answers[0].AnswerValue.Should().Be("2100", "Decrypted answer should match original");
+    }
+
+    /// <summary>
+    /// Integration Test: Save non-PII answer without encryption.
+    /// US2: Demographics (age, household size, state) NOT encrypted per spec.
+    /// Validates:
+    /// - Non-PII stored as plain text in database
+    /// - AnswerPlain populated, AnswerEncrypted null
+    /// - Retrieval works same as encrypted fields
+    /// </summary>
+    [Fact]
+    public async Task SaveAnswer_NonPii_StoredAsPlainText()
+    {
+        // Arrange - Create session
+        var createSessionRequest = new CreateSessionDto
+        {
+            IpAddress = "192.168.1.100",
+            UserAgent = "Chrome/120.0"
+        };
+
+        var sessionResponse = await _httpClient!.PostAsJsonAsync("/api/sessions", createSessionRequest);
+        var session = await sessionResponse.Content.ReadAsAsync<SessionDto>();
+        var sessionId = session!.Id;
+
+        // Arrange - Non-PII answer (household size)
+        var saveAnswerRequest = new SaveAnswerDto
+        {
+            FieldKey = "household_size",
+            FieldType = "integer",
+            AnswerValue = "4",
+            IsPii = false
+        };
+
+        // Act - Save answer
+        var saveResponse = await _httpClient.PostAsJsonAsync($"/api/sessions/{sessionId}/answers", saveAnswerRequest);
+        saveResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        // Assert - Verify plain text storage in DB
+        using (var context = _databaseFixture.CreateContext())
+        {
+            var dbAnswer = await context.SessionAnswers.FirstAsync(a => a.SessionId == sessionId);
+            
+            dbAnswer.AnswerPlain.Should().Be("4", "Non-PII should be stored as plain text");
+            dbAnswer.AnswerEncrypted.Should().BeNull("Non-PII should not be encrypted");
+            dbAnswer.IsPii.Should().BeFalse();
+        }
+
+        // Act - Retrieve answers
+        var getResponse = await _httpClient.GetAsync($"/api/sessions/{sessionId}/answers");
+        var answers = await getResponse.Content.ReadAsAsync<List<SessionAnswerDto>>();
+
+        // Assert - Retrieved value correct
+        answers.Should().NotBeNull();
+        answers![0].AnswerValue.Should().Be("4");
+    }
+
+    /// <summary>
+    /// Integration Test: Update existing answer preserves session consistency.
+    /// US2: User changes income from $2100 to $2500; old value overwritten.
+    /// Validates:
+    /// - Second POST to same FieldKey updates existing answer
+    /// - Only latest answer retrieved
+    /// - Database shows updated encryption (different ciphertext)
+    /// </summary>
+    [Fact]
+    public async Task SaveAnswer_UpdateExisting_PreservesLatestValue()
+    {
+        // Arrange - Create session and save initial answer
+        var createSessionRequest = new CreateSessionDto
+        {
+            IpAddress = "192.168.1.100",
+            UserAgent = "Chrome/120.0"
+        };
+
+        var sessionResponse = await _httpClient!.PostAsJsonAsync("/api/sessions", createSessionRequest);
+        var session = await sessionResponse.Content.ReadAsAsync<SessionDto>();
+        var sessionId = session!.Id;
+
+        var initialAnswer = new SaveAnswerDto
+        {
+            FieldKey = "income_annual_2025",
+            FieldType = "currency",
+            AnswerValue = "2100",
+            IsPii = true
+        };
+
+        await _httpClient.PostAsJsonAsync($"/api/sessions/{sessionId}/answers", initialAnswer);
+
+        // Act - Update answer with new value
+        var updatedAnswer = new SaveAnswerDto
+        {
+            FieldKey = "income_annual_2025",
+            FieldType = "currency",
+            AnswerValue = "2500",
+            IsPii = true
+        };
+
+        var updateResponse = await _httpClient.PostAsJsonAsync($"/api/sessions/{sessionId}/answers", updatedAnswer);
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        // Act - Retrieve answers
+        var getResponse = await _httpClient.GetAsync($"/api/sessions/{sessionId}/answers");
+        var answers = await getResponse.Content.ReadAsAsync<List<SessionAnswerDto>>();
+
+        // Assert - Only latest answer exists
+        answers.Should().NotBeNull();
+        answers!.Count.Should().Be(1, "Only one answer per FieldKey should exist");
+        answers[0].AnswerValue.Should().Be("2500", "Latest value should be retrieved");
+
+        // Assert - Database has updated value
+        using (var context = _databaseFixture.CreateContext())
+        {
+            var dbAnswers = await context.SessionAnswers
+                .Where(a => a.SessionId == sessionId && a.FieldKey == "income_annual_2025")
+                .ToListAsync();
+
+            dbAnswers.Count.Should().Be(1, "Only one record per FieldKey should exist in DB");
+        }
+    }
+
+    /// <summary>
+    /// Integration Test: Multiple answers stored for same session.
+    /// US2 Scenario: Wizard answers saved; page refresh; answers restored.
+    /// Validates:
+    /// - Multiple POST /api/sessions/{id}/answers work concurrently
+    /// - All answers persisted with correct session_id FK
+    /// - GET retrieves all answers for session
+    /// - Different field types handled correctly
+    /// </summary>
+    [Fact]
+    public async Task SaveMultipleAnswers_AllPersist_AndRetrievedTogether()
+    {
+        // Arrange - Create session
+        var createSessionRequest = new CreateSessionDto
+        {
+            IpAddress = "192.168.1.100",
+            UserAgent = "Chrome/120.0"
+        };
+
+        var sessionResponse = await _httpClient!.PostAsJsonAsync("/api/sessions", createSessionRequest);
+        var session = await sessionResponse.Content.ReadAsAsync<SessionDto>();
+        var sessionId = session!.Id;
+
+        // Arrange - Multiple wizard answers
+        var answers = new[]
+        {
+            new SaveAnswerDto { FieldKey = "household_size", FieldType = "integer", AnswerValue = "3", IsPii = false },
+            new SaveAnswerDto { FieldKey = "income_annual_2025", FieldType = "currency", AnswerValue = "2100", IsPii = true },
+            new SaveAnswerDto { FieldKey = "has_disability", FieldType = "boolean", AnswerValue = "true", IsPii = true },
+            new SaveAnswerDto { FieldKey = "state", FieldType = "string", AnswerValue = "IL", IsPii = false }
+        };
+
+        // Act - Save all answers
+        foreach (var answer in answers)
+        {
+            var saveResponse = await _httpClient.PostAsJsonAsync($"/api/sessions/{sessionId}/answers", answer);
+            saveResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        // Act - Retrieve all answers
+        var getResponse = await _httpClient.GetAsync($"/api/sessions/{sessionId}/answers");
+        var retrievedAnswers = await getResponse.Content.ReadAsAsync<List<SessionAnswerDto>>();
+
+        // Assert - All answers retrieved
+        retrievedAnswers.Should().NotBeNull();
+        retrievedAnswers!.Count.Should().Be(4, "All four answers should be retrieved");
+
+        var fieldKeys = retrievedAnswers.Select(a => a.FieldKey).ToList();
+        fieldKeys.Should().Contain("household_size");
+        fieldKeys.Should().Contain("income_annual_2025");
+        fieldKeys.Should().Contain("has_disability");
+        fieldKeys.Should().Contain("state");
+
+        // Assert - Values match
+        retrievedAnswers.First(a => a.FieldKey == "household_size").AnswerValue.Should().Be("3");
+        retrievedAnswers.First(a => a.FieldKey == "income_annual_2025").AnswerValue.Should().Be("2100");
+        retrievedAnswers.First(a => a.FieldKey == "has_disability").AnswerValue.Should().Be("true");
+        retrievedAnswers.First(a => a.FieldKey == "state").AnswerValue.Should().Be("IL");
+    }
+
+    #endregion
 }
 
 /// <summary>

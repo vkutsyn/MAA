@@ -280,4 +280,52 @@ public class SessionAnswerRepository : ISessionAnswerRepository
             .Where(a => a.AnswerHash != null && a.FieldKey == "ssn") // SSN fields have deterministic hashes
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Finds an answer by session ID and field key (for upsert operations).
+    /// </summary>
+    /// <param name="sessionId">Session ID</param>
+    /// <param name="fieldKey">Field key (e.g., "income_annual_2025")</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Answer if found, null otherwise</returns>
+    public async Task<SessionAnswer?> FindBySessionAndFieldAsync(
+        Guid sessionId,
+        string fieldKey,
+        CancellationToken cancellationToken = default)
+    {
+        if (sessionId == Guid.Empty || string.IsNullOrWhiteSpace(fieldKey))
+            return null;
+
+        return await _context.SessionAnswers
+            .FirstOrDefaultAsync(a => a.SessionId == sessionId && a.FieldKey == fieldKey, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates a new answer.
+    /// </summary>
+    /// <param name="answer">Answer to create</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created answer with generated ID</returns>
+    /// <exception cref="ArgumentNullException">If answer is null</exception>
+    /// <exception cref="InvalidOperationException">If validation fails or database save fails</exception>
+    public async Task<SessionAnswer> CreateAsync(SessionAnswer answer, CancellationToken cancellationToken = default)
+    {
+        if (answer == null)
+            throw new ArgumentNullException(nameof(answer));
+
+        answer.Validate();
+
+        _context.SessionAnswers.Add(answer);
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("Failed to create answer in database.", ex);
+        }
+
+        return answer;
+    }
 }

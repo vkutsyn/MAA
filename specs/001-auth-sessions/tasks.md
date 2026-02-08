@@ -72,15 +72,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T018 [P] [US2] Unit tests for SessionDataSchema validation in src/MAA.Tests/Unit/Sessions/SessionDataSchemaTests.cs
-- [ ] T019 [P] [US2] Integration test for save/retrieve answers in src/MAA.Tests/Integration/SessionApiIntegrationTests.cs
+- [X] T018 [P] [US2] Unit tests for SessionDataSchema validation in src/MAA.Tests/Unit/Sessions/SessionDataSchemaTests.cs
+- [X] T019 [P] [US2] Integration test for save/retrieve answers in src/MAA.Tests/Integration/SessionApiIntegrationTests.cs
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Implement SaveAnswerCommand handler in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
-- [ ] T021 [US2] Implement GetAnswersQuery in src/MAA.Application/Sessions/Queries/GetAnswersQuery.cs
-- [ ] T022 [US2] Implement SessionAnswersController endpoints in src/MAA.API/Controllers/SessionAnswersController.cs
-- [ ] T023 [US2] Add answer validation rules in src/MAA.Application/Sessions/Validators/SaveAnswerCommandValidator.cs
+- [X] T020 [US2] Implement SaveAnswerCommand handler in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
+- [X] T021 [US2] Implement GetAnswersQuery in src/MAA.Application/Sessions/Queries/GetAnswersQuery.cs
+- [X] T022 [US2] Implement SessionAnswersController endpoints in src/MAA.API/Controllers/SessionAnswersController.cs
+- [X] T023 [US2] Add answer validation rules in src/MAA.Application/Sessions/Validators/SaveAnswerCommandValidator.cs
 
 **Checkpoint**: Session answers persist and are retrievable independently.
 

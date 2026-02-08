@@ -76,7 +76,7 @@ public class MappingProfile : Profile
         // SessionAnswer -> SessionAnswerDto
         CreateMap<SessionAnswer, SessionAnswerDto>()
             .ForMember(
-                dest => dest.AnswerPlain,
+                dest => dest.AnswerValue,
                 opt => opt.MapFrom(src => src.IsPii ? null : src.AnswerPlain));
 
         // SessionAnswerDto -> SessionAnswer

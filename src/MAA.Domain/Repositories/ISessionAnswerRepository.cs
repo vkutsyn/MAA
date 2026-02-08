@@ -57,4 +57,24 @@ public interface ISessionAnswerRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Answer if found, null otherwise</returns>
     Task<SessionAnswer?> FindByHashAsync(string hash, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Finds an answer by session ID and field key (for upsert operations).
+    /// </summary>
+    /// <param name="sessionId">Session ID</param>
+    /// <param name="fieldKey">Field key (e.g., "income_annual_2025")</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Answer if found, null otherwise</returns>
+    Task<SessionAnswer?> FindBySessionAndFieldAsync(
+        Guid sessionId, 
+        string fieldKey, 
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a new answer.
+    /// </summary>
+    /// <param name="answer">Answer to create</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created answer with generated ID</returns>
+    Task<SessionAnswer> CreateAsync(SessionAnswer answer, CancellationToken cancellationToken = default);
 }
