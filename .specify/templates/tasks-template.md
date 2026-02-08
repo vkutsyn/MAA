@@ -60,6 +60,12 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
+**Constitution Alignment**: Infrastructure MUST support:
+- Constitution I: Dependency injection, testable layer separation
+- Constitution II: Unit test framework + mocking setup, integration test containers
+- Constitution III (if applicable): Accessibility testing tools (axe DevTools, ARIA roles)
+- Constitution IV: Performance monitoring, caching layer (Redis), database connection pooling
+
 Examples of foundational tasks (adjust based on your project):
 
 - [ ] T004 Setup database schema and migrations framework

@@ -1,0 +1,652 @@
+openapi: 3.0.3
+info:
+  title: MAA Session & Authentication API
+  description: |
+    Session and authentication endpoints for Medicaid Application Assistant.
+    Handles anonymous session creation, session data persistence, encryption, and role-based access control.
+    
+    **Phase 1 (MVP)**: Anonymous sessions only. Phase 5 adds authentication/JWT.
+    **Base URL**: `https://api.maa.example.com/api`
+  version: 1.0.0
+  contact:
+    name: MAA Development Team
+    email: dev@maa.example.com
+
+servers:
+  - url: https://api.maa.example.com/api
+    description: Production API
+  - url: http://localhost:5000/api
+    description: Local development
+
+tags:
+  - name: Sessions
+    description: Session lifecycle management (create, retrieve, update)
+  - name: SessionAnswers
+    description: Applicant responses within a session
+  - name: Health
+    description: Service health checks
+
+paths:
+  /sessions:
+    post:
+      summary: Create a new session
+      operationId: createSession
+      description: |
+        Initiates a new anonymous session for an applicant.
+        Returns session ID (in Set-Cookie) and initial session state.
+        
+        **Business Logic**:
+        - Session state = "pending"
+        - Timeout = 30 minutes (inactivity)
+        - Expires at = NOW + 30 minutes (absolute)
+        - No user_id (anonymous until Phase 5 login)
+        - Encryption key version = current active key
+      tags:
+        - Sessions
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionType:
+                  type: string
+                  enum: [anonymous, authenticated]
+                  default: anonymous
+                  description: Session type (only 'anonymous' supported in Phase 1)
+      responses:
+        '201':
+          description: Session created successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: |
+                Session ID cookie. Format: `session_id=UUID; HttpOnly; Secure; SameSite=Strict; Path=/api; Max-Age=1800`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/{sessionId}:
+    get:
+      summary: Retrieve session details
+      operationId: getSession
+      description: |
+        Fetch current session state, timeout info, and permissions.
+        Requires valid session ID in cookie.
+      tags:
+        - Sessions
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session UUID
+      responses:
+        '200':
+          description: Session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      summary: Update session state
+      operationId: updateSession
+      description: |
+        Update session state machine (pending → in_progress → submitted → completed/abandoned).
+        Also resets inactivity timeout (sliding window).
+        
+        **State Transitions Allowed**:
+        - pending → in_progress
+        - in_progress → in_progress (no change; resets timeout)
+        - in_progress → submitted
+        - in_progress/submitted → abandoned
+        - submitted → completed (after eligibility determination, Phase 2)
+      tags:
+        - Sessions
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  enum: [pending, in_progress, submitted, completed, abandoned]
+                  description: New session state
+              required:
+                - state
+      responses:
+        '200':
+          description: Session updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          description: Invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Concurrent modification (version conflict)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Session modified by another request; please retry"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/{sessionId}/answers:
+    post:
+      summary: Save applicant answer(s)
+      operationId: saveAnswer
+      description: |
+        Persist one or more applicant responses for a questionnaire field.
+        
+        **Business Logic**:
+        - Field type determines encryption: 'income' → encrypted, 'age' → plain
+        - PII fields (income, ssn, address) → encrypted only
+        - Non-PII fields → plain text (no encryption overhead)
+        - SSN → dual storage (encrypted + deterministic hash for lookup)
+        - Session state must be 'in_progress' or 'submitted'
+        - Updates inactivity timeout (sliding window)
+        
+        **Validation**: Run field validation rules (e.g., income >= 0, age 0-150)
+      tags:
+        - SessionAnswers
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/SaveAnswerSingleRequest'
+                - $ref: '#/components/schemas/SaveAnswerBatchRequest'
+      responses:
+        '201':
+          description: Answer(s) saved successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SessionAnswerResponse'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/SessionAnswerResponse'
+        '400':
+          description: Validation error (invalid field type, value out of range, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Optimistic lock conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    get:
+      summary: Retrieve session answers
+      operationId: getAnswers
+      description: |
+        Fetch all answers submitted for a session (with decryption).
+        Useful for wizard "review" page or results calculation.
+        
+        **Security Note**: Only returns answers for current session (no cross-session access).
+      tags:
+        - SessionAnswers
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: fieldKeys
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            collectionFormat: csv
+          description: Optional filter by field keys (e.g., "income_annual_2025,household_size")
+      responses:
+        '200':
+          description: Answers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                  answers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SessionAnswerResponse'
+                  decryptedAt:
+                    type: string
+                    format: date-time
+                    description: Server timestamp when answers were decrypted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sessions/{sessionId}/answers/{answerId}:
+    get:
+      summary: Retrieve single answer
+      operationId: getAnswer
+      tags:
+        - SessionAnswers
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: answerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Answer retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionAnswerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete an answer
+      operationId: deleteAnswer
+      description: Removes single answer from session (e.g., back button in wizard)
+      tags:
+        - SessionAnswers
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: answerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Answer deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /health/ready:
+    get:
+      summary: Health check - ready
+      operationId: healthReady
+      description: |
+        Kubernetes readiness probe. Returns 200 if service is ready to accept traffic.
+        Checks: database connectivity, Key Vault access.
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ready]
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [up, down]
+                      keyVault:
+                        type: string
+                        enum: [up, down]
+        '503':
+          description: Service not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [not_ready]
+                  message:
+                    type: string
+                    example: "Key Vault unavailable"
+
+  /health/live:
+    get:
+      summary: Health check - liveness
+      operationId: healthLive
+      description: Kubernetes liveness probe. Returns 200 if process is alive.
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [alive]
+                  uptime:
+                    type: number
+                    format: double
+                    description: Seconds since startup
+
+components:
+  schemas:
+    SessionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique session identifier
+        state:
+          type: string
+          enum: [pending, in_progress, submitted, completed, abandoned]
+          description: Current session state
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Applicant user ID (null for anonymous sessions)
+        sessionType:
+          type: string
+          enum: [anonymous, authenticated]
+          description: Session type
+        expiresAt:
+          type: string
+          format: date-time
+          description: Absolute session expiry timestamp
+        inactivityTimeoutAt:
+          type: string
+          format: date-time
+          description: Inactivity timeout timestamp (sliding window)
+        isRevoked:
+          type: boolean
+          description: Whether session was explicitly revoked
+        ipAddress:
+          type: string
+          description: Client IP address (for tracking)
+        userAgent:
+          type: string
+          description: Browser user agent string
+        lastActivityAt:
+          type: string
+          format: date-time
+          description: Timestamp of last request
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SessionAnswerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        fieldKey:
+          type: string
+          description: Questionnaire field identifier (e.g., "income_annual_2025")
+        fieldType:
+          type: string
+          enum: [text, number, date, currency, address, select, radio, checkbox]
+          description: Data type of answer
+        answer:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+          description: Decrypted answer value (for display)
+        isPii:
+          type: boolean
+          description: Whether this field contains personally identifiable information
+        validationErrors:
+          type: array
+          items:
+            type: string
+          description: Array of validation error messages (empty if valid)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SaveAnswerSingleRequest:
+      type: object
+      required:
+        - fieldKey
+        - fieldType
+        - answer
+      properties:
+        fieldKey:
+          type: string
+          description: Questionnaire field identifier
+        fieldType:
+          type: string
+          enum: [text, number, date, currency, address, select, radio, checkbox]
+        answer:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+          description: Answer value
+        isPii:
+          type: boolean
+          default: false
+          description: Is this field personally identifiable?
+
+    SaveAnswerBatchRequest:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/SaveAnswerSingleRequest'
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [ValidationError]
+        message:
+          type: string
+          description: Human-readable error message
+        validationErrors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Machine-readable errors by field
+          example:
+            income_annual_2025: ["must be >= 0", "must be <= 9999999"]
+            ssn: ["must be 9 digits", "already exists in system"]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        traceId:
+          type: string
+          description: Correlation ID for debugging
+
+  responses:
+    BadRequest:
+      description: Bad request (invalid parameters)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: |
+        Unauthorized. Session ID missing or invalid.
+        
+        Causes:
+        - Session ID cookie not present
+        - Session ID not found in database
+        - Session expired (compared to expires_at)
+        - Session revoked (is_revoked = true)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: |
+        Internal server error.
+        
+        Possible causes:
+        - Database unreachable
+        - Key Vault unavailable (encryption key unavailable)
+        - Encryption/decryption failure
+        - Unexpected exception
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session ID cookie (HTTP-only)
+
+security:
+  - SessionCookie: []
+
+x-phase-1-notes: |
+  **Phase 1 (MVP) Implementation Notes**:
+  
+  1. **Authentication (Phase 1)**: Only anonymous sessions supported.
+     - No JWT tokens / bearer authorization yet (Phase 5)
+     - Sessions identified solely by session_id cookie
+  
+  2. **Encryption (Phase 1)**: PII fields encrypted before database storage.
+     - Income, assets, disability status → randomized encryption
+     - SSN → dual storage (encrypted + deterministic hash)
+     - Non-PII fields → plain text
+     - See data-model.md for detail
+  
+  3. **Timeouts (Phase 1)**: Fixed 30-minute inactivity timeout.
+     - No sliding window implementation yet
+     - Timeout resets on any request (GET or POST to /api/sessions/{id})
+     - See project plan for Phase 5 sliding window implementation
+  
+  4. **Concurrency (Phase 1)**: Optimistic locking (version column).
+     - Last write wins on conflict
+     - Exception: State transitions validated server-side (pending→in_progress enforced)
+  
+  5. **Error Handling**: All 5xx errors include traceId for correlation with monitoring logs.
+  
+  6. **Rate Limiting (Phase 3)**: Not implemented in Phase 1.
+     - Plan: 10 requests/second per session (prevent brute-force attacks)
+  
+  7. **Logging**: All session operations logged to Application Insights.
+     - Session creation, state changes, answer submission logged with PII scrubbing
+     - Encryption operations logged at DEBUG level only (performance)
+  
+  8. **CORS (Phase 2)**: Not needed for Phase 1 (SPA on same domain).
+     - Will add when frontend assets move to separate origin

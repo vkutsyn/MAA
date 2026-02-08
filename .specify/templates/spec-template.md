@@ -80,6 +80,12 @@
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
   Fill them out with the right functional requirements.
+  
+  Note: All requirements must align with MAA Constitution principles:
+  - Constitution I (Code Quality): Entities, DTOs, or complex logic must be testable in isolation
+  - Constitution II (Testing): Every requirement must have corresponding test scenario(s)
+  - Constitution III (UX Consistency): User-facing requirements must include WCAG 2.1 AA compliance
+  - Constitution IV (Performance): Requirements with performance impact must include explicit SLOs
 -->
 
 ### Functional Requirements
@@ -94,6 +100,18 @@
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+
+### Constitution Compliance Requirements
+
+<!--
+  Constitution Check: Verify this feature aligns with MAA Constitution principles before implementation.
+  See /.specify/memory/constitution.md for full principle definitions.
+-->
+
+- **CONST-I**: All domain entities and complex logic MUST be testable in isolation (no database, HTTP, or I/O dependencies)
+- **CONST-II**: All functional requirements MUST have corresponding test scenarios (unit, integration, or E2E)
+- **CONST-III** (if UI): User-facing features MUST support WCAG 2.1 AA accessibility; include keyboard navigation, screen reader support, color-blind safe designs
+- **CONST-IV** (if performance-sensitive): Features with latency impact MUST define explicit SLOs (response time targets from Constitution IV)
 
 ### Key Entities *(include if feature involves data)*
 

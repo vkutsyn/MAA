@@ -1,0 +1,46 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Build
+bin/
+obj/
+dist/
+build/
+out/
+publish/
+
+# Dependencies
+node_modules/
+packages/
+.nuget/
+
+# IDE
+.vscode/
+.vs/
+.idea/
+*.sln.docstates
+*.user
+*.suo
+*.workspace
+
+# Test
+TestResults/
+coverage/
+*.trx
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Files
+README.md
+LICENSE
+.env
+.env.local
+docker-compose.override.yml

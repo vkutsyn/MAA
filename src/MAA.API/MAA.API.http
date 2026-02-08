@@ -1,0 +1,6 @@
+@MAA.API_HostAddress = http://localhost:5008
+
+GET {{MAA.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
