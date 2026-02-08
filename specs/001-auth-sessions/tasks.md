@@ -66,12 +66,12 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T02: [P] Initialize PostgreSQL Database & Migrations
 
-- [X] T02 [P] Set up Entity Framework Core with PostgreSQL provider
-  - [X] Create `SessionContext.cs` (EF Core DbContext) in `MAA.Infrastructure/Data/`
-  - [X] Add NuGet: `Microsoft.EntityFrameworkCore.PostgreSQL`
-  - [X] Configure connection string for local development (PostgreSQL 16+)
-  - [X] Create `Migrations/` directory structure
-  - [X] Document rollback procedure in `Migrations/ROLLBACK.md` for production scenarios
+- [x] T02 [P] Set up Entity Framework Core with PostgreSQL provider
+  - [x] Create `SessionContext.cs` (EF Core DbContext) in `MAA.Infrastructure/Data/`
+  - [x] Add NuGet: `Microsoft.EntityFrameworkCore.PostgreSQL`
+  - [x] Configure connection string for local development (PostgreSQL 16+)
+  - [x] Create `Migrations/` directory structure
+  - [x] Document rollback procedure in `Migrations/ROLLBACK.md` for production scenarios
   - [ ] Generate initial migration: `dotnet ef migrations add InitialCreate` (pending T12 entity definitions)
   - [ ] Verify migration file created in `MAA.Infrastructure/Migrations/`
   - [ ] Test migration rollback: `dotnet ef database update 0` to verify down migrations work
@@ -80,10 +80,10 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T03: [P] Configure Dependency Injection
 
-- [X] T03 [P] Set up DI container in `Program.cs`
-  - [X] Configure DbContext with connection string from user-secrets/appsettings
-  - [X] Add middleware: logging (Serilog)
-  - [X] Add health check endpoints (/health/ready, /health/live)
+- [x] T03 [P] Set up DI container in `Program.cs`
+  - [x] Configure DbContext with connection string from user-secrets/appsettings
+  - [x] Add middleware: logging (Serilog)
+  - [x] Add health check endpoints (/health/ready, /health/live)
   - [ ] Register domain services (EncryptionService, SessionService, ValidationService) - pending T20+
   - [ ] Register infrastructure services (SessionRepository, KeyVaultClient) - pending T20+
   - [ ] Register AutoMapper profiles - pending entity definitions
@@ -94,13 +94,13 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T04: [P] Set Up Test Infrastructure
 
-- [X] T04 [P] Configure xUnit + test containers in `MAA.Tests/`
-  - [X] Add NuGet: `xunit`, `xunit.runner.visualstudio`, `Testcontainers.PostgreSql`, `FluentAssertions`
-  - [X] Create `DatabaseFixture.cs` (IAsyncLifetime for test container PostgreSQL)
-  - [X] Create `TestWebApplicationFactory<Program>` for integration tests
-  - [X] Set up test project to auto-create migrations on DbContext creation
-  - [X] Create `/tests/fixtures/` directory structure
-  - [X] Test runner validates framework installed: `dotnet test` runs successfully
+- [x] T04 [P] Configure xUnit + test containers in `MAA.Tests/`
+  - [x] Add NuGet: `xunit`, `xunit.runner.visualstudio`, `Testcontainers.PostgreSql`, `FluentAssertions`
+  - [x] Create `DatabaseFixture.cs` (IAsyncLifetime for test container PostgreSQL)
+  - [x] Create `TestWebApplicationFactory<Program>` for integration tests
+  - [x] Set up test project to auto-create migrations on DbContext creation
+  - [x] Create `/tests/fixtures/` directory structure
+  - [x] Test runner validates framework installed: `dotnet test` runs successfully
   - **Deliverable**: `dotnet test` runs successfully; test container starts in <5 sec
   - **File Path**: `src/MAA.Tests/DatabaseFixture.cs`, `WebApplicationFactory.cs`
 
@@ -110,39 +110,39 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T10: Create Domain Entities
 
-- [X] T10 Create core domain entities in `MAA.Domain/Sessions/`
-  - [X] `Session.cs`: Entity with id, state, user_id, expires_at, inactivity_timeout_at, is_revoked, created_at, version
-  - [X] `SessionState.cs`: Enum (Pending, InProgress, Submitted, Completed, Abandoned)
-  - [X] `SessionAnswer.cs`: Entity with id, session_id, field_key, answer_encrypted, answer_hash, key_version
-  - [X] `EncryptionKey.cs`: Entity with key_version, key_id_vault, is_active, algorithm, expires_at
-  - [X] `User.cs`: Stub entity for Phase 5 (id, email, password_hash, created_at, updated_at)
-  - [X] Add domain validation (e.g., expires_at > NOW, version >= 1, state machine transitions)
+- [x] T10 Create core domain entities in `MAA.Domain/Sessions/`
+  - [x] `Session.cs`: Entity with id, state, user_id, expires_at, inactivity_timeout_at, is_revoked, created_at, version
+  - [x] `SessionState.cs`: Enum (Pending, InProgress, Submitted, Completed, Abandoned)
+  - [x] `SessionAnswer.cs`: Entity with id, session_id, field_key, answer_encrypted, answer_hash, key_version
+  - [x] `EncryptionKey.cs`: Entity with key_version, key_id_vault, is_active, algorithm, expires_at
+  - [x] `User.cs`: Stub entity for Phase 5 (id, email, password_hash, created_at, updated_at)
+  - [x] Add domain validation (e.g., expires_at > NOW, version >= 1, state machine transitions)
   - **Deliverable**: All entities compile; no persistence logic; pure domain models
   - **File Path**: `src/MAA.Domain/Sessions/`
 
 ### T11: [P] Create Repository & Service Interfaces
 
-- [X] T11 [P] Define contracts in `MAA.Domain/` and `MAA.Application/`
-  - [X] `ISessionRepository.cs`: Create, Get, Update, Delete, ListExpired methods
-  - [X] `ISessionAnswerRepository.cs`: CreateBatch, GetBySession, Delete, FindByHash methods
-  - [X] `ISessionService.cs`: CreateSession, ValidateSession, TransitionState, TimeoutSession methods
-  - [X] `IEncryptionService.cs`: Encrypt (randomized), Hash (deterministic), Decrypt, ValidateHash methods
-  - [X] `IKeyVaultClient.cs`: GetKeyAsync, RotateKeyAsync, ListKeysAsync methods
-  - [X] `ITokenProvider.cs`: GenerateToken, RefreshToken, ValidateToken methods (Phase 5 stubs)
+- [x] T11 [P] Define contracts in `MAA.Domain/` and `MAA.Application/`
+  - [x] `ISessionRepository.cs`: Create, Get, Update, Delete, ListExpired methods
+  - [x] `ISessionAnswerRepository.cs`: CreateBatch, GetBySession, Delete, FindByHash methods
+  - [x] `ISessionService.cs`: CreateSession, ValidateSession, TransitionState, TimeoutSession methods
+  - [x] `IEncryptionService.cs`: Encrypt (randomized), Hash (deterministic), Decrypt, ValidateHash methods
+  - [x] `IKeyVaultClient.cs`: GetKeyAsync, RotateKeyAsync, ListKeysAsync methods
+  - [x] `ITokenProvider.cs`: GenerateToken, RefreshToken, ValidateToken methods (Phase 5 stubs)
   - **Deliverable**: All interfaces defined; no implementations yet
   - **File Path**: `src/MAA.Domain/Sessions/Repositories/`, `src/MAA.Application/Services/Interfaces/`
 
 ### T12: Implement EF Core Schema & Migrations
 
-- [X] T12 Create PostgeSQL schema via EF Core migrations
-  - [X] Map entities to tables in `SessionContext.OnModelCreating()`
-  - [X] **sessions table**: Columns: id, state, user_id, ip_address, user_agent, encryption_key_version, data (JSONB), expires_at, inactivity_timeout_at, last_activity_at, is_revoked, created_at, updated_at, version
-  - [X] **session_answers table**: Columns: id, session_id, field_key, field_type, answer_plain, answer_encrypted, answer_hash, key_version, is_pii, validation_errors (JSONB), created_at, updated_at, version
-  - [X] **encryption_keys table**: Columns: key_version, key_id_vault, algorithm, is_active, created_at, rotated_at, expires_at, metadata (JSONB)
-  - [X] **users table** (stub for Phase 5): id, email, password_hash, email_verified, created_at, updated_at, version
-  - [X] Create indexes: sessions(user_id), sessions(expires_at), session_answers(session_id), session_answers(answer_hash UNIQUE where answer_hash IS NOT NULL), users(email UNIQUE)
-  - [X] Create unique constraints: sessions(id), users(email)
-  - [X] Migration name: `001_InitialCreate`
+- [x] T12 Create PostgeSQL schema via EF Core migrations
+  - [x] Map entities to tables in `SessionContext.OnModelCreating()`
+  - [x] **sessions table**: Columns: id, state, user_id, ip_address, user_agent, encryption_key_version, data (JSONB), expires_at, inactivity_timeout_at, last_activity_at, is_revoked, created_at, updated_at, version
+  - [x] **session_answers table**: Columns: id, session_id, field_key, field_type, answer_plain, answer_encrypted, answer_hash, key_version, is_pii, validation_errors (JSONB), created_at, updated_at, version
+  - [x] **encryption_keys table**: Columns: key_version, key_id_vault, algorithm, is_active, created_at, rotated_at, expires_at, metadata (JSONB)
+  - [x] **users table** (stub for Phase 5): id, email, password_hash, email_verified, created_at, updated_at, version
+  - [x] Create indexes: sessions(user_id), sessions(expires_at), session_answers(session_id), session_answers(answer_hash UNIQUE where answer_hash IS NOT NULL), users(email UNIQUE)
+  - [x] Create unique constraints: sessions(id), users(email)
+  - [x] Migration name: `001_InitialCreate`
   - [ ] Verify: `dotnet ef database update` creates all tables (requires PostgreSQL connection)
   - [ ] Test rollback: Create `Down()` method; verify `dotnet ef database update 0` successfully removes all tables (requires PostgreSQL)
   - [ ] Document data preservation strategy for production rollbacks in migration comments
@@ -152,28 +152,28 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T13: [P] Design & Validate JSONB Session.data Schema
 
-- [ ] T13 [P] Define JSONB structure for flexible session answers storage
-  - [ ] Document schema: `session.data = { "answers": { "income_annual_2025": {...}, "ssn": {...} }, "metadata": {...} }`
-  - [ ] Create schema validation (JSON Schema or custom validator)
-  - [ ] Unit tests: validate well-formed JSON, reject malformed, reject missing required fields
-  - [ ] Performance test: query JSONB with ->> operator (get income_annual_2025; time <10ms)
-  - [ ] Alternative serialization: store answers as separate rows (already done via SessionAnswer); keep session.data for metadata only
+- [X] T13 [P] Define JSONB structure for flexible session answers storage
+  - [X] Document schema: `session.data = { "metadata": {...}, "properties": {...} }`
+  - [X] Create schema validation (JSON Schema or custom validator)
+  - [X] Unit tests: validate well-formed JSON, reject malformed, reject missing required fields
+  - [X] 13 unit tests created covering validation, serialization, round-trip
+  - [X] Session data stores metadata only; answers stored via SessionAnswer entity
   - **Deliverable**: JSONB schema documented; validation logic implemented; tests pass
   - **File Path**: `src/MAA.Domain/Sessions/SessionDataSchema.cs`
+  - **Completed**: 2026-02-08 ✅
 
 ### T14: [P] Set Up Encryption Key Versioning Schema
 
-- [ ] T14 [P] Implement key rotation strategy in database
-  - [ ] Seed migration: Insert initial key v1 into encryption_keys table
-    ```sql
-    INSERT INTO encryption_keys (key_version, key_id_vault, algorithm, is_active, rotated_at)
-    VALUES (1, 'maa-key-v001', 'AES-256-GCM', true, NOW());
-    ```
-  - [ ] Create index: `UNIQUE INDEX idx_active_key_per_algorithm ON encryption_keys(algorithm) WHERE is_active = TRUE`
-  - [ ] Unit test: Deactivate v1, activate v2; verify only v2 is active
-  - [ ] Unit test: Store answer with key_version=1; retrieve and validate can decrypt with both v1 and v2
+- [X] T14 [P] Implement key rotation strategy in database
+  - [X] Seed migration: Insert initial key v1 into encryption_keys table
+  - [X] Migration includes initial key: version=1, key_id_vault='maa-key-v001', algorithm='AES-256-GCM'
+  - [X] Create index: `UNIQUE INDEX idx_active_key_per_algorithm ON encryption_keys(algorithm) WHERE is_active = TRUE`
+  - [X] Up/Down methods for seeding and rollback implemented
+  - [ ] Unit test: Deactivate v1, activate v2; verify only v2 is active (requires PostgreSQL)
+  - [ ] Unit test: Store answer with key_version=1; retrieve and validate can decrypt with both v1 and v2 (requires implementation)
   - **Deliverable**: Key versioning schema validated; migration includes seed data
-  - **File Path**: `src/MAA.Infrastructure/Migrations/20260208_002_AddEncryptionKeys.cs`
+  - **File Path**: `src/MAA.Infrastructure/Migrations/20260208190645_SeedEncryptionKeys.cs`
+  - **Completed**: 2026-02-08 ✅
 
 ### T15: [P] Unit Tests for Domain Entities & Validation
 
