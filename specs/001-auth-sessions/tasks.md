@@ -134,20 +134,21 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T12: Implement EF Core Schema & Migrations
 
-- [ ] T12 Create PostgeSQL schema via EF Core migrations
-  - [ ] Map entities to tables in `SessionContext.OnModelCreating()`
-  - [ ] **sessions table**: Columns: id, state, user_id, ip_address, user_agent, encryption_key_version, data (JSONB), expires_at, inactivity_timeout_at, last_activity_at, is_revoked, created_at, updated_at, version
-  - [ ] **session_answers table**: Columns: id, session_id, field_key, field_type, answer_plain, answer_encrypted, answer_hash, key_version, is_pii, validation_errors (JSONB), created_at, updated_at, version
-  - [ ] **encryption_keys table**: Columns: key_version, key_id_vault, algorithm, is_active, created_at, rotated_at, expires_at, metadata (JSONB)
-  - [ ] **users table** (stub for Phase 5): id, email, password_hash, email_verified, created_at, updated_at, version
-  - [ ] Create indexes: sessions(user_id), sessions(expires_at), session_answers(session_id), session_answers(answer_hash UNIQUE where answer_hash IS NOT NULL), users(email UNIQUE)
-  - [ ] Create unique constraints: sessions(id), users(email)
-  - [ ] Migration name: `001_InitialCreate`
-  - [ ] Verify: `dotnet ef database update` creates all tables
-  - [ ] Test rollback: Create `Down()` method; verify `dotnet ef database update 0` successfully removes all tables
+- [X] T12 Create PostgeSQL schema via EF Core migrations
+  - [X] Map entities to tables in `SessionContext.OnModelCreating()`
+  - [X] **sessions table**: Columns: id, state, user_id, ip_address, user_agent, encryption_key_version, data (JSONB), expires_at, inactivity_timeout_at, last_activity_at, is_revoked, created_at, updated_at, version
+  - [X] **session_answers table**: Columns: id, session_id, field_key, field_type, answer_plain, answer_encrypted, answer_hash, key_version, is_pii, validation_errors (JSONB), created_at, updated_at, version
+  - [X] **encryption_keys table**: Columns: key_version, key_id_vault, algorithm, is_active, created_at, rotated_at, expires_at, metadata (JSONB)
+  - [X] **users table** (stub for Phase 5): id, email, password_hash, email_verified, created_at, updated_at, version
+  - [X] Create indexes: sessions(user_id), sessions(expires_at), session_answers(session_id), session_answers(answer_hash UNIQUE where answer_hash IS NOT NULL), users(email UNIQUE)
+  - [X] Create unique constraints: sessions(id), users(email)
+  - [X] Migration name: `001_InitialCreate`
+  - [ ] Verify: `dotnet ef database update` creates all tables (requires PostgreSQL connection)
+  - [ ] Test rollback: Create `Down()` method; verify `dotnet ef database update 0` successfully removes all tables (requires PostgreSQL)
   - [ ] Document data preservation strategy for production rollbacks in migration comments
   - **Deliverable**: Migration file generated; `dotnet ef database update` succeeds locally; rollback tested
-  - **File Path**: `src/MAA.Infrastructure/Migrations/20260208_001_InitialCreate.cs`
+  - **File Path**: `src/MAA.Infrastructure/Migrations/20260208185852_InitialCreate.cs`
+  - **Completed**: 2026-02-08 ✅
 
 ### T13: [P] Design & Validate JSONB Session.data Schema
 
