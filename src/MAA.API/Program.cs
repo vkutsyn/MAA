@@ -72,8 +72,9 @@ try
     // Must be before routing to validate all requests except bypass paths
     app.UseMiddleware<SessionMiddleware>();
 
-    // Additional middleware (to be added in later phases):
-    // - app.UseMiddleware<AdminRoleMiddleware>(); // Phase 5: Admin RBAC
+    // US3: Admin role-based access control middleware
+    // Enforces Admin/Reviewer/Analyst roles for /api/admin/* endpoints
+    app.UseMiddleware<AdminRoleMiddleware>();
 
     app.UseHttpsRedirection();
 

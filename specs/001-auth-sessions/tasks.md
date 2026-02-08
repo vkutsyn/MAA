@@ -94,14 +94,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T024 [P] [US3] Unit tests for AdminRoleMiddleware in src/MAA.Tests/Unit/Middleware/AdminRoleMiddlewareTests.cs
-- [ ] T025 [P] [US3] Contract test for admin endpoints in src/MAA.Tests/Contract/AdminApiContractTests.cs
+- [X] T024 [P] [US3] Unit tests for AdminRoleMiddleware in src/MAA.Tests/Unit/Middleware/AdminRoleMiddlewareTests.cs
+- [X] T025 [P] [US3] Contract test for admin endpoints in src/MAA.Tests/Contract/AdminApiContractTests.cs
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Implement AdminRoleMiddleware in src/MAA.API/Middleware/AdminRoleMiddleware.cs
-- [ ] T027 [US3] Implement AdminController stub endpoints in src/MAA.API/Controllers/AdminController.cs
-- [ ] T028 [US3] Wire RBAC middleware in src/MAA.API/Program.cs
+- [X] T026 [US3] Implement AdminRoleMiddleware in src/MAA.API/Middleware/AdminRoleMiddleware.cs
+- [X] T027 [US3] Implement AdminController stub endpoints in src/MAA.API/Controllers/AdminController.cs
+- [X] T028 [US3] Wire RBAC middleware in src/MAA.API/Program.cs
 
 **Checkpoint**: Admin endpoints reject non-admin users independently.
 

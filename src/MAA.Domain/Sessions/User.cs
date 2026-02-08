@@ -29,6 +29,12 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
 
     /// <summary>
+    /// User role for authorization (Admin, Reviewer, Analyst, User).
+    /// </summary>
+    [Required]
+    public UserRole Role { get; set; } = UserRole.User;
+
+    /// <summary>
     /// Whether email has been verified (Phase 5).
     /// </summary>
     public bool EmailVerified { get; set; }
