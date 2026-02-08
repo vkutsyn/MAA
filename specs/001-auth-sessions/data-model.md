@@ -4,6 +4,8 @@
 **Date**: 2026-02-08  
 **Applies To**: [plan.md](./plan.md) Task T12-T15
 
+**Terminology Note**: This document uses domain entity names (e.g., `EncryptionKey`) and database table names (e.g., `encryption_keys`) interchangeably based on context. Entity classes in C# use PascalCase; database tables use snake_case with pluralization.
+
 ---
 
 ## Domain Model Overview
