@@ -1,3 +1,4 @@
+using DotNet.Testcontainers.Configurations;
 using MAA.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
@@ -44,7 +45,6 @@ public class DatabaseFixture : IAsyncLifetime
             .WithDatabase("maapp")
             .WithUsername("maauser")
             .WithPassword("maasecurepass123")
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandSucceeds("pg_isready", "-U", "maauser"))
             .Build();
 
         await _container.StartAsync();

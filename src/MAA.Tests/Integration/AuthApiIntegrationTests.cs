@@ -180,13 +180,13 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         var handler = new JwtSecurityTokenHandler();
         handler.CanReadToken(accessToken).Should().BeTrue("Access token should be valid JWT");
 
-        var jwtToken = handler.ReadJwtToken(accessToken);
+        JwtSecurityToken jwtToken = handler.ReadJwtToken(accessToken!);
         var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub");
         userIdClaim.Should().NotBeNull("Access token should contain user ID claim");
 
         // Verify refresh token in httpOnly cookie
         var cookies = loginResponse.Headers.GetValues("Set-Cookie");
-        cookies.Should().Contain(c => c.Contains("refreshToken"),
+        cookies.Any(c => c.Contains("refreshToken")).Should().BeTrue(
             "Response should set refresh token in HttpOnly cookie");
 
         // Verify session created in database
@@ -291,8 +291,8 @@ public class AuthApiIntegrationTests : IAsyncLifetime
 
         // Verify new token has same user ID
         var handler = new JwtSecurityTokenHandler();
-        var originalJwt = handler.ReadJwtToken(originalAccessToken);
-        var newJwt = handler.ReadJwtToken(newAccessToken);
+        JwtSecurityToken originalJwt = handler.ReadJwtToken(originalAccessToken!);
+        JwtSecurityToken newJwt = handler.ReadJwtToken(newAccessToken!);
 
         var originalUserId = originalJwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
         var newUserId = newJwt.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
@@ -372,7 +372,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
     {
         // Arrange - Create user and 3 sessions
         Guid userId;
-        string firstSessionToken;
+        string firstSessionToken = null!;
 
         using (var context = _databaseFixture.CreateContext())
         {
@@ -483,7 +483,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
 
         // Verify refresh token is cleared
         var cookies = logoutResponse.Headers.GetValues("Set-Cookie");
-        cookies.Should().Contain(c => c.Contains("refreshToken") && c.Contains("expires"),
+        cookies.Any(c => c.Contains("refreshToken") && c.Contains("expires")).Should().BeTrue(
             "Logout should clear refresh token cookie");
     }
 
