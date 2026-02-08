@@ -110,25 +110,25 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T10: Create Domain Entities
 
-- [ ] T10 Create core domain entities in `MAA.Domain/Sessions/`
-  - [ ] `Session.cs`: Entity with id, state, user_id, expires_at, inactivity_timeout_at, is_revoked, created_at, version
-  - [ ] `SessionState.cs`: Enum (Pending, InProgress, Submitted, Completed, Abandoned)
-  - [ ] `SessionAnswer.cs`: Entity with id, session_id, field_key, answer_encrypted, answer_hash, key_version
-  - [ ] `EncryptionKey.cs`: Entity with key_version, key_id_vault, is_active, algorithm, expires_at
-  - [ ] `User.cs`: Stub entity for Phase 5 (id, email, password_hash, created_at, updated_at)
-  - [ ] Add domain validation (e.g., expires_at > NOW, version >= 1)
+- [X] T10 Create core domain entities in `MAA.Domain/Sessions/`
+  - [X] `Session.cs`: Entity with id, state, user_id, expires_at, inactivity_timeout_at, is_revoked, created_at, version
+  - [X] `SessionState.cs`: Enum (Pending, InProgress, Submitted, Completed, Abandoned)
+  - [X] `SessionAnswer.cs`: Entity with id, session_id, field_key, answer_encrypted, answer_hash, key_version
+  - [X] `EncryptionKey.cs`: Entity with key_version, key_id_vault, is_active, algorithm, expires_at
+  - [X] `User.cs`: Stub entity for Phase 5 (id, email, password_hash, created_at, updated_at)
+  - [X] Add domain validation (e.g., expires_at > NOW, version >= 1, state machine transitions)
   - **Deliverable**: All entities compile; no persistence logic; pure domain models
   - **File Path**: `src/MAA.Domain/Sessions/`
 
 ### T11: [P] Create Repository & Service Interfaces
 
-- [ ] T11 [P] Define contracts in `MAA.Domain/` and `MAA.Application/`
-  - [ ] `ISessionRepository.cs`: Create, Get, Update, Delete, ListExpired methods
-  - [ ] `ISessionAnswerRepository.cs`: CreateBatch, GetBySession, Delete methods
-  - [ ] `ISessionService.cs`: CreateSession, ValidateSession, ValidateAnswer, TransitionState methods
-  - [ ] `IEncryptionService.cs`: Encrypt (randomized), Hash (deterministic), Decrypt, ValidateHash methods
-  - [ ] `IKeyVaultClient.cs`: GetKeyAsync, RotateKeyAsync, ListKeysAsync methods
-  - [ ] `ITokenProvider.cs`: GenerateToken, RefreshToken, ValidateToken methods (Phase 5 stubs)
+- [X] T11 [P] Define contracts in `MAA.Domain/` and `MAA.Application/`
+  - [X] `ISessionRepository.cs`: Create, Get, Update, Delete, ListExpired methods
+  - [X] `ISessionAnswerRepository.cs`: CreateBatch, GetBySession, Delete, FindByHash methods
+  - [X] `ISessionService.cs`: CreateSession, ValidateSession, TransitionState, TimeoutSession methods
+  - [X] `IEncryptionService.cs`: Encrypt (randomized), Hash (deterministic), Decrypt, ValidateHash methods
+  - [X] `IKeyVaultClient.cs`: GetKeyAsync, RotateKeyAsync, ListKeysAsync methods
+  - [X] `ITokenProvider.cs`: GenerateToken, RefreshToken, ValidateToken methods (Phase 5 stubs)
   - **Deliverable**: All interfaces defined; no implementations yet
   - **File Path**: `src/MAA.Domain/Sessions/Repositories/`, `src/MAA.Application/Services/Interfaces/`
 
