@@ -8,6 +8,7 @@ namespace MAA.Tests.Unit;
 /// Unit tests for SessionDataSchema validation and serialization.
 /// Tests T13: JSONB schema validation requirements.
 /// </summary>
+[Trait("Category", "Unit")]
 public class SessionDataSchemaTests
 {
     [Fact]
