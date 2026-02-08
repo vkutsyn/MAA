@@ -1,7 +1,7 @@
 # Implementation Plan: E1 - Authentication & Session Management
 
 **Branch**: `001-auth-sessions` | **Date**: 2026-02-08 | **Spec**: [spec.md](./spec.md)  
-**Status**: Planning Phase → Ready for Phase 0 Research  
+**Status**: Phase 0 Research Complete → Ready for Implementation  
 **Input**: Clarified specification from `/speckit.clarify` (all 5 ambiguities resolved 2026-02-08)
 
 ---
@@ -225,10 +225,10 @@ backend/src/
 
 **Justified complexity decisions**:
 
-- **Dual encryption modes** (randomized + deterministic): Needed to balance security (pattern attack prevention) with functionality (SSN exact-match validation). Documented in FR-005.
-- **Tiered session timeouts** (30-min public, 8-hour admin): Needed for distinct security postures. Public users pose integrity risk; admin users are trusted. Justified in FR-003.
-- **Key versioning in DB**: Needed for rolling key rotation without session invalidation. Documented in edge case handling.
-- **Sliding window timeout**: Implemented to match common UX (users expect 30 min from last activity, not 30 min total). Alternative (fixed lifetime) would be simpler but poorer UX; recommendation: sliding window is justified.
+- **Dual encryption modes** (randomized + deterministic): Required for security and functionality. See FR-005 in [spec.md](./spec.md) for full rationale.
+- **Tiered session timeouts** (30-min public, 8-hour admin): Required for distinct security postures. See FR-003 in [spec.md](./spec.md).
+- **Key versioning in DB**: Enables rolling key rotation without session invalidation. Documented in edge case handling.
+- **Sliding window timeout**: Matches common UX expectations (30 min from last activity). Alternative (fixed lifetime) would be simpler but poorer UX.
 
 ---
 
@@ -300,14 +300,14 @@ backend/src/
 **Applies To**: JwtTokenProvider.cs, Phase 5 SPA integration  
 **Key Unknowns**:
 
-- Should access token be stored in JavaScript-accessible location (localStorage) or httpOnly cookie?
-- CSRF mitigation: if stored in httpOnly cookie, how to present token to JavaScript?
+- Should access token be stored in JavaScript-accessible location (localStorage) or HttpOnly cookie?
+- CSRF mitigation: if stored in HttpOnly cookie, how to present token to JavaScript?
 - Refresh token auto-renewal: trigger on page load, on timer, or on 401 response?
 - Attack surface: what's the threat model for stolen refresh tokens vs. stolen access tokens?
 
 **Research Output Expected**:
 
-- Recommendation: httpOnly cookies for both access + refresh (requires custom header injection via fetch interceptor)
+- Recommendation: HttpOnly cookies for both access + refresh (requires custom header injection via fetch interceptor)
 - CSRF mitigation: SameSite=Strict cookie attribute + X-CSRF-Token header validation on state-changing requests
 - Refresh strategy: on 401 response (client receives 401, calls /api/auth/refresh, retries original request)
 

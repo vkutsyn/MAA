@@ -2,8 +2,8 @@
 
 **Epic**: E1 — Authentication & Session Management  
 **Sprint**: MVP Phase 2 (Weeks 1-4)  
-**Total Tasks**: 42  
-**Story Points**: 90-110  
+**Total Tasks**: 46 (45 required + 1 optional)  
+**Story Points**: 95-120  
 **Team Size**: 3-4 engineers  
 **Timeline**: 2-3 weeks
 
@@ -43,7 +43,7 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 - ✅ ASP.NET Core middleware for session management
 - ✅ Dual encryption (randomized + deterministic hash)
 - ✅ Key versioning + 5-min cache strategy
-- ✅ httpOnly cookies + SameSite=Strict pattern
+- ✅ HttpOnly cookies + SameSite=Strict pattern
 - ✅ Test containers + per-test database isolation
 
 ---
@@ -66,36 +66,41 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T02: [P] Initialize PostgreSQL Database & Migrations
 
-- [ ] T02 [P] Set up Entity Framework Core with PostgreSQL provider
-  - [ ] Create `SessionContext.cs` (EF Core DbContext) in `MAA.Infrastructure/Data/`
-  - [ ] Add NuGet: `Microsoft.EntityFrameworkCore.PostgreSQL`
-  - [ ] Configure connection string for local development (PostgreSQL 16+)
-  - [ ] Create `Migrations/` directory structure
-  - [ ] Generate initial migration: `dotnet ef migrations add InitialCreate`
+- [X] T02 [P] Set up Entity Framework Core with PostgreSQL provider
+  - [X] Create `SessionContext.cs` (EF Core DbContext) in `MAA.Infrastructure/Data/`
+  - [X] Add NuGet: `Microsoft.EntityFrameworkCore.PostgreSQL`
+  - [X] Configure connection string for local development (PostgreSQL 16+)
+  - [X] Create `Migrations/` directory structure
+  - [X] Document rollback procedure in `Migrations/ROLLBACK.md` for production scenarios
+  - [ ] Generate initial migration: `dotnet ef migrations add InitialCreate` (pending T12 entity definitions)
   - [ ] Verify migration file created in `MAA.Infrastructure/Migrations/`
-  - **Deliverable**: EF Core configured; migrations framework ready; `dotnet ef database update` succeeds
+  - [ ] Test migration rollback: `dotnet ef database update 0` to verify down migrations work
+  - **Deliverable**: EF Core configured; migrations framework ready; `dotnet ef database update` succeeds; rollback tested
   - **File Path**: `src/MAA.Infrastructure/Data/SessionContext.cs`, `Migrations/`
 
 ### T03: [P] Configure Dependency Injection
 
-- [ ] T03 [P] Set up DI container in `Program.cs`
-  - [ ] Register domain services (EncryptionService, SessionService, ValidationService)
-  - [ ] Register infrastructure services (SessionRepository, KeyVaultClient)
-  - [ ] Configure DbContext with connection string from user-secrets/appsettings
-  - [ ] Add middleware: logging (Serilog), exception handling, session validation
-  - [ ] Register AutoMapper profiles
+- [X] T03 [P] Set up DI container in `Program.cs`
+  - [X] Configure DbContext with connection string from user-secrets/appsettings
+  - [X] Add middleware: logging (Serilog)
+  - [X] Add health check endpoints (/health/ready, /health/live)
+  - [ ] Register domain services (EncryptionService, SessionService, ValidationService) - pending T20+
+  - [ ] Register infrastructure services (SessionRepository, KeyVaultClient) - pending T20+
+  - [ ] Register AutoMapper profiles - pending entity definitions
+  - [ ] Add exception handling middleware - T33
+  - [ ] Add session validation middleware - T25
   - **Deliverable**: `Program.cs` configured; all services resolvable
   - **File Path**: `src/MAA.API/Program.cs`
 
 ### T04: [P] Set Up Test Infrastructure
 
-- [ ] T04 [P] Configure xUnit + test containers in `MAA.Tests/`
-  - [ ] Add NuGet: `xunit`, `xunit.runner.visualstudio`, `Testcontainers.PostgreSql`
-  - [ ] Create `DatabaseFixture.cs` (IAsyncLifetime for test container PostgreSQL)
-  - [ ] Create `WebApplicationFactory<Program>` for integration tests
-  - [ ] Set up test project to auto-create migrations on DbContext creation
-  - [ ] Create `/tests/fixtures/` for test data seeds
-  - [ ] Test runner validates framework installed: `dotnet test --no-build`
+- [X] T04 [P] Configure xUnit + test containers in `MAA.Tests/`
+  - [X] Add NuGet: `xunit`, `xunit.runner.visualstudio`, `Testcontainers.PostgreSql`, `FluentAssertions`
+  - [X] Create `DatabaseFixture.cs` (IAsyncLifetime for test container PostgreSQL)
+  - [X] Create `TestWebApplicationFactory<Program>` for integration tests
+  - [X] Set up test project to auto-create migrations on DbContext creation
+  - [X] Create `/tests/fixtures/` directory structure
+  - [X] Test runner validates framework installed: `dotnet test` runs successfully
   - **Deliverable**: `dotnet test` runs successfully; test container starts in <5 sec
   - **File Path**: `src/MAA.Tests/DatabaseFixture.cs`, `WebApplicationFactory.cs`
 
@@ -105,25 +110,25 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 
 ### T10: Create Domain Entities
 
-- [ ] T10 Create core domain entities in `MAA.Domain/Sessions/`
-  - [ ] `Session.cs`: Entity with id, state, user_id, expires_at, inactivity_timeout_at, is_revoked, created_at, version
-  - [ ] `SessionState.cs`: Enum (Pending, InProgress, Submitted, Completed, Abandoned)
-  - [ ] `SessionAnswer.cs`: Entity with id, session_id, field_key, answer_encrypted, answer_hash, key_version
-  - [ ] `EncryptionKey.cs`: Entity with key_version, key_id_vault, is_active, algorithm, expires_at
-  - [ ] `User.cs`: Stub entity for Phase 5 (id, email, password_hash, created_at, updated_at)
-  - [ ] Add domain validation (e.g., expires_at > NOW, version >= 1)
+- [X] T10 Create core domain entities in `MAA.Domain/Sessions/`
+  - [X] `Session.cs`: Entity with id, state, user_id, expires_at, inactivity_timeout_at, is_revoked, created_at, version
+  - [X] `SessionState.cs`: Enum (Pending, InProgress, Submitted, Completed, Abandoned)
+  - [X] `SessionAnswer.cs`: Entity with id, session_id, field_key, answer_encrypted, answer_hash, key_version
+  - [X] `EncryptionKey.cs`: Entity with key_version, key_id_vault, is_active, algorithm, expires_at
+  - [X] `User.cs`: Stub entity for Phase 5 (id, email, password_hash, created_at, updated_at)
+  - [X] Add domain validation (e.g., expires_at > NOW, version >= 1, state machine transitions)
   - **Deliverable**: All entities compile; no persistence logic; pure domain models
   - **File Path**: `src/MAA.Domain/Sessions/`
 
 ### T11: [P] Create Repository & Service Interfaces
 
-- [ ] T11 [P] Define contracts in `MAA.Domain/` and `MAA.Application/`
-  - [ ] `ISessionRepository.cs`: Create, Get, Update, Delete, ListExpired methods
-  - [ ] `ISessionAnswerRepository.cs`: CreateBatch, GetBySession, Delete methods
-  - [ ] `ISessionService.cs`: CreateSession, ValidateSession, ValidateAnswer, TransitionState methods
-  - [ ] `IEncryptionService.cs`: Encrypt (randomized), Hash (deterministic), Decrypt, ValidateHash methods
-  - [ ] `IKeyVaultClient.cs`: GetKeyAsync, RotateKeyAsync, ListKeysAsync methods
-  - [ ] `ITokenProvider.cs`: GenerateToken, RefreshToken, ValidateToken methods (Phase 5 stubs)
+- [X] T11 [P] Define contracts in `MAA.Domain/` and `MAA.Application/`
+  - [X] `ISessionRepository.cs`: Create, Get, Update, Delete, ListExpired methods
+  - [X] `ISessionAnswerRepository.cs`: CreateBatch, GetBySession, Delete, FindByHash methods
+  - [X] `ISessionService.cs`: CreateSession, ValidateSession, TransitionState, TimeoutSession methods
+  - [X] `IEncryptionService.cs`: Encrypt (randomized), Hash (deterministic), Decrypt, ValidateHash methods
+  - [X] `IKeyVaultClient.cs`: GetKeyAsync, RotateKeyAsync, ListKeysAsync methods
+  - [X] `ITokenProvider.cs`: GenerateToken, RefreshToken, ValidateToken methods (Phase 5 stubs)
   - **Deliverable**: All interfaces defined; no implementations yet
   - **File Path**: `src/MAA.Domain/Sessions/Repositories/`, `src/MAA.Application/Services/Interfaces/`
 
@@ -139,7 +144,9 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
   - [ ] Create unique constraints: sessions(id), users(email)
   - [ ] Migration name: `001_InitialCreate`
   - [ ] Verify: `dotnet ef database update` creates all tables
-  - **Deliverable**: Migration file generated; `dotnet ef database update` succeeds locally
+  - [ ] Test rollback: Create `Down()` method; verify `dotnet ef database update 0` successfully removes all tables
+  - [ ] Document data preservation strategy for production rollbacks in migration comments
+  - **Deliverable**: Migration file generated; `dotnet ef database update` succeeds locally; rollback tested
   - **File Path**: `src/MAA.Infrastructure/Migrations/20260208_001_InitialCreate.cs`
 
 ### T13: [P] Design & Validate JSONB Session.data Schema
@@ -211,6 +218,18 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
   - **Deliverable**: EncryptionService implements IEncryptionService; all tests pass
   - **File Path**: `src/MAA.Infrastructure/Encryption/EncryptionService.cs`
 
+### T21.5: [P] Provision Azure Key Vault Resource
+
+- [ ] T21.5 [P] Set up Azure Key Vault infrastructure
+  - [ ] Create Azure Key Vault resource (Standard or Premium tier)
+  - [ ] Configure access policies: Grant app service managed identity "Get" and "List" permissions
+  - [ ] Seed initial encryption key: Create secret `maa-key-v001` with AES-256 key value
+  - [ ] Document Key Vault URI in `appsettings.json` template (actual value in Azure App Service settings)
+  - [ ] Test connectivity: Use Azure CLI `az keyvault secret show` to verify access
+  - [ ] Set up key rotation schedule: Document annual rotation procedure
+  - **Deliverable**: Azure Key Vault provisioned; initial key seeded; access verified
+  - **File Path**: `azure-deploy.bicep` (infrastructure-as-code), `docs/KEY_VAULT_SETUP.md`
+
 ### T22: [P] Integrate Azure Key Vault Client
 
 - [ ] T22 [P] Implement `KeyVaultClient.cs` in `MAA.Infrastructure/Security/`
@@ -218,11 +237,12 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
   - [ ] `GetKeyAsync(keyVersion)`: Retrieve key from Key Vault; cache for 5 minutes in IMemoryCache
   - [ ] `RotateKeyAsync()`: Create new key in Key Vault (manual trigger); return new key ID
   - [ ] `ListKeysAsync()`: Retrieve all active keys; useful for testing
-  - [ ] Fallback handling: If Key Vault unavailable, return cached key (with alert logged)
+  - [ ] Fallback handling: If Key Vault unavailable, return cached key and log ERROR with Application Insights alert rule trigger
+  - [ ] Configure alert: Create Application Insights alert "Key Vault Unavailable" → email ops team + Slack notification
   - [ ] Configuration: Accept VaultUri, TenantId, ClientId, ClientSecret from user-secrets
   - [ ] Unit tests: Mock KeyVaultClient; verify cache hit after first call
   - [ ] Integration test (local): Use local development Key Vault or skip in CI
-  - **Deliverable**: KeyVaultClient implements IKeyVaultClient; integration works with Azure CLI credentials
+  - **Deliverable**: KeyVaultClient implements IKeyVaultClient; integration works with Azure CLI credentials; alert configured
   - **File Path**: `src/MAA.Infrastructure/Security/KeyVaultClient.cs`
 
 ### T23: [P] Implement JWT Token Provider (Phase 5 Ready)
@@ -324,14 +344,14 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 ### T32: [P] Implement Admin Role Middleware (Phase 5 Prep)
 
 - [ ] T32 [P] Create `AdminRoleMiddleware.cs` in `MAA.API/Middleware/`
-  - [ ] Extract user role from session (Phase 5: from JWT claim; Phase 1: from query/header for testing)
+  - [ ] Extract user role from session (Phase 5: from JWT claim; Phase 1: from custom header for testing)
   - [ ] For `/api/admin/*` endpoints: require role = "Admin" or "Reviewer"; else return 403 Forbidden
   - [ ] Update SessionMiddleware to extract role (stub for Phase 1)
-  - [ ] Phase 1: Role stored in session.data["role"] or header "X-Role" for testing
+  - [ ] **Phase 1 implementation**: Read from `X-Role` header (for testing only; document as dev-only feature)
   - [ ] Phase 5: Will read from JWT claim
   - [ ] Unit tests: Admin role → 200; User role → 403; No role → 403
   - [ ] Register in Program.cs before SessionsController endpoints
-  - **Deliverable**: Admin role checks in place; 403 responses for unauthorized roles
+  - **Deliverable**: Admin role checks in place; 403 responses for unauthorized roles; X-Role header documented
   - **File Path**: `src/MAA.API/Middleware/AdminRoleMiddleware.cs`
 
 ### T33: [P] Implement Exception Handling Middleware & Error Formatting
@@ -381,9 +401,22 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
     - [ ] GET /api/sessions/{bad_id} → 404
     - [ ] PATCH with invalid state transition → 400
   - [ ] Using: WebApplicationFactory; test database (per-test isolation)
-  - [ ] Performance: Full flow completes in <2 seconds
-  - **Deliverable**: Full workflow tested end-to-end; all CRUD operations verified
+  - [ ] Performance: Full flow completes in <2 seconds; test MUST fail if exceeded (assert elapsed time)
+  - **Deliverable**: Full workflow tested end-to-end; all CRUD operations verified; performance SLO enforced
   - **File Path**: `src/MAA.Tests/Integration/SessionApiIntegrationTests.cs`
+
+### T36: [P] Implement JWT Auto-Refresh Middleware (Phase 5 Ready)
+
+- [ ] T36 [P] Create JWT token auto-refresh logic (scaffolding for Phase 5)
+  - [ ] Detect when access token expires in <5 minutes (read `exp` claim)
+  - [ ] Call `/api/auth/refresh` endpoint with refresh token from HttpOnly cookie
+  - [ ] Update response headers with new access token
+  - [ ] Handle refresh failure: Clear tokens, return 401 (client redirects to login)
+  - [ ] Unit tests: Token near expiration → refresh triggered; refresh fails → 401
+  - [ ] **Phase 1**: Stub implementation (no JWT in Phase 1); interface defined for Phase 5
+  - [ ] Note: Actual refresh flow activates in Phase 5 when JWT authentication enabled
+  - **Deliverable**: Auto-refresh middleware scaffolded; ready for Phase 5 JWT integration
+  - **File Path**: `src/MAA.API/Middleware/JwtRefreshMiddleware.cs`
 
 ---
 
@@ -405,6 +438,19 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
   - [ ] `.dockerignore`: Exclude bin/, obj/, .git/, test results
   - **Deliverable**: Docker images build; `docker-compose up` starts API + PostgreSQL
   - **File Path**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`
+
+### T40.5: [OPTIONAL] Container Security Scanning
+
+- [ ] T40.5 [OPTIONAL] Add container image vulnerability scanning
+  - [ ] Install scanning tool: Trivy (`docker run aquasec/trivy image maa-api:latest`) or Docker Scout
+  - [ ] Scan base image vulnerabilities: `trivy image mcr.microsoft.com/dotnet/aspnet:10-alpine`
+  - [ ] Scan built application image: `trivy image maa-api:latest --severity HIGH,CRITICAL`
+  - [ ] Integrate into CI/CD: Add trivy step to GitHub Actions or Azure Pipelines
+  - [ ] Configure alert threshold: Fail build if CRITICAL vulnerabilities found
+  - [ ] Document remediation process: Update base image, patch dependencies, suppress false positives
+  - [ ] **Phase 1**: Optional (nice-to-have); **Phase 3**: Required for production
+  - **Deliverable**: Container security scanning integrated; vulnerability report generated
+  - **File Path**: `.github/workflows/security-scan.yml`, `docs/SECURITY_SCANNING.md`
 
 ### T41: [P] Azure App Service Configuration & Deployment
 
@@ -451,13 +497,28 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
   - **Deliverable**: Logging + metrics configured; health checks working; dashboards created
   - **File Path**: `src/MAA.API/Program.cs` (Serilog config), Azure portal (dashboards)
 
+### T43: [P] Configure CI/CD Coverage Gates
+
+- [ ] T43 [P] Set up code coverage enforcement in CI/CD pipeline
+  - [ ] Configure coverage threshold in CI pipeline (GitHub Actions or Azure Pipelines)
+  - [ ] **Domain layer**: Minimum 80% coverage (line + branch)
+  - [ ] **Application layer**: Minimum 80% coverage (line + branch)
+  - [ ] **Infrastructure layer**: Minimum 60% coverage
+  - [ ] **API layer**: Minimum 60% coverage
+  - [ ] CI build MUST fail if coverage drops below threshold
+  - [ ] Generate coverage report artifact on each build (upload to pipeline artifacts)
+  - [ ] Add coverage badge to README.md
+  - [ ] Test: Deliberately reduce coverage below threshold; verify build fails
+  - **Deliverable**: CI/CD enforces constitution coverage requirements; builds fail on violations
+  - **File Path**: `.github/workflows/ci.yml` or `azure-pipelines.yml`
+
 ---
 
 ## Success Criteria (End-of-Phase-2)
 
 ✅ **Technical**:
 
-- [ ] All 42 tasks marked complete (green checkboxes)
+- [ ] All 46 tasks marked complete (45 required + 1 optional)
 - [ ] `dotnet build` succeeds with 0 warnings
 - [ ] `dotnet test` passes with ≥80% coverage (Domain + Application layers)
 - [ ] Integration tests pass with test container PostgreSQL

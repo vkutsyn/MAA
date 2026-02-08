@@ -19,7 +19,7 @@ Users should be able to start the eligibility wizard without creating an account
 
 **Acceptance Scenarios**:
 
-1. **Given** a user visits the MAA home page for the first time, **When** the page loads, **Then** a session ID is generated and stored in HTTP-only secure cookie with SameSite=Strict
+1. **Given** a user visits the MAA home page for the first time, **When** the page loads, **Then** a session ID is generated and stored in HttpOnly secure cookie with SameSite=Strict
 2. **Given** a user in an active session making requests, **When** each request is received, **Then** the 30-minute inactivity timer resets (sliding window)
 3. **Given** a user's session with 31 minutes of inactivity, **When** they attempt to access /api/sessions/{id}, **Then** session is invalidated and HTTP 401 Unauthorized is returned
 4. **Given** an admin user with 4 hours of inactivity, **When** they make a request, **Then** session remains valid (8-hour timeout applies)
@@ -96,7 +96,7 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 - **Q1: Session Timeout Strategy** → **A: Tiered Timeouts** — Public users 30 minutes; Admin/Reviewer/Analyst 8 hours (work day)
 - **Q2: Encrypted Fields Scope** → **B: PII Only** — Encrypt income, assets, SSN, disability; leave demographics (age, household size, state) unencrypted
 - **Q3: Encryption Type** → **B: Randomized** — Use randomized encryption for income/assets/disability (prevents pattern attacks); deterministic for SSN only (exact-match queries)
-- **Q4: JWT Token Strategy** → **B: Standard (1h access + 7d refresh)** — Access token expires in 1 hour; refresh token valid 7 days in httpOnly cookie; auto-refresh on expiration
+- **Q4: JWT Token Strategy** → **B: Standard (1h access + 7d refresh)** — Access token expires in 1 hour; refresh token valid 7 days in HttpOnly cookie; auto-refresh on expiration
 - **Q5: Multiple Concurrent Sessions** → **B: Max 3 per user** — Allow up to 3 concurrent sessions per registered user (Phase 5); users can view and revoke sessions remotely
 
 ---
@@ -105,7 +105,7 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 
 ### Functional Requirements
 
-- **FR-001**: System MUST create an anonymous session for each user visit and store session ID in HTTP-only, Secure, SameSite=Strict cookie
+- **FR-001**: System MUST create an anonymous session for each user visit and store session ID in HttpOnly, Secure, SameSite=Strict cookie
 - **FR-002**: Session MUST persist user-entered answers, document metadata, and eligibility results in PostgreSQL JSONB format
 - **FR-003**: Session timeout MUST be tiered based on user type:
   - **Public users (anonymous)**: 30 minutes inactivity → session invalidated (sliding window: inactivity counter resets on each request)
@@ -121,7 +121,7 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 - **FR-008** (Phase 5): Registered users MUST support multiple concurrent sessions (max 3 per user); users can view active sessions (device, IP, login time) and terminate remotely
 - **FR-009** (Phase 5): JWT tokens for registered users:
   - Access token: 1 hour expiration; short-lived; invalidated on password change or explicit logout
-  - Refresh token: 7 days expiration; stored in httpOnly Secure SameSite=Strict cookie; used to obtain new access token without re-authentication
+  - Refresh token: 7 days expiration; stored in HttpOnly Secure SameSite=Strict cookie; used to obtain new access token without re-authentication
   - Auto-refresh: When access token near expiration (<5 min), client auto-refreshes via /api/auth/refresh
 
 ### Constitution Compliance Requirements
