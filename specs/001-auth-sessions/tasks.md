@@ -48,17 +48,17 @@
 
 ### Tests for User Story 1
 
-- [X] T010 [P] [US1] Unit tests for SessionService create/validate/timeout in src/MAA.Tests/Unit/Sessions/SessionServiceTests.cs (assert expired message "Your session expired after 30 minutes. Start a new eligibility check.")
-- [X] T011 [P] [US1] Contract tests for POST/GET /api/sessions in src/MAA.Tests/Contract/SessionApiContractTests.cs
-- [X] T012 [P] [US1] Integration test for session creation and persistence in src/MAA.Tests/Integration/SessionApiIntegrationTests.cs (assert expired message "Your session expired after 30 minutes. Start a new eligibility check.")
+- [x] T010 [P] [US1] Unit tests for SessionService create/validate/timeout in src/MAA.Tests/Unit/Sessions/SessionServiceTests.cs (assert expired message "Your session expired after 30 minutes. Start a new eligibility check.")
+- [x] T011 [P] [US1] Contract tests for POST/GET /api/sessions in src/MAA.Tests/Contract/SessionApiContractTests.cs
+- [x] T012 [P] [US1] Integration test for session creation and persistence in src/MAA.Tests/Integration/SessionApiIntegrationTests.cs (assert expired message "Your session expired after 30 minutes. Start a new eligibility check.")
 
 ### Implementation for User Story 1
 
-- [X] T013 [US1] Implement SessionService in src/MAA.Application/Services/SessionService.cs
-- [X] T014 [US1] Implement CreateSessionCommand handler in src/MAA.Application/Sessions/Commands/CreateSessionCommand.cs
-- [X] T015 [US1] Implement SessionMiddleware with sliding timeout, cookie lookup, and expired message "Your session expired after 30 minutes. Start a new eligibility check." in src/MAA.API/Middleware/SessionMiddleware.cs
-- [X] T016 [US1] Implement SessionsController POST/GET in src/MAA.API/Controllers/SessionsController.cs
-- [X] T017 [US1] Wire middleware order and DI for session flow in src/MAA.API/Program.cs
+- [x] T013 [US1] Implement SessionService in src/MAA.Application/Services/SessionService.cs
+- [x] T014 [US1] Implement CreateSessionCommand handler in src/MAA.Application/Sessions/Commands/CreateSessionCommand.cs
+- [x] T015 [US1] Implement SessionMiddleware with sliding timeout, cookie lookup, and expired message "Your session expired after 30 minutes. Start a new eligibility check." in src/MAA.API/Middleware/SessionMiddleware.cs
+- [x] T016 [US1] Implement SessionsController POST/GET in src/MAA.API/Controllers/SessionsController.cs
+- [x] T017 [US1] Wire middleware order and DI for session flow in src/MAA.API/Program.cs
 
 **Checkpoint**: Anonymous session creation works independently.
 
@@ -72,15 +72,15 @@
 
 ### Tests for User Story 2
 
-- [X] T018 [P] [US2] Unit tests for SessionDataSchema validation in src/MAA.Tests/Unit/Sessions/SessionDataSchemaTests.cs
-- [X] T019 [P] [US2] Integration test for save/retrieve answers in src/MAA.Tests/Integration/SessionApiIntegrationTests.cs
+- [x] T018 [P] [US2] Unit tests for SessionDataSchema validation in src/MAA.Tests/Unit/Sessions/SessionDataSchemaTests.cs
+- [x] T019 [P] [US2] Integration test for save/retrieve answers in src/MAA.Tests/Integration/SessionApiIntegrationTests.cs
 
 ### Implementation for User Story 2
 
-- [X] T020 [US2] Implement SaveAnswerCommand handler in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
-- [X] T021 [US2] Implement GetAnswersQuery in src/MAA.Application/Sessions/Queries/GetAnswersQuery.cs
-- [X] T022 [US2] Implement SessionAnswersController endpoints in src/MAA.API/Controllers/SessionAnswersController.cs
-- [X] T023 [US2] Add answer validation rules in src/MAA.Application/Sessions/Validators/SaveAnswerCommandValidator.cs
+- [x] T020 [US2] Implement SaveAnswerCommand handler in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
+- [x] T021 [US2] Implement GetAnswersQuery in src/MAA.Application/Sessions/Queries/GetAnswersQuery.cs
+- [x] T022 [US2] Implement SessionAnswersController endpoints in src/MAA.API/Controllers/SessionAnswersController.cs
+- [x] T023 [US2] Add answer validation rules in src/MAA.Application/Sessions/Validators/SaveAnswerCommandValidator.cs
 
 **Checkpoint**: Session answers persist and are retrievable independently.
 
@@ -94,14 +94,14 @@
 
 ### Tests for User Story 3
 
-- [X] T024 [P] [US3] Unit tests for AdminRoleMiddleware in src/MAA.Tests/Unit/Middleware/AdminRoleMiddlewareTests.cs
-- [X] T025 [P] [US3] Contract test for admin endpoints in src/MAA.Tests/Contract/AdminApiContractTests.cs
+- [x] T024 [P] [US3] Unit tests for AdminRoleMiddleware in src/MAA.Tests/Unit/Middleware/AdminRoleMiddlewareTests.cs
+- [x] T025 [P] [US3] Contract test for admin endpoints in src/MAA.Tests/Contract/AdminApiContractTests.cs
 
 ### Implementation for User Story 3
 
-- [X] T026 [US3] Implement AdminRoleMiddleware in src/MAA.API/Middleware/AdminRoleMiddleware.cs
-- [X] T027 [US3] Implement AdminController stub endpoints in src/MAA.API/Controllers/AdminController.cs
-- [X] T028 [US3] Wire RBAC middleware in src/MAA.API/Program.cs
+- [x] T026 [US3] Implement AdminRoleMiddleware in src/MAA.API/Middleware/AdminRoleMiddleware.cs
+- [x] T027 [US3] Implement AdminController stub endpoints in src/MAA.API/Controllers/AdminController.cs
+- [x] T028 [US3] Wire RBAC middleware in src/MAA.API/Program.cs
 
 **Checkpoint**: Admin endpoints reject non-admin users independently.
 
@@ -115,16 +115,16 @@
 
 ### Tests for User Story 4
 
-- [X] T029 [P] [US4] Unit tests for EncryptionService in src/MAA.Tests/Unit/Encryption/EncryptionServiceTests.cs
-- [X] T030 [P] [US4] Integration tests for encryption roundtrip and key rotation in src/MAA.Tests/Integration/EncryptionEndToEndTests.cs
+- [x] T029 [P] [US4] Unit tests for EncryptionService in src/MAA.Tests/Unit/Encryption/EncryptionServiceTests.cs
+- [x] T030 [P] [US4] Integration tests for encryption roundtrip and key rotation in src/MAA.Tests/Integration/EncryptionEndToEndTests.cs
 
 ### Implementation for User Story 4
 
-- [X] T031 [US4] Implement EncryptionService in src/MAA.Infrastructure/Encryption/EncryptionService.cs
-- [X] T032 [US4] Implement KeyVaultClient in src/MAA.Infrastructure/Security/KeyVaultClient.cs
-- [X] T033 [US4] Enable pgcrypto extension in migrations in src/MAA.Infrastructure/Migrations/
-- [X] T034 [US4] Apply encryption in SaveAnswerCommand flow in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
-- [X] T035 [US4] Handle EncryptionException in src/MAA.API/Middleware/GlobalExceptionHandlerMiddleware.cs
+- [x] T031 [US4] Implement EncryptionService in src/MAA.Infrastructure/Encryption/EncryptionService.cs
+- [x] T032 [US4] Implement KeyVaultClient in src/MAA.Infrastructure/Security/KeyVaultClient.cs
+- [x] T033 [US4] Enable pgcrypto extension in migrations in src/MAA.Infrastructure/Migrations/
+- [x] T034 [US4] Apply encryption in SaveAnswerCommand flow in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
+- [x] T035 [US4] Handle EncryptionException in src/MAA.API/Middleware/GlobalExceptionHandlerMiddleware.cs
 
 **Checkpoint**: PII encryption is enforced and verified independently.
 
@@ -138,16 +138,16 @@
 
 ### Tests for User Story 5
 
-- [X] T036 [P] [US5] Unit tests for JwtTokenProvider in src/MAA.Tests/Unit/Security/JwtTokenProviderTests.cs
-- [X] T037 [P] [US5] Integration tests for login/refresh/logout in src/MAA.Tests/Integration/AuthApiIntegrationTests.cs
+- [x] T036 [P] [US5] Unit tests for JwtTokenProvider in src/MAA.Tests/Unit/Security/JwtTokenProviderTests.cs
+- [x] T037 [P] [US5] Integration tests for login/refresh/logout in src/MAA.Tests/Integration/AuthApiIntegrationTests.cs
 
 ### Implementation for User Story 5
 
-- [X] T038 [US5] Implement JwtTokenProvider in src/MAA.Infrastructure/Security/JwtTokenProvider.cs
-- [X] T039 [US5] Implement AuthController endpoints in src/MAA.API/Controllers/AuthController.cs
-- [X] T040 [US5] Enforce max 3 sessions and list/revoke endpoints in src/MAA.Application/Services/SessionService.cs and src/MAA.API/Controllers/AuthController.cs
-- [X] T041 [US5] Implement JWT auto-refresh middleware in src/MAA.API/Middleware/JwtRefreshMiddleware.cs
-- [X] T042 [US5] Extend OpenAPI contract for auth endpoints in specs/001-auth-sessions/contracts/sessions-api.openapi.yaml
+- [x] T038 [US5] Implement JwtTokenProvider in src/MAA.Infrastructure/Security/JwtTokenProvider.cs
+- [x] T039 [US5] Implement AuthController endpoints in src/MAA.API/Controllers/AuthController.cs
+- [x] T040 [US5] Enforce max 3 sessions and list/revoke endpoints in src/MAA.Application/Services/SessionService.cs and src/MAA.API/Controllers/AuthController.cs
+- [x] T041 [US5] Implement JWT auto-refresh middleware in src/MAA.API/Middleware/JwtRefreshMiddleware.cs
+- [x] T042 [US5] Extend OpenAPI contract for auth endpoints in specs/001-auth-sessions/contracts/sessions-api.openapi.yaml
 
 **Checkpoint**: Registered user sessions are enforced and testable independently.
 
