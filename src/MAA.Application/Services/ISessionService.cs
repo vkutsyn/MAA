@@ -63,4 +63,10 @@ public interface ISessionService
     /// <param name="sessionId">Session ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task ResetInactivityTimeoutAsync(Guid sessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the standard CONST-III compliant session timeout error message.
+    /// </summary>
+    /// <returns>Session timeout error message</returns>
+    Task<string> GetSessionTimeoutMessageAsync();
 }

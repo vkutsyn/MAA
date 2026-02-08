@@ -43,4 +43,8 @@ README.md
 LICENSE
 .env
 .env.local
+.env*
+Dockerfile*
+.dockerignore
 docker-compose.override.yml
+*.log*

@@ -1,3 +1,7 @@
+using MAA.API.Middleware;
+using MAA.Application.Services;
+using MAA.Application.Sessions;
+using MAA.Domain.Repositories;
 using MAA.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -28,16 +32,19 @@ try
         )
     );
 
-    // Register domain services (placeholder - will be implemented in later tasks)
-    // builder.Services.AddScoped<ISessionService, SessionService>();
-    // builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+    // Register repositories
+    builder.Services.AddScoped<ISessionRepository, SessionRepository>();
+    builder.Services.AddScoped<ISessionAnswerRepository, SessionAnswerRepository>();
+
+    // Add AutoMapper
+    builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+    // Register domain services
+    builder.Services.AddScoped<ISessionService, SessionService>();
+    // builder.Services.AddScoped<IEncryptionService, EncryptionService>(); // To be implemented in Phase 2
 
     // Register infrastructure services (placeholder)
-    // builder.Services.AddScoped<ISessionRepository, SessionRepository>();
-    // builder.Services.AddScoped<IKeyVaultClient, KeyVaultClient>();
-
-    // Add AutoMapper (placeholder)
-    // builder.Services.AddAutoMapper(typeof(Program));
+    // builder.Services.AddScoped<IKeyVaultClient, KeyVaultClient>(); // To be implemented in Phase 3
 
     // Add controllers
     builder.Services.AddControllers();
@@ -51,10 +58,15 @@ try
         app.UseDeveloperExceptionPage();
     }
 
-    // Middleware will be added in later tasks:
-    // - app.UseMiddleware<SessionMiddleware>();
-    // - app.UseMiddleware<AdminRoleMiddleware>();
-    // - app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+    // Global exception handler middleware
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // Session validation middleware - validates session cookies and timeouts
+    // Must be before routing to validate all requests except bypass paths
+    app.UseMiddleware<SessionMiddleware>();
+
+    // Additional middleware (to be added in later phases):
+    // - app.UseMiddleware<AdminRoleMiddleware>(); // Phase 5: Admin RBAC
 
     app.UseHttpsRedirection();
 
