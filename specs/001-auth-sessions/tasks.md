@@ -72,11 +72,12 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
   - [x] Configure connection string for local development (PostgreSQL 16+)
   - [x] Create `Migrations/` directory structure
   - [x] Document rollback procedure in `Migrations/ROLLBACK.md` for production scenarios
-  - [ ] Generate initial migration: `dotnet ef migrations add InitialCreate` (pending T12 entity definitions)
-  - [ ] Verify migration file created in `MAA.Infrastructure/Migrations/`
-  - [ ] Test migration rollback: `dotnet ef database update 0` to verify down migrations work
+  - [x] Generate initial migration: `dotnet ef migrations add InitialCreate` (completed in T12)
+  - [x] Verify migration file created in `MAA.Infrastructure/Migrations/` (2 migrations created)
+  - [x] Test migration rollback: `dotnet ef database update 0` to verify down migrations work
   - **Deliverable**: EF Core configured; migrations framework ready; `dotnet ef database update` succeeds; rollback tested
   - **File Path**: `src/MAA.Infrastructure/Data/SessionContext.cs`, `Migrations/`
+  - **Completed**: 2026-02-08 ✅
 
 ### T03: [P] Configure Dependency Injection
 
