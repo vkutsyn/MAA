@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="MAA.API/MAA.API.csproj" />
+  <Project Path="MAA.Application/MAA.Application.csproj" />
+  <Project Path="MAA.Domain/MAA.Domain.csproj" />
+  <Project Path="MAA.Infrastructure/MAA.Infrastructure.csproj" />
+  <Project Path="MAA.Tests/MAA.Tests.csproj" />
+</Solution>

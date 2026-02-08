@@ -27,35 +27,31 @@
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
-## Constitution Check _(GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.)_
+## Constitution Check *(GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.)*
 
 **Constitution Reference**: See [MAA Constitution](/.specify/memory/constitution.md) for full principle definitions.
 
 ### Principle Alignment Assessment
 
 **I. Code Quality & Clean Architecture**
-
 - [ ] Domain logic can be isolated from I/O (testable without DB/HTTP)
 - [ ] Dependencies are explicitly injected (no service locator pattern)
 - [ ] No classes exceed ~300 lines; single responsibility clear
 - [ ] DTO contracts explicitly defined (backend) or type-safe (frontend)
 
 **II. Test-First Development**
-
 - [ ] Test scenarios defined in spec before implementation begins
 - [ ] Unit tests target domain/application layers (80%+ coverage planned)
 - [ ] Integration tests cover cross-layer flows (handlers + database, components + hooks)
 - [ ] All async operations tested for success AND error paths
 
 **III. UX Consistency & Accessibility (if user-facing)**
-
 - [ ] Design meets WCAG 2.1 AA (semantic HTML, keyboard nav, screen reader support)
 - [ ] Mobile-first responsive design (375px → 1920px)
 - [ ] Plain language (no unexplained jargon; error messages actionable)
 - [ ] Consistent component usage (shadcn/ui + Tailwind); no custom component behavior
 
 **IV. Performance & Scalability (if performance-sensitive)**
-
 - [ ] Response time SLOs defined (align with Constitution targets: ≤2s eligibility, ≤500ms interactions)
 - [ ] Caching strategy documented (Redis for immutable data, React Query for server state)
 - [ ] Database queries indexed on common filters (state_id, eligibility_status, created_at)
@@ -78,7 +74,6 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -129,7 +124,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
-| -------------------------- | ------------------ | ------------------------------------ |
-| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
