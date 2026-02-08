@@ -407,6 +407,352 @@ paths:
                     format: double
                     description: Seconds since startup
 
+  /auth/register:
+    post:
+      summary: Register a new user account (Phase 5)
+      operationId: registerUser
+      description: |
+        Creates a new user account with email and password.
+        Password must be at least 8 characters.
+        Email must be unique.
+
+        **Business Logic**:
+        - User role = "User" (default for new accounts)
+        - Email is encrypted before storage
+        - Password is hashed with bcrypt
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - fullName
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Password (min 8 chars, must include uppercase, lowercase, digit, special char)
+                fullName:
+                  type: string
+                  description: User full name
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    format: uuid
+                    description: New user ID
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Conflict - Email already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Email is already registered"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/login:
+    post:
+      summary: Login user with email and password (Phase 5)
+      operationId: loginUser
+      description: |
+        Authenticates user and returns JWT access token + refresh token.
+        Refresh token stored in HttpOnly secure cookie.
+        Enforces max 3 concurrent sessions per user - returns 409 if exceeded.
+
+        **Business Logic**:
+        - Access token expires in 1 hour
+        - Refresh token expires in 7 days (HttpOnly cookie)
+        - Authenticated session created with 8-hour timeout
+        - Max 3 concurrent sessions per user (Phase 5)
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        "200":
+          description: Login successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: |
+                Refresh token cookie. Format: `refreshToken=JWT; HttpOnly; Secure; SameSite=Strict; Path=/api; Max-Age=604800`
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    description: JWT access token (1 hour expiration)
+                  tokenType:
+                    type: string
+                    enum: [Bearer]
+                  expiresIn:
+                    type: integer
+                    format: int32
+                    description: Token expiration in seconds (3600 = 1 hour)
+                  refreshToken:
+                    type: string
+                    description: JWT refresh token (7 days expiration) - also in cookie
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Unauthorized - Invalid email or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid email or password"
+        "409":
+          description: Conflict - Max 3 concurrent sessions exceeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "You're logged in on 3 devices. End another session to continue?"
+                  activeSessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sessionId:
+                          type: string
+                          format: uuid
+                        device:
+                          type: string
+                          example: "Chrome on Windows"
+                        ipAddress:
+                          type: string
+                          example: "192.168.1.100"
+                        loginTime:
+                          type: string
+                          format: date-time
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token using refresh token (Phase 5)
+      operationId: refreshToken
+      description: |
+        Issues new access token using valid refresh token.
+        Refresh token can be provided in request body or extracted from cookie.
+
+        **Business Logic**:
+        - New access token expires in 1 hour
+        - Refresh token remains valid for 7 days
+        - Can be called before token expires for pre-emptive refresh
+      tags:
+        - Authentication
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh token (optional - uses cookie if not provided)
+      responses:
+        "200":
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    description: New JWT access token
+                  tokenType:
+                    type: string
+                    enum: [Bearer]
+                  expiresIn:
+                    type: integer
+                    format: int32
+                    description: Token expiration in seconds
+        "400":
+          description: Bad Request - Refresh token not provided
+        "401":
+          description: Unauthorized - Refresh token invalid or expired
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/logout:
+    post:
+      summary: Logout user and revoke session (Phase 5)
+      operationId: logoutUser
+      description: |
+        Invalidates current session and clears refresh token.
+        Requires valid access token in Authorization header.
+
+        **Business Logic**:
+        - Current session marked as revoked (IsRevoked = true)
+        - Refresh token cookie cleared
+        - Access token becomes invalid immediately
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: RefreshToken cookie cleared with expires=past
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/sessions:
+    get:
+      summary: List all active sessions for current user (Phase 5)
+      operationId: listUserSessions
+      description: |
+        Returns list of all active (non-revoked) sessions for authenticated user.
+        Useful for showing "logged in on these devices" UI.
+
+        **Business Logic**:
+        - Only returns non-revoked, non-expired sessions
+        - Ordered by login time (newest first)
+        - Max 3 sessions per user enforced at login
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sessionId:
+                          type: string
+                          format: uuid
+                          description: Session identifier
+                        device:
+                          type: string
+                          example: "Chrome on Windows"
+                          description: Device/browser type extracted from user agent
+                        ipAddress:
+                          type: string
+                          example: "192.168.1.100"
+                        loginTime:
+                          type: string
+                          format: date-time
+                        expiresAt:
+                          type: string
+                          format: date-time
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/sessions/{sessionId}:
+    delete:
+      summary: Revoke a specific session remotely (Phase 5)
+      operationId: revokeSession
+      description: |
+        Revokes a specific session, logging out that device.
+        User can revoke any of their own sessions.
+        Useful for "logout from other devices" feature.
+
+        **Business Logic**:
+        - Session marked as revoked (IsRevoked = true)
+        - Session immediately becomes invalid
+        - User on that device must login again
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID to revoke
+      responses:
+        "200":
+          description: Session revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Session revoked"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Session not found or doesn't belong to user
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   schemas:
     SessionResponse:
@@ -612,10 +958,43 @@ components:
       type: apiKey
       in: cookie
       name: session_id
-      description: Session ID cookie (HTTP-only)
+      description: Session ID cookie (HTTP-only) - Phase 1, anonymous sessions
+    
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT bearer token for authenticated users (Phase 5).
+        Access token issued by /auth/login endpoint.
+        Format: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        Token expires in 1 hour - use /auth/refresh to obtain new token.
 
 security:
   - SessionCookie: []
+
+x-phase-5-notes: |
+  **Phase 5 (US5) Authentication Implementation Notes**:
+
+  1. **JWT Tokens**:
+     - Access token: 1 hour expiration, Bearer authentication
+     - Refresh token: 7 days expiration, stored in HttpOnly cookie
+     - Auto-refresh: Client gets X-New-Access-Token header if token was refreshed mid-request
+
+  2. **Concurrent Sessions**:
+     - Max 3 concurrent sessions per user
+     - Fourth login returns 409 Conflict with active session list
+     - Users can revoke sessions remotely via DELETE /api/auth/sessions/{sessionId}
+
+  3. **Auto-Refresh Middleware**:
+     - JwtRefreshMiddleware checks if token expires in <5 minutes
+     - Automatically refreshes if refresh token is valid
+     - Client receives new token in X-New-Access-Token response header
+
+  4. **Security**:
+     - Refresh tokens in HttpOnly, Secure, SameSite=Strict cookies
+     - No access tokens in cookies (mitigates XSS attacks)
+     - HTTPS enforced (Secure flag)
 
 x-phase-1-notes: |
   **Phase 1 (MVP) Implementation Notes**:

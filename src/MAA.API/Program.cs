@@ -39,9 +39,15 @@ try
     // Add AutoMapper
     builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+    // Add memory cache for key caching (US4: Encryption Service)
+    builder.Services.AddMemoryCache();
+
+    // Register infrastructure services (US4: Azure Key Vault integration)
+    builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+
     // Register domain services
     builder.Services.AddScoped<ISessionService, SessionService>();
-    builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // STUB: Full implementation in US4 (T031)
+    builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // US4: Production implementation with Azure Key Vault
 
     // Register command/query handlers (US2: Session Data Persistence)
     builder.Services.AddScoped<MAA.Application.Sessions.Commands.SaveAnswerCommandHandler>();
@@ -49,9 +55,6 @@ try
     
     // Register validators
     builder.Services.AddScoped<MAA.Application.Sessions.Validators.SaveAnswerCommandValidator>();
-
-    // Register infrastructure services (placeholder)
-    // builder.Services.AddScoped<IKeyVaultClient, KeyVaultClient>(); // To be implemented in Phase 3
 
     // Add controllers
     builder.Services.AddControllers();

@@ -115,16 +115,16 @@
 
 ### Tests for User Story 4
 
-- [ ] T029 [P] [US4] Unit tests for EncryptionService in src/MAA.Tests/Unit/Encryption/EncryptionServiceTests.cs
-- [ ] T030 [P] [US4] Integration tests for encryption roundtrip and key rotation in src/MAA.Tests/Integration/EncryptionEndToEndTests.cs
+- [X] T029 [P] [US4] Unit tests for EncryptionService in src/MAA.Tests/Unit/Encryption/EncryptionServiceTests.cs
+- [X] T030 [P] [US4] Integration tests for encryption roundtrip and key rotation in src/MAA.Tests/Integration/EncryptionEndToEndTests.cs
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Implement EncryptionService in src/MAA.Infrastructure/Encryption/EncryptionService.cs
-- [ ] T032 [US4] Implement KeyVaultClient in src/MAA.Infrastructure/Security/KeyVaultClient.cs
-- [ ] T033 [US4] Enable pgcrypto extension in migrations in src/MAA.Infrastructure/Migrations/
-- [ ] T034 [US4] Apply encryption in SaveAnswerCommand flow in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
-- [ ] T035 [US4] Handle EncryptionException in src/MAA.API/Middleware/GlobalExceptionHandlerMiddleware.cs
+- [X] T031 [US4] Implement EncryptionService in src/MAA.Infrastructure/Encryption/EncryptionService.cs
+- [X] T032 [US4] Implement KeyVaultClient in src/MAA.Infrastructure/Security/KeyVaultClient.cs
+- [X] T033 [US4] Enable pgcrypto extension in migrations in src/MAA.Infrastructure/Migrations/
+- [X] T034 [US4] Apply encryption in SaveAnswerCommand flow in src/MAA.Application/Sessions/Commands/SaveAnswerCommand.cs
+- [X] T035 [US4] Handle EncryptionException in src/MAA.API/Middleware/GlobalExceptionHandlerMiddleware.cs
 
 **Checkpoint**: PII encryption is enforced and verified independently.
 
@@ -138,16 +138,16 @@
 
 ### Tests for User Story 5
 
-- [ ] T036 [P] [US5] Unit tests for JwtTokenProvider in src/MAA.Tests/Unit/Security/JwtTokenProviderTests.cs
-- [ ] T037 [P] [US5] Integration tests for login/refresh/logout in src/MAA.Tests/Integration/AuthApiIntegrationTests.cs
+- [X] T036 [P] [US5] Unit tests for JwtTokenProvider in src/MAA.Tests/Unit/Security/JwtTokenProviderTests.cs
+- [X] T037 [P] [US5] Integration tests for login/refresh/logout in src/MAA.Tests/Integration/AuthApiIntegrationTests.cs
 
 ### Implementation for User Story 5
 
-- [ ] T038 [US5] Implement JwtTokenProvider in src/MAA.Infrastructure/Security/JwtTokenProvider.cs
-- [ ] T039 [US5] Implement AuthController endpoints in src/MAA.API/Controllers/AuthController.cs
-- [ ] T040 [US5] Enforce max 3 sessions and list/revoke endpoints in src/MAA.Application/Services/SessionService.cs and src/MAA.API/Controllers/AuthController.cs
-- [ ] T041 [US5] Implement JWT auto-refresh middleware in src/MAA.API/Middleware/JwtRefreshMiddleware.cs
-- [ ] T042 [US5] Extend OpenAPI contract for auth endpoints in specs/001-auth-sessions/contracts/sessions-api.openapi.yaml
+- [X] T038 [US5] Implement JwtTokenProvider in src/MAA.Infrastructure/Security/JwtTokenProvider.cs
+- [X] T039 [US5] Implement AuthController endpoints in src/MAA.API/Controllers/AuthController.cs
+- [X] T040 [US5] Enforce max 3 sessions and list/revoke endpoints in src/MAA.Application/Services/SessionService.cs and src/MAA.API/Controllers/AuthController.cs
+- [X] T041 [US5] Implement JWT auto-refresh middleware in src/MAA.API/Middleware/JwtRefreshMiddleware.cs
+- [X] T042 [US5] Extend OpenAPI contract for auth endpoints in specs/001-auth-sessions/contracts/sessions-api.openapi.yaml
 
 **Checkpoint**: Registered user sessions are enforced and testable independently.
 

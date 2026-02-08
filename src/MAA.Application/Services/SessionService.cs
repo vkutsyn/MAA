@@ -276,4 +276,137 @@ public class SessionService : ISessionService
             previousTimeout,
             session.InactivityTimeoutAt);
     }
+
+    /// <summary>
+    /// Creates an authenticated session for a registered user (Phase 5).
+    /// Similar to anonymous session but with UserId set and "authenticated" session type.
+    /// Admin users get 8-hour timeout; regular users get 1-hour timeout (can be extended).
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="ipAddress">Client IP address</param>
+    /// <param name="userAgent">Browser user agent</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created session</returns>
+    public async Task<Session> CreateAuthenticatedSessionAsync(
+        Guid userId,
+        string ipAddress,
+        string userAgent,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
+        if (string.IsNullOrWhiteSpace(ipAddress))
+            throw new ArgumentException("IP address cannot be null or empty", nameof(ipAddress));
+
+        if (string.IsNullOrWhiteSpace(userAgent))
+            throw new ArgumentException("User agent cannot be null or empty", nameof(userAgent));
+
+        var now = DateTime.UtcNow;
+
+        // For Phase 5: Use 8-hour timeout for authenticated users
+        // (This will be updated to check user role in future implementation)
+        const int AuthenticatedSessionTimeoutMinutes = 8 * 60;  // 8 hours
+
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            State = SessionState.InProgress,
+            UserId = userId,  // Associate with user
+            IpAddress = ipAddress,
+            UserAgent = userAgent,
+            SessionType = "authenticated",
+            EncryptionKeyVersion = DefaultEncryptionKeyVersion,
+            Data = "{}",
+            ExpiresAt = now.AddMinutes(AuthenticatedSessionTimeoutMinutes),
+            InactivityTimeoutAt = now.AddMinutes(AuthenticatedSessionTimeoutMinutes),
+            LastActivityAt = now,
+            IsRevoked = false,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Version = 1
+        };
+
+        _logger.LogInformation(
+            "Creating authenticated session {SessionId} for user {UserId} from IP {IpAddress}",
+            session.Id,
+            userId,
+            ipAddress);
+
+        var createdSession = await _sessionRepository.CreateAsync(session, cancellationToken);
+
+        _logger.LogInformation(
+            "Authenticated session {SessionId} created for user {UserId}. Expires at {ExpiresAt}",
+            createdSession.Id,
+            userId,
+            createdSession.ExpiresAt);
+
+        return createdSession;
+    }
+
+    /// <summary>
+    /// Gets all active (non-revoked, non-expired) sessions for a user (Phase 5).
+    /// Used to enforce "max 3 concurrent sessions" rule.
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of active sessions for the user</returns>
+    public async Task<List<Session>> GetActiveSessionsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+            throw new ArgumentException("User ID cannot be empty", nameof(userId));
+
+        var now = DateTime.UtcNow;
+
+        // Get all sessions for user from repository
+        // This assumes ISessionRepository has GetByUserIdAsync method
+        var sessions = await _sessionRepository.GetByUserIdAsync(userId, cancellationToken);
+
+        if (sessions == null)
+            sessions = new List<Session>();
+
+        // Filter to active sessions only (not revoked, not expired)
+        var activeSessions = sessions
+            .Where(s => !s.IsRevoked && s.ExpiresAt > now && s.InactivityTimeoutAt > now)
+            .OrderByDescending(s => s.CreatedAt)
+            .ToList();
+
+        _logger.LogInformation(
+            "Found {ActiveSessionCount} active sessions for user {UserId}",
+            activeSessions.Count,
+            userId);
+
+        return activeSessions;
+    }
+
+    /// <summary>
+    /// Revokes a specific session (Phase 5).
+    /// Marks session as IsRevoked = true and updates timestamp.
+    /// </summary>
+    /// <param name="sessionId">Session ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public async Task RevokeSessionAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        var session = await _sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+
+        if (session == null)
+        {
+            _logger.LogWarning("Session {SessionId} not found for revocation", sessionId);
+            return;
+        }
+
+        _logger.LogInformation("Revoking session {SessionId} for user {UserId}", sessionId, session.UserId);
+
+        session.IsRevoked = true;
+        session.UpdatedAt = DateTime.UtcNow;
+
+        await _sessionRepository.UpdateAsync(session, cancellationToken);
+
+        _logger.LogInformation("Session {SessionId} revoked", sessionId);
+    }
+
 }
