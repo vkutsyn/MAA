@@ -7,7 +7,7 @@
 
 ---
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Anonymous User Session (Priority: P1)
 
@@ -101,7 +101,7 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 
 ---
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -131,7 +131,7 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 - **CONST-III (UX Consistency)**: Error messages for expired sessions must be clear and actionable ("Your session expired after 30 minutes. Start a new eligibility check.")
 - **CONST-IV (Performance)**: Session lookup must complete in <50ms; token validation <50ms; decryption <100ms even for large encrypted payloads
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Session**:
   - `id` (UUID, primary key)
@@ -157,7 +157,7 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 
 ---
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -175,9 +175,10 @@ Following `/speckit.clarify` workflow, all material ambiguities have been resolv
 
 **Status**: ✅ **Specification Clarified & Ready for Planning**
 
-All material ambiguities have been resolved via `/speckit.clarify` (5 questions answered, 2026-02-08). 
+All material ambiguities have been resolved via `/speckit.clarify` (5 questions answered, 2026-02-08).
 
 **Next Step**: Run `/speckit.plan` to create:
+
 - Detailed implementation plan
 - Task breakdown (T001, T002, etc.)
 - API contract definitions

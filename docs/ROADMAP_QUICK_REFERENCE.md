@@ -9,6 +9,7 @@
 ## 🎯 Quick Navigation
 
 **Choose your role**:
+
 - 👨‍💼 [Product Manager](#product-manager-view)
 - 👨‍💻 [Engineering Lead](#engineering-lead-view)
 - 📊 [Project Manager](#project-manager-view)
@@ -21,6 +22,7 @@
 ### MVP Feature Set (Launch April 2026)
 
 **What users can do**:
+
 ```
 Landing Page (30 sec)
     ↓
@@ -36,6 +38,7 @@ Ready to submit application (print checklist + results)
 ```
 
 **What's NOT in MVP**:
+
 - ❌ PDF application form generation
 - ❌ Full 50-state coverage (only 5 pilots)
 - ❌ Automatic regulation monitoring
@@ -57,14 +60,14 @@ Phase 2 (MVP):        Phase 3:           Phase 4+:
 
 ### Success Metrics
 
-| Metric | MVP Target | Measurement |
-|--------|-----------|-------------|
-| **Wizard Completion Rate** | ≥70% | Users finishing without bounce |
-| **Avg Time to Eligibility** | ≤5 minutes | From start to results |
-| **Document Upload Rate** | ≥50% | Users uploading ≥1 doc |
-| **Mobile Traffic** | ≥60% | Responsive design success |
-| **Brand Attribution Lift** | +25% | AA awareness increase |
-| **Accessibility Score** | WCAG 2.1 AA | Zero violations |
+| Metric                      | MVP Target  | Measurement                    |
+| --------------------------- | ----------- | ------------------------------ |
+| **Wizard Completion Rate**  | ≥70%        | Users finishing without bounce |
+| **Avg Time to Eligibility** | ≤5 minutes  | From start to results          |
+| **Document Upload Rate**    | ≥50%        | Users uploading ≥1 doc         |
+| **Mobile Traffic**          | ≥60%        | Responsive design success      |
+| **Brand Attribution Lift**  | +25%        | AA awareness increase          |
+| **Accessibility Score**     | WCAG 2.1 AA | Zero violations                |
 
 ---
 
@@ -87,7 +90,7 @@ graph TD
     F --> J["E9: Regulation Monitor"]
     E --> G
     E3["E3: Blob Storage"] --> G
-    
+
     style D fill:#90EE90
     style E fill:#90EE90
     style G fill:#90EE90
@@ -98,11 +101,13 @@ graph TD
 ### Phase 1: Foundation (6 weeks)
 
 **Parallel workstreams**:
+
 - **Backend**: Database schema, .NET API scaffold, dependency injection
 - **DevOps**: Azure infrastructure, Blob Storage, Key Vault
 - **Frontend**: React + Vite scaffold, TypeScript setup, component library
 
 **Deliverables**:
+
 - [ ] PostgreSQL schema (users, sessions, rules, documents, logs)
 - [ ] .NET 10 API with clean architecture layers
 - [ ] Authentication endpoints (JWT + sessions)
@@ -117,11 +122,13 @@ graph TD
 ### Phase 2: MVP (8 weeks)
 
 **Parallel workstreams**:
+
 - **Frontend**: Wizard UI, Results page, Document upload UI
 - **Backend**: Eligibility evaluation, document validation, results API
 - **Rules**: Add rules for 4 more states; QA test coverage
 
 **Deliverables**:
+
 - [ ] Eligibility wizard (all question types, mobile-responsive, WCAG 2.1 AA)
 - [ ] Eligibility results API + results page
 - [ ] Document upload + checklist generation
@@ -136,11 +143,13 @@ graph TD
 ### Phase 3: Admin & Compliance (6 weeks)
 
 **Parallel workstreams**:
+
 - **Backend**: Rule evaluation versioning, approval workflow, audit logging
 - **Frontend**: Admin portal UI, rule editor, approval queue
 - **Ops**: Automated backups, compliance monitoring
 
 **Deliverables**:
+
 - [ ] Admin portal with role-based access control
 - [ ] Rule editor (structured form, JSON preview)
 - [ ] Approval workflow (propose → review → activate)
@@ -158,13 +167,13 @@ Week 1-6 (Phase 1):
   Backend: 3-4 engineers (database, API, auth)
   Frontend: 2-3 engineers (scaffold, components)
   DevOps: 1 engineer (infrastructure)
-  
+
 Week 7-14 (Phase 2):
   Backend: 3 engineers (API endpoints, eligibility logic)
   Frontend: 2-3 engineers (wizard, results, document upload)
   Rules: 1 analyst (state rules authoring)
   QA: 1 engineer (testing, performance)
-  
+
 Week 15-20 (Phase 3):
   Backend: 2 engineers (admin APIs, approval workflow)
   Frontend: 1-2 engineers (admin UI)
@@ -194,6 +203,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 ### Release Gates
 
 **Phase 1 Done Gate** (End of Week 6):
+
 - ✅ Auth endpoints working (session + JWT)
 - ✅ Rules engine evaluates 1 state correctly
 - ✅ CI/CD pipeline green (tests, lint, Constitution checks)
@@ -201,6 +211,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - ✅ Frontend scaffold deployed
 
 **Phase 2 Done Gate** (End of Week 14, MVP Launch):
+
 - ✅ Wizard completion rate ≥70%
 - ✅ All 5 pilot state rules QA passed
 - ✅ Document upload working end-to-end
@@ -210,6 +221,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - ✅ User testing shows results are clear/actionable
 
 **Phase 3 Done Gate** (End of Week 20):
+
 - ✅ Admin can create/edit rules without engineering
 - ✅ Approval workflow enforced (no rule goes live without approval)
 - ✅ 10 states live with auto-maintained rules
@@ -218,6 +230,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 ### Budget & Staffing
 
 **MVP (Phases 1-2)**: 14 weeks, ~$300K engineering costs
+
 - 3-4 Backend engineers @ $150K/year = ~$11K/week
 - 2-3 Frontend engineers @ $130K/year = ~$8K/week
 - 1 DevOps engineer @ $140K/year = ~2.5K/week
@@ -226,6 +239,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - **Total**: ~$268K over 14 weeks
 
 **Phase 3+**: Steady-state
+
 - Maintenance: 1-2 engineers
 - Rules authoring: 1 analyst (per state)
 - New features: 2-3 engineers (cycles)
@@ -243,18 +257,21 @@ MVP Launch Blockers (Top 3 Risk Items):
 ### Key UX Flows for MVP
 
 #### 1. Landing Page
+
 - Hero section: "Check your Medicaid eligibility in 5 minutes"
 - 3 value props: "Free", "No application needed yet", "Understand your options"
 - CTA: "Check Your Eligibility"
 - Secondary: FAQs, disclaimers
 
 #### 2. State Selection
+
 - Map with state highlighting (if budget allows)
 - "Enter your ZIP" with auto-detect toggle
 - State name, brief info about state program differences
 - Next: "Start Eligibility Quiz"
 
 #### 3. Wizard Question Screens
+
 - Progress bar (Question 5 of 18)
 - Single question per screen
 - Clear question text + "Why do we ask?" tooltip/collapsed section
@@ -263,6 +280,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - Mobile: Large touch targets, vertical scroll, no sideways navigation
 
 #### 4. Results Page
+
 - Status badge (Likely / Possibly / Unlikely Eligible)
 - Program cards (descending likelihood):
   - Program name + icon
@@ -273,6 +291,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - Action: "Ready? Upload Documents to Continue"
 
 #### 5. Document Checklist
+
 - Required documents section (highlighted)
 - Optional documents section
 - For each: name, description, status (needed / uploaded / optional)
@@ -281,6 +300,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - Action: "Continue" or "Save & Resume" (Phase 5)
 
 **Accessibility Requirements** (WCAG 2.1 AA):
+
 - ✅ All text ≥16px (mobile), ≥14px (desktop)
 - ✅ Color + icon/text for status (not color alone)
 - ✅ Form labels explicit; no placeholder-only inputs
@@ -289,6 +309,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - ✅ Mobile: ≥44×44px touch targets; no hover-only interactions
 
 **Design System**:
+
 - shadcn/ui + Tailwind CSS (no custom component designs)
 - Color palette:
   - Primary: Blue (CTAs, active states)
@@ -300,6 +321,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 ### Figma Deliverables
 
 **Phase 1**: High-fidelity mockups
+
 - [ ] Landing page (desktop + mobile)
 - [ ] State selection (desktop + mobile)
 - [ ] 3 question types (text, select, date)
@@ -307,6 +329,7 @@ MVP Launch Blockers (Top 3 Risk Items):
 - [ ] Document checklist
 
 **Phase 2**: Component library
+
 - [ ] Button variants (primary, secondary, danger, disabled)
 - [ ] Form inputs (text, select, checkbox, radio, date)
 - [ ] Cards (program card, document item)

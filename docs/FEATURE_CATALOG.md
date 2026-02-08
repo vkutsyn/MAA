@@ -3,6 +3,7 @@
 **Purpose**: Central catalog of all MAA features, epics, and user stories. Use this to track specification creation and cross-reference features.
 
 **How to Use**:
+
 1. **Find an Epic**: Locate in table below
 2. **View Features**: Expand epic to see features
 3. **Create Spec**: Features marked `📋 Ready` can be specified via `/speckit.specify "feature description"`
@@ -12,27 +13,29 @@
 
 ## Feature Status Legend
 
-| Symbol | Meaning |
-|--------|---------|
-| 📋 | Ready to Specify (use `/speckit.specify` command) |
-| 📝 | Spec Created (link to spec file) |
-| ✅ | Shipped (deployed to production) |
-| ⭐ | Phase marker (indicates which future phase) |
-| 🔴 | Blocked (dependency not met) |
+| Symbol | Meaning                                           |
+| ------ | ------------------------------------------------- |
+| 📋     | Ready to Specify (use `/speckit.specify` command) |
+| 📝     | Spec Created (link to spec file)                  |
+| ✅     | Shipped (deployed to production)                  |
+| ⭐     | Phase marker (indicates which future phase)       |
+| 🔴     | Blocked (dependency not met)                      |
 
 ---
 
 ## Phase 1: Foundation & Infrastructure (MVP Prerequisites)
 
 ### **E1: Authentication & Session Management** 📋 Ready
+
 **Status**: Not Started  
 **Effort**: Medium  
 **Team**: Backend  
-**Duration**: 2-3 weeks  
+**Duration**: 2-3 weeks
 
 **Goal**: Provide secure, stateless authentication for anonymous and registered users
 
 **Features**:
+
 - [ ] F1.1: Session Initialization — Create anonymous session on app load; store in PostgreSQL
 - [ ] F1.2: JWT Token Generation ⭐ Phase 5 — Generate short-lived access token + refresh token
 - [ ] F1.3: Role-Based Authorization — Middleware to enforce Admin/Reviewer/Analyst roles
@@ -42,6 +45,7 @@
 **Dependencies**: Database setup (E3)
 
 **Success Criteria**:
+
 - Anonymous session persists across requests
 - JWT token valid for 1 hour; refresh extends session
 - Sensitive fields encrypted in DB
@@ -50,14 +54,16 @@
 ---
 
 ### **E2: Rules Engine & State Data** 📋 Ready
+
 **Status**: Not Started  
 **Effort**: Large  
 **Team**: Backend + Rules Analyst  
-**Duration**: 4-5 weeks  
+**Duration**: 4-5 weeks
 
 **Goal**: Implement deterministic, versioned rules engine evaluating Medicaid eligibility by state
 
 **Features**:
+
 - [ ] F2.1: Rules Data Model — Define Rule, State, MedicaidProgram, EligibilityResult entities
 - [ ] F2.2: Rules Evaluation Engine — Implement JSONLogic evaluator; handle income/asset thresholds
 - [ ] F2.3: Program Matching Logic — Match user answers to eligible programs
@@ -69,6 +75,7 @@
 **Dependencies**: Database setup
 
 **Success Criteria**:
+
 - Same input → same output (deterministic)
 - Income at FPL threshold → correct eligibility status (test all 50 income variations)
 - Rule versioning: old rule until effective date; new rule after
@@ -78,14 +85,16 @@
 ---
 
 ### **E3: Document Storage Infrastructure** 📋 Ready
+
 **Status**: Not Started  
 **Effort**: Small  
 **Team**: DevOps + Backend  
-**Duration**: 1-2 weeks  
+**Duration**: 1-2 weeks
 
 **Goal**: Provide secure, scalable blob storage for user-uploaded documents
 
 **Features**:
+
 - [ ] F3.1: Blob Storage Setup — Configure Azure Blob Storage with encryption, lifecycle
 - [ ] F3.2: Upload Handler — Stream multipart files to blob storage; validate MIME type
 - [ ] F3.3: Antivirus Scanning ⭐ Phase 2 — Integrate ClamAV or cloud scanner; block infected files
@@ -97,6 +106,7 @@
 **Dependencies**: Infrastructure provisioning (Azure subscriptions)
 
 **Success Criteria**:
+
 - Valid PDF uploads succeed; invalid files rejected
 - Document accessible to uploader only
 - Constitution IV: Upload streaming ≤5 seconds for 15MB
@@ -106,14 +116,16 @@
 ## Phase 2: MVP Launch - User-Facing Core
 
 ### **E4: Eligibility Wizard UI** 📋 Ready
+
 **Status**: Depends on E1, E2  
 **Effort**: Large  
 **Team**: Frontend + UX/Design  
-**Duration**: 4-5 weeks  
+**Duration**: 4-5 weeks
 
 **Goal**: Build interactive, accessible, mobile-responsive wizard guiding users through eligibility questions
 
 **Features**:
+
 - [ ] F4.1: Landing Page — Hero, value props, "Check Eligibility" CTA
 - [ ] F4.2: State Selection — Auto-detect by ZIP; override allowed; state info explained
 - [ ] F4.3: Question Taxonomy — Define question types (text, number, select, multi-select, checkbox, date)
@@ -127,6 +139,7 @@
 **Dependencies**: E1 (authentication/sessions), E2 (rules engine for question taxonomy)
 
 **Success Criteria**:
+
 - Questions render in correct conditional order
 - Backtracking preserves answers
 - WCAG 2.1 AA: axe DevTools shows 0 violations
@@ -136,14 +149,16 @@
 ---
 
 ### **E5: Eligibility Evaluation & Results** 📋 Ready
+
 **Status**: Depends on E2, E4  
 **Effort**: Medium-Large  
 **Team**: Backend + Frontend  
-**Duration**: 3-4 weeks  
+**Duration**: 3-4 weeks
 
 **Goal**: Display eligibility status with matched programs, confidence scoring, plain-language explanations
 
 **Features**:
+
 - [ ] F5.1: Results Page Layout — Display status prominently; list programs by likelihood
 - [ ] F5.2: Program Cards — Show program name, status, confidence %, key details
 - [ ] F5.3: Plain-Language Explanation — Generate "why eligible/ineligible" tied to user data
@@ -156,6 +171,7 @@
 **Dependencies**: E2 (rules engine), E4 (wizard completion)
 
 **Success Criteria**:
+
 - Same input data → same results (deterministic)
 - Explanation references user's specific data ($2,100 not "$X")
 - Constitution II: Results API contract-tested; snapshot tests for explanations
@@ -164,14 +180,16 @@
 ---
 
 ### **E6: Document Management** 📋 Ready
+
 **Status**: Depends on E3, E1, E5  
 **Effort**: Medium  
 **Team**: Frontend + Backend  
-**Duration**: 3-4 weeks  
+**Duration**: 3-4 weeks
 
 **Goal**: Enable users to upload supporting docs, validate completeness, generate state-specific checklists
 
 **Features**:
+
 - [ ] F6.1: Document Checklist Generation — Generate state-specific required docs
 - [ ] F6.2: Checklist Display — Show required vs optional, organized by category
 - [ ] F6.3: Upload Interface — Drag-drop + file picker; multi-file support; progress
@@ -185,6 +203,7 @@
 **Dependencies**: E3 (blob storage), E1 (authentication), E5 (eligibility results)
 
 **Success Criteria**:
+
 - Checklist updates when user matches new program
 - Invalid files rejected with clear message
 - Constitution I: Upload component testable with mock API
@@ -195,14 +214,16 @@
 ## Phase 3: Admin & Compliance Tools
 
 ### **E7: Admin Portal & Authentication** 📋 Ready
+
 **Status**: Depends on E1, E2  
 **Effort**: Medium  
 **Team**: Frontend + Backend  
-**Duration**: 2-3 weeks  
+**Duration**: 2-3 weeks
 
 **Goal**: Provide admin dashboard for compliance analysts and content team
 
 **Features**:
+
 - [ ] F7.1: Admin Login & Authorization — Separate login or role-based access control
 - [ ] F7.2: Admin Dashboard — Overview of system status, pending tasks, recent changes
 - [ ] F7.3: User Management ⭐ Phase 3+ — Create/deactivate admin users; assign roles
@@ -213,6 +234,7 @@
 **Dependencies**: E1 (role-based access), E2 (rules)
 
 **Success Criteria**:
+
 - Non-admin users cannot access admin portal
 - Constitution II: Authorization enforcement unit-tested; integration tests verify roles
 - Constitution IV: Admin pages load ≤3 seconds
@@ -220,14 +242,16 @@
 ---
 
 ### **E8: Rule Management & Approval Workflow** 📋 Ready
+
 **Status**: Depends on E2, E7  
 **Effort**: Large  
 **Team**: Backend + Frontend  
-**Duration**: 3-4 weeks  
+**Duration**: 3-4 weeks
 
 **Goal**: Enable analysts to edit rules; admins to approve changes before activation
 
 **Features**:
+
 - [ ] F8.1: Rule Editor UI — Structured form for income, assets, categoricals; JSON preview
 - [ ] F8.2: Rule Versioning — Track all rule versions; show who changed what when
 - [ ] F8.3: Effective Dates — Schedule rule activation for future date
@@ -240,6 +264,7 @@
 **Dependencies**: E2 (rules engine), E7 (admin portal)
 
 **Success Criteria**:
+
 - Editor saves valid rule in JSON format
 - Preview shows results with sample data
 - Constitution II: Rule validation logic unit-tested
@@ -250,14 +275,16 @@
 ## Phase 4: Automation & Intelligence
 
 ### **E9: Regulation Monitoring System** 📋 Ready
+
 **Status**: Depends on E8, E7  
 **Effort**: Large  
 **Team**: Backend + AI/ML  
-**Duration**: 4-5 weeks  
+**Duration**: 4-5 weeks
 
 **Goal**: Auto-detect Medicaid regulation changes; summarize using AI; flag for approval
 
 **Features**:
+
 - [ ] F9.1: Document Crawler — Periodic job to download state PDFs/web content
 - [ ] F9.2: Change Detection — Diff previous vs. current version; identify changes
 - [ ] F9.3: Change Summarization — AI summarizes changes in plain language
@@ -270,6 +297,7 @@
 **Dependencies**: E8 (rule management), E7 (admin portal), AI/LLM service
 
 **Success Criteria**:
+
 - Crawler fetches documents; detects changes vs. baseline
 - AI summaries produce expected text ("threshold changed from 130% to 135% FPL")
 - Constitution II: Diff logic unit-tested; integration tests for crawler pipeline
@@ -280,14 +308,16 @@
 ## Phase 5: Enhanced User Experience
 
 ### **E10: Application Packet Generation** 📋 Ready
+
 **Status**: Depends on E6, E5  
 **Effort**: Large  
 **Team**: Backend + Frontend  
-**Duration**: 3-4 weeks  
+**Duration**: 3-4 weeks
 
 **Goal**: Generate state-specific Medicaid application forms pre-filled with user data
 
 **Features**:
+
 - [ ] F10.1: PDF Template Management — Store state-specific Medicaid forms
 - [ ] F10.2: Form Fill & Data Mapping — Map user answers to form fields
 - [ ] F10.3: Multi-Program Packet — Generate separate page per matched program
@@ -300,6 +330,7 @@
 **Dependencies**: E6 (documents), E5 (results), PDF generation library (QuestPDF)
 
 **Success Criteria**:
+
 - Form fields pre-filled with user data (no blanks for provided info)
 - Cover letter includes correct program names, state address, deadline
 - Constitution I: PDF generation logic testable; template engine separate
@@ -308,14 +339,16 @@
 ---
 
 ### **E11: Document AI Processing** 📋 Ready
+
 **Status**: Depends on E6  
 **Effort**: Large  
 **Team**: Backend + AI/ML  
-**Duration**: 4-5 weeks  
+**Duration**: 4-5 weeks
 
 **Goal**: Auto-extract information from uploaded docs using OCR; classify types; score completeness
 
 **Features**:
+
 - [ ] F11.1: OCR Engine Setup — Integrate Tesseract or Azure Computer Vision
 - [ ] F11.2: Text Extraction — Extract key fields (name, date, account #, amounts)
 - [ ] F11.3: Document Type Classification — Classify as pay stub/bank statement/ID/etc.
@@ -327,6 +360,7 @@
 **Dependencies**: E6 (documents), OCR library (Tesseract), Async job infrastructure
 
 **Success Criteria**:
+
 - OCR extracts name, date, amount correctly from sample documents
 - Confidence scores reasonable (high for clear text, low for blurry)
 - Constitution II: OCR logic unit-tested with sample document images
@@ -335,14 +369,16 @@
 ---
 
 ### **E12: User Accounts & Session Management** 📋 Ready
+
 **Status**: Depends on E1  
 **Effort**: Medium  
 **Team**: Frontend + Backend  
-**Duration**: 2-3 weeks  
+**Duration**: 2-3 weeks
 
 **Goal**: Enable users to create accounts, save progress, resume applications
 
 **Features**:
+
 - [ ] F12.1: Account Registration — Email + password signup form; email confirmation
 - [ ] F12.2: Login & Session — Login form; session established; token refresh
 - [ ] F12.3: Session Persistence — Save wizard answers, documents, results to account
@@ -354,6 +390,7 @@
 **Dependencies**: E1 (authentication with JWT support), Database for user accounts
 
 **Success Criteria**:
+
 - Registration creates user account; email confirmation works
 - Wizard answers saved on submit; resume loads previous answers
 - Constitution II: Session persistence logic tested; resume functionality verified
@@ -362,14 +399,16 @@
 ---
 
 ### **E13: Notification System** 📋 Ready
+
 **Status**: Depends on E12, E9, E6  
 **Effort**: Medium  
 **Team**: Backend + Frontend  
-**Duration**: 2-3 weeks  
+**Duration**: 2-3 weeks
 
 **Goal**: Notify users and admins of important events (rule changes, missing docs, approvals)
 
 **Features**:
+
 - [ ] F13.1: Notification Queue — Background job queue for async delivery
 - [ ] F13.2: Email Delivery — Send emails via SMTP or cloud service (SendGrid, Azure)
 - [ ] F13.3: In-App Alerts — Display alerts on user dashboard; mark as read
@@ -381,6 +420,7 @@
 **Dependencies**: E12 (user accounts), E9 (regulation monitoring), E6 (documents), Email service
 
 **Success Criteria**:
+
 - Email sent on rule change event
 - In-app alert appears and persists until marked read
 - User disables notifications → no more emails
@@ -391,14 +431,16 @@
 ## Phase 6: Analytics & Reporting
 
 ### **E14: Analytics Dashboard & Metrics** 📋 Ready
+
 **Status**: Depends on all previous phases  
 **Effort**: Medium  
 **Team**: Backend + Analytics  
-**Duration**: 3-4 weeks  
+**Duration**: 3-4 weeks
 
 **Goal**: Track system health and user engagement metrics for product decisions
 
 **Features**:
+
 - [ ] F14.1: Event Logging — Log wizard starts, steps, eligibility eval, doc uploads
 - [ ] F14.2: Metrics Pipeline — Aggregate events into metrics (counts, averages, percentiles)
 - [ ] F14.3: Admin Dashboard — Visualize key metrics (total checks, checks by state, completion rate)
@@ -411,6 +453,7 @@
 **Dependencies**: All phases (event logging across system), Analytics database, Visualization tool
 
 **Success Criteria**:
+
 - Events logged on user actions (start, complete step, etc.)
 - Metrics aggregated correctly (counts, averages)
 - Dashboard displays correct totals and trends
@@ -432,6 +475,7 @@
 5. Add link to created spec file
 
 **Spec Creation Checklist**:
+
 - ✅ Run `/speckit.specify` and provide feature description
 - ✅ Spec template auto-generates (see: `.specify/templates/spec-template.md`)
 - ✅ Add user stories with P1/P2/P3 priorities
@@ -445,18 +489,22 @@
 ## Specification Status Tracker
 
 **Specs Created** (Update as you go):
+
 - [ ] E1.F1.1 - Session Initialization
 - [ ] E2.F2.1 - Rules Data Model
 - [ ] E4.F4.1 - Landing Page
 - [ ] (Add more as created)
 
 **Specs In Progress**:
+
 - (None yet)
 
 **Specs Ready for Planning**:
+
 - (None yet)
 
 **Shipped Features**:
+
 - (None yet - MVP in progress)
 
 ---
@@ -464,6 +512,7 @@
 ## Quick Reference: Most Used Features
 
 **Top 5 Highest-Value Features for MVP**:
+
 1. **F2.2**: Rules Evaluation Engine (enables all eligibility logic)
 2. **F4.4**: Conditional Question Flow (core user experience)
 3. **F5.3**: Plain-Language Explanation (builds trust)
@@ -471,6 +520,7 @@
 5. **F1.1**: Session Initialization (enables back-end to track users)
 
 **Top 5 Risk Features** (complex, critical path):
+
 1. **F2.7**: Pilot State Rules (regulatory accuracy critical)
 2. **F11.2**: OCR Text Extraction (accuracy affects user experience)
 3. **F9.3**: AI Change Summarization (must summarize correctly)

@@ -10,14 +10,16 @@
 
 **Feature**: Authentication & Session Management (E1) - Foundation epic enabling all public and admin features
 
-**Scope**: 
+**Scope**:
+
 - Anonymous session creation, persistence, and timeout management (30-min sliding window)
 - Role-based access control for admin endpoints (Admin, Reviewer, Analyst roles)
 - Sensitive data encryption (randomized for income/assets/disability; deterministic for SSN)
 - JWT tokens for Phase 5 registered users (1h access + 7d refresh)
 - Multi-device session support (max 3 concurrent sessions per user)
 
-**Technical Approach**: 
+**Technical Approach**:
+
 - ASP.NET Core 10 with dependency injection
 - PostgreSQL JSONB for session storage
 - pgcrypto (PostgreSQL) for field-level encryption
@@ -31,7 +33,8 @@
 ## Technical Context
 
 **Language/Version**: C# 13 / .NET 10  
-**Primary Dependencies**: 
+**Primary Dependencies**:
+
 - ASP.NET Core 10 (authentication middleware, dependency injection)
 - Entity Framework Core 10 (session/user persistence)
 - Npgsql.EntityFrameworkCore.PostgreSQL (PostgreSQL driver)
@@ -44,13 +47,15 @@
 
 **Target Platform**: Linux containers (Docker) + Azure App Service
 
-**Performance Goals**: 
+**Performance Goals**:
+
 - Session lookup: <50ms (p95)
 - Token validation: <50ms (p95)
 - Encryption/decryption: <100ms per field (p95)
 - Auth middleware overhead: <5ms per request
 
 **Constraints**:
+
 - Zero tolerance for data leaks (PII encrypted always)
 - Session data must survive application restart (database-backed)
 - Key rotation must not break old sessions (versioned encryption keys)
@@ -67,6 +72,7 @@
 ### Principle Alignment Assessment
 
 ✅ **I. Code Quality & Clean Architecture**
+
 - [x] Auth handlers testable in isolation (session creation, token validation, encryption/decryption unit testable without database)
 - [x] Dependencies explicitly injected (no service locators; IAuthenticationService, IEncryptionService, ISessionRepository interfaces)
 - [x] No God Objects (separate Session handler, Token handler, Encryption handler; each <300 lines)
@@ -74,17 +80,20 @@
 - [x] No premature optimization (YAGNI: sliding window timeout implemented simply; no complex state machines)
 
 ✅ **II. Test-First Development**
+
 - [x] Acceptance scenarios in spec testable as unit/integration tests
 - [x] Target coverage ≥80% Domain/Application layers (session logic, token generation, encryption core)
 - [x] All edge cases have corresponding test scenario (session expiration, key rotation, concurrency, role changes)
 - [x] Async operations tested for success & error paths (e.g., Azure Key Vault failure → fallback / error response)
 
 ✅ **III. UX Consistency & Accessibility**
+
 - [x] Not directly user-facing (API-only); no WCAG compliance needed
 - [x] Error messages clear & actionable ("Your session expired after 30 minutes. Start a new eligibility check.")
 - [x] Session invalid scenarios handled gracefully (HTTP 401 with message, not silent failures)
 
 ✅ **IV. Performance & Scalability**
+
 - [x] Response time SLOs explicit (<50ms session lookup, <50ms token validation, <100ms encryption)
 - [x] Caching strategy: Encryption keys cached (5-min TTL) to avoid Key Vault lookup per encrypt/decrypt
 - [x] Database: Indexed queries on session.id, user.email, active_sessions.user_id
@@ -203,6 +212,7 @@ backend/src/
 ```
 
 **Structure Rationale**: Clean architecture (Domain → Application → Infrastructure → API) enables:
+
 1. Domain logic testable without dependencies (EncryptionService tested with mock keys)
 2. Repositories abstractable (test with in-memory, integration with PostgreSQL)
 3. Middleware stackable (each responsibility isolated)
@@ -214,6 +224,7 @@ backend/src/
 **Constitution violations**: NONE
 
 **Justified complexity decisions**:
+
 - **Dual encryption modes** (randomized + deterministic): Needed to balance security (pattern attack prevention) with functionality (SSN exact-match validation). Documented in FR-005.
 - **Tiered session timeouts** (30-min public, 8-hour admin): Needed for distinct security postures. Public users pose integrity risk; admin users are trusted. Justified in FR-003.
 - **Key versioning in DB**: Needed for rolling key rotation without session invalidation. Documented in edge case handling.
@@ -228,14 +239,17 @@ backend/src/
 ### Research Questions (5 total)
 
 ### ❓ **R1: ASP.NET Core Authentication Middleware - Best Practices**
+
 **Status**: RESEARCH NEEDED  
 **Applies To**: AuthenticationMiddleware.cs, DI setup, token refresh flow  
 **Key Unknowns**:
+
 - Proper way to implement custom session middleware in .NET 10?
 - How to integrate Azure AD Identity with ASP.NET Core? (Not using for MVP, but want pattern for Phase 5+)
 - Custom cookie persistence strategy in ASP.NET Core (OWASP session fixation prevention)?
 
-**Research Output Expected**: 
+**Research Output Expected**:
+
 - Code pattern for custom session middleware (session ID generation, cookie creation, validation)
 - Token refresh endpoint pattern (when to issue new JWT; when to reject refresh?)
 - Session fixation attack mitigation (regenerate session ID on privilege escalation - Phase 5 importance)
@@ -243,15 +257,18 @@ backend/src/
 ---
 
 ### ❓ **R2: PostgreSQL pgcrypto - Randomized vs. Deterministic Encryption Performance**
+
 **Status**: RESEARCH NEEDED  
 **Applies To**: EncryptionService.cs, database schema design  
 **Key Unknowns**:
+
 - Performance benchmarks: randomized `encrypt()` vs. deterministic (keyed hash)?
 - How to store deterministic hash for SSN comparison without full decryption?
 - Key derivation in pgcrypto: using one master key or per-field keys?
 - Can pgcrypto handle 1000 concurrent encryptions without contention?
 
 **Research Output Expected**:
+
 - Benchmark: randomized encrypt/decrypt on 15MB of income data (target <100ms)
 - Schema pattern: separate column for SSN hash (deterministic, indexed) vs. encrypted SSN (randomized)
 - Load test plan: simulate 1000 concurrent encryption operations
@@ -259,15 +276,18 @@ backend/src/
 ---
 
 ### ❓ **R3: Azure Key Vault Integration with .NET - Key Rotation Strategy**
+
 **Status**: RESEARCH NEEDED  
 **Applies To**: KeyVaultClient.cs, key rotation process  
 **Key Unknowns**:
+
 - How to implement key rotation without decrypting all existing sessions?
 - Caching strategy: what TTL prevents excessive Key Vault API calls while staying secure?
 - Fallback when Key Vault is unavailable: fail-safe or cache behavior?
 - Cost implications: Key Vault API calls scale with concurrent users?
 
 **Research Output Expected**:
+
 - Key versioning pattern: store key_id in session record; rotation adds new key_id; old keys remain until expiration
 - Caching strategy: 5-minute TTL on encryption keys in in-memory IMemoryCache (balances staleness vs. API calls)
 - Backup: if Key Vault unavailable, use cached keys (with alert to ops team)
@@ -275,15 +295,18 @@ backend/src/
 ---
 
 ### ❓ **R4: JWT Token Storage & CSRF Protection in SPA (Phase 5)**
+
 **Status**: RESEARCH NEEDED (Phase 5 planning, but decision needed now)  
 **Applies To**: JwtTokenProvider.cs, Phase 5 SPA integration  
 **Key Unknowns**:
+
 - Should access token be stored in JavaScript-accessible location (localStorage) or httpOnly cookie?
 - CSRF mitigation: if stored in httpOnly cookie, how to present token to JavaScript?
 - Refresh token auto-renewal: trigger on page load, on timer, or on 401 response?
 - Attack surface: what's the threat model for stolen refresh tokens vs. stolen access tokens?
 
 **Research Output Expected**:
+
 - Recommendation: httpOnly cookies for both access + refresh (requires custom header injection via fetch interceptor)
 - CSRF mitigation: SameSite=Strict cookie attribute + X-CSRF-Token header validation on state-changing requests
 - Refresh strategy: on 401 response (client receives 401, calls /api/auth/refresh, retries original request)
@@ -291,15 +314,18 @@ backend/src/
 ---
 
 ### ❓ **R5: xUnit + Entity Framework Core Testing - Test Container PostgreSQL Setup**
+
 **Status**: RESEARCH NEEDED  
 **Applies To**: Integration test infrastructure, SessionPersistenceTests.cs  
 **Key Unknowns**:
+
 - How to set up test container PostgreSQL for each integration test run?
 - Should each test use fresh database (isolated) or shared database (faster)?
 - How to test pgcrypto encryption in test environment (does test PostgreSQL have pgcrypto)?
 - Performance: how long do integration tests take with database per-test pattern?
 
 **Research Output Expected**:
+
 - Test container pattern: Testcontainers.PostgreSql NuGet package, spin up per test class (fixture-based)
 - Migration strategy: auto-run migrations on test DB startup
 - pgcrypto setup: verify test PostgreSQL has pgcrypto extension; load fixtures
@@ -310,7 +336,8 @@ backend/src/
 ### Research Decisions to Lock In
 
 **Decision D1: Encryption Key Management**  
-**Options**: 
+**Options**:
+
 - A. One master key in Key Vault; derive per-field keys
 - B. Separate key per field type (income key, SSN key, disability key) in Key Vault
 - C. Single key for all randomized encryption; separate key for deterministic hashing
@@ -321,6 +348,7 @@ backend/src/
 
 **Decision D2: Session Concurrency Handling**  
 **Options**:
+
 - A. Optimistic locking (version column; last-write-wins)
 - B. Pessimistic locking (row-level lock during update)
 - C. Event sourcing (immutable session history)
@@ -331,6 +359,7 @@ backend/src/
 
 **Decision D3: Password Hashing Algorithm (Phase 5)**  
 **Options**:
+
 - A. bcrypt (industry standard; slow by design)
 - B. PBKDF2 (built into ASP.NET Identity)
 - C. Argon2 (newer, more resistant to GPU attacks)
@@ -348,12 +377,14 @@ backend/src/
 ### Data Model (data-model.md to create)
 
 **Entities to Design**:
+
 - Session (anonymous sessions, Phase 1)
 - User (registered users, Phase 5)
 - EncryptionKey (versioned encryption keys)
 - SessionActivityLog (audit trail, optional Phase 3)
 
 **Key Decisions**:
+
 - Session.data stored as JSONB (flexible schema; supports nested answers, results)
 - Sensitive fields encrypted at column level (income→income_encrypted, ssn→ssn_encrypted)
 - Unique constraints on: Session.id, User.email (unique + case-insensitive)
@@ -364,6 +395,7 @@ backend/src/
 ### API Contracts (contracts/ directory to create)
 
 **Endpoints**:
+
 - **POST /api/sessions** — Create anonymous session; return session ID in cookie + response body
 - **GET /api/sessions/{id}** — Retrieve session data (decrypted); validate session active
 - **POST /api/sessions/{id}/answers** — Save wizard answers to session; encrypt sensitive fields
@@ -380,6 +412,7 @@ backend/src/
 ### Developer Quickstart (quickstart.md to create)
 
 **Contents**:
+
 - Local development setup (Docker Compose with PostgreSQL)
 - Running tests (xUnit, integration tests with test containers)
 - Debugging auth middleware
@@ -395,12 +428,14 @@ backend/src/
 **High-Level Task Categories**:
 
 ### T0x: Setup & Infrastructure (4 tasks)
+
 - T01: Create .NET 10 project structure (Domain, Application, Infrastructure, API layers)
 - T02: Set up PostgreSQL database; initialize migrations framework
 - T03: Configure dependency injection (Autofac or built-in DI container)
 - T04: Set up xUnit + test infrastructure (WebApplicationFactory, test containers)
 
 ### T1x: Domain & Data Model (6 tasks)
+
 - T10: Create Session, User, EncryptionKey domain entities
 - T11: Create ISessionRepository, ITokenProvider, IEncryptionService, IKeyVaultClient interfaces
 - T12: Implement PostgreSQL session storage (EF Core migrations, DbContext)
@@ -409,6 +444,7 @@ backend/src/
 - T15: Unit tests for domain entities
 
 ### T2x: Authentication & Encryption (8 tasks)
+
 - T20: Implement EncryptionService (randomized + deterministic modes)
 - T21: Integrate Azure Key Vault client
 - T22: Implement JwtTokenProvider (token generation, validation, refresh logic - Phase 5 ready)
@@ -419,6 +455,7 @@ backend/src/
 - T27: Performance benchmarking (encryption <100ms, session lookup <50ms)
 
 ### T3x: API Endpoints (6 tasks)
+
 - T30: SessionController (POST /api/sessions, GET /api/sessions/{id}, POST /api/sessions/{id}/answers, DELETE)
 - T31: AuthController (POST /api/auth/login, /refresh, /logout - Phase 5 stubs only)
 - T32: Admin middleware (role-based checks, 403 responses)
@@ -427,6 +464,7 @@ backend/src/
 - T35: Integration tests (full wizard → store answers → retrieve flow)
 
 ### T4x: Deployment & Monitoring (3 tasks)
+
 - T40: Docker setup (Dockerfile, Docker Compose for dev)
 - T41: Azure App Service configuration + Key Vault secrets setup
 - T42: Observability: session metrics, error logging, performance monitoring
@@ -438,6 +476,7 @@ backend/src/
 ## Success Criteria (End-of-Phase-1)
 
 ✅ **Technical**:
+
 - [ ] Anonymous sessions created and persisted (MVP)
 - [ ] Session timeout enforced: 30-min (public), 8-hour (admin)
 - [ ] Sensitive fields encrypted randomized; SSN deterministic; demographics unencrypted
@@ -447,12 +486,14 @@ backend/src/
 - [ ] Performance benchmarks meet SLOs (<50ms session lookup, <100ms encryption)
 
 ✅ **Process**:
+
 - [ ] All Constitution principles verified (code quality, testing, UX, performance)
 - [ ] Code review approved (2+ team leads)
 - [ ] CI/CD pipeline green (build, lint, test, contract validation)
 - [ ] No OWASP Top 10 vulnerabilities (security scan)
 
 ✅ **Documentation**:
+
 - [ ] OpenAPI spec (contracts/auth-api.openapi.yml) complete
 - [ ] Quickstart guide for developers
 - [ ] Inline code comments explaining encryption strategy & edge cases
@@ -489,6 +530,7 @@ Week 4 (1-2 days):
 **Blocked By**: None (independent infrastructure)
 
 **External Dependencies**:
+
 - Azure subscription + Key Vault access
 - PostgreSQL 16+ with pgcrypto extension
 - .NET 10 SDK
@@ -498,19 +540,19 @@ Week 4 (1-2 days):
 
 ## Risks & Mitigation
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|-----------|
-| Key Vault availability down (network/auth issues) | Session creation blocked | Medium | Implement 5-min key cache; alert if stale |
-| Encryption performance fails SLO (<100ms) | Page load slow; user churn | Medium | Early perf testing (Week 1/2); profile bottlenecks |
-| pgcrypto not available in prod PostgreSQL | Deploy fails | Low | Verify during DB provisioning (T02) |
-| JWT token refresh loop (endless 401) | Users stuck | Low | Comprehensive refresh logic tests; timeout handling |
-| Concurrent session writes cause conflicts | Data consistency issues | Low | Optimistic locking + test concurrency scenarios |
+| Risk                                              | Impact                     | Probability | Mitigation                                          |
+| ------------------------------------------------- | -------------------------- | ----------- | --------------------------------------------------- |
+| Key Vault availability down (network/auth issues) | Session creation blocked   | Medium      | Implement 5-min key cache; alert if stale           |
+| Encryption performance fails SLO (<100ms)         | Page load slow; user churn | Medium      | Early perf testing (Week 1/2); profile bottlenecks  |
+| pgcrypto not available in prod PostgreSQL         | Deploy fails               | Low         | Verify during DB provisioning (T02)                 |
+| JWT token refresh loop (endless 401)              | Users stuck                | Low         | Comprehensive refresh logic tests; timeout handling |
+| Concurrent session writes cause conflicts         | Data consistency issues    | Low         | Optimistic locking + test concurrency scenarios     |
 
 ---
 
 **Phase 0 Input**: Clarified specification (spec.md)  
 **Phase 1 Output**: research.md, data-model.md, contracts/, quickstart.md, tasks.md (created next)  
-**Phase 2 Output**: Implemented, tested, deployed E1 feature  
+**Phase 2 Output**: Implemented, tested, deployed E1 feature
 
 **Status**: ✅ **Ready for Phase 0 Research Document Creation**
 

@@ -1,5 +1,5 @@
 <!-- Sync Impact Report: Constitution v1.0.0 -->
-<!-- 
+<!--
   Changes from [Initial Ratification]:
   - NEW VERSION: 1.0.0 (Initial adoption for MAA project)
   - PRINCIPLES ADDED: 4 core principles (Code Quality, Testing Standards, UX Consistency, Performance)
@@ -19,6 +19,7 @@ A governance framework for the MAA project emphasizing code quality, rigorous te
 Every component MUST follow clean architecture principles ensuring testability, maintainability, and clear separation of concerns.
 
 **Non-Negotiable Rules**:
+
 - **Strict Layering**: Domain logic strictly separated from I/O (database, HTTP, file system)
   - `MAA.Domain/` contains pure business logic, decision trees, eligibility calculations
   - `MAA.Application/` contains use cases, handlers, command/query DTOs
@@ -46,6 +47,7 @@ Every component MUST follow clean architecture principles ensuring testability, 
 All production code MUST be test-driven. Tests are written and approved BEFORE implementation begins. Red-Green-Refactor cycle strictly enforced.
 
 **Non-Negotiable Rules**:
+
 - **Pre-Implementation Tests**: Users approve test scenarios in spec → tests fail → implementation added → tests pass
   - Backend: xUnit tests with FluentAssertions, >80% coverage for Domain/Application layers
   - Frontend: Vitest + React Testing Library for hooks, components, utilities
@@ -79,6 +81,7 @@ All production code MUST be test-driven. Tests are written and approved BEFORE i
 Every user-facing component MUST be accessible, responsive, and communicate clearly in plain language. Consistency across all states and user journeys is non-negotiable.
 
 **Non-Negotiable Rules**:
+
 - **Accessibility (WCAG 2.1 AA)**: Every frontend feature MUST pass accessibility compliance
   - All interactive elements MUST have semantic HTML (`<button>`, `<nav>`, `<form>`, `<label>`)
   - All form inputs MUST have associated labels; all images MUST have alt text
@@ -113,6 +116,7 @@ Every user-facing component MUST be accessible, responsive, and communicate clea
 All code MUST meet explicit performance targets. Performance issues are treated as functional bugs.
 
 **Non-Negotiable Rules**:
+
 - **Response Time Targets**: All endpoints/interactions MUST meet these SLOs
   - Eligibility evaluation: ≤2 seconds (p95)
   - Document upload: ≤5 seconds for 15MB file (stream to blob storage)
@@ -143,12 +147,14 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 ## Security & Compliance Architecture
 
 ### Authentication & Authorization
+
 - **Anonymous Sessions**: Cookie-based (HttpOnly, Secure, SameSite=Strict)
 - **Registered Users**: JWT (short-lived 1h) + Refresh Token (7 days)
 - **Admin Users**: JWT with role claims (Admin, Reviewer, Analyst)
 - **Authorization Enforcement**: Role-based policies enforced at middleware + handler level; never in SQL queries
 
 ### Data Protection at Rest & in Transit
+
 - **At Rest**: Column-level encryption for sensitive fields (income, assets, disability, SSN)
   - PostgreSQL: pgcrypto extension for column encryption
   - Blob storage: Client-side encryption before upload
@@ -157,6 +163,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 - **PII Retention**: Uploaded documents auto-expire after 90 days (configurable); user consent required for session save
 
 ### Input Validation & File Upload Security
+
 - **Defense in Depth**: Validate on frontend (UX) + backend (security gate)
   - Frontend: Zod schemas in React Hook Form
   - Backend: FluentValidation + explicit ModelState checks
@@ -167,6 +174,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 - **SQL Injection Prevention**: NEVER concatenate SQL strings; use parameterized queries (Entity Framework Core)
 
 ### Audit & Compliance
+
 - **Audit Logging**: All admin actions (rule approvals, content overrides) logged with user, timestamp, before/after state
   - Stored in PostgreSQL audit table (immutable)
   - Compliance analysts can review audit trail via admin portal
@@ -178,6 +186,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 ## Integration Testing Scope & Standards
 
 ### Focus Areas (MUST have integration tests)
+
 - **Rules Engine**: Sample test cases for each state (income at threshold, edge cases, special programs)
   - Data source: `/tests/data/[state]-test-cases.json` with input scenarios and expected outputs
   - Test container PostgreSQL for full integration
@@ -189,6 +198,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 - **API Contract**: All endpoints validate against OpenAPI spec; breaking changes caught in PR
 
 ### Standards
+
 - Integration tests use repository pattern with in-memory/test database (no mocked repositories in integration level)
 - Coverage target: All core user journeys plus error paths
 - Test data organized by state and scenario (MAGI, non-MAGI, SSI, etc.)
@@ -198,6 +208,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 ## Development Workflow & Quality Gates
 
 ### Code Review Requirements
+
 - Every PR MUST have:
   - ✅ Tests passing (unit + integration)
   - ✅ Accessibility review (frontend: axe DevTools)
@@ -207,6 +218,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 - No merge without all checks passing; no exceptions without documented justification
 
 ### CI/CD Gates (Automated)
+
 1. **Lint & Format**: ESLint + Prettier (frontend), dotnet format (backend) must pass
 2. **Build**: `dotnet build` and `npm run build` must succeed (no warnings escalated to errors)
 3. **Unit Tests**: `dotnet test` and `npm run test` with coverage reports
@@ -216,6 +228,7 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 7. **Constitution Validation**: Verify principle compliance in plan.md + spec.md before task creation
 
 ### Branch Strategy
+
 - Main branch (`main`) is production-ready; deploy directly from `main` via Azure Pipelines or GitHub Actions
 - Feature branches: `NNN-feature-name` (e.g., `001-eligibility-wizard`)
 - Hotfix branches: `hotfix/YYYY-MM-DD-issue-description`
@@ -226,9 +239,11 @@ All code MUST meet explicit performance targets. Performance issues are treated 
 ## Governance & Amendment Procedure
 
 ### Constitution Authority
+
 This Constitution supersedes all other project guidance, best practices, and individual preferences. It is the source of truth for development standards.
 
 ### Versioning & Amendment Process
+
 - **Version Format**: MAJOR.MINOR.PATCH (semantic versioning)
   - **MAJOR**: Incompatible principle change or removal (requires unanimous team agreement)
   - **MINOR**: New principle or substantive guidance expansion (requires lead approval + team consensus)
@@ -243,29 +258,33 @@ This Constitution supersedes all other project guidance, best practices, and ind
 - **Compliance Review**: Quarterly (early Feb, May, Aug, Nov) to validate code adherence
 
 ### Template Synchronization
+
 When the Constitution changes, these templates MUST be reviewed and updated:
+
 - ✅ `.specify/templates/spec-template.md` – Reference Constitution principles in requirements section
 - ✅ `.specify/templates/plan-template.md` – Include Constitution Check gate; verify no principle conflicts
 - ✅ `.specify/templates/tasks-template.md` – Align task categorization with principle-driven activities
 
 ### Enforcement
+
 - All PRs/reviews MUST verify Constitution compliance
 - Principle violations MUST be addressed before merge; no exceptions without documented justification
 - If complexity is justified (e.g., regulatory requirement), document rationale explicitly in code comments
 
 ### Runtime Guidance
+
 For day-to-day implementation decisions and architecture guidance, refer to the technical stack documentation in [tech-stack.md](../tech-stack.md). The Constitution sets policy; tech-stack.md provides implementation patterns.
 
 ---
 
 ## Glossary & Principles Summary
 
-| Principle | Key Requirement | Success Measure |
-|-----------|-----------------|-----------------|
-| **Code Quality** | Clean architecture, strong typing, single responsibility | Code review approval, <300 line classes, zero `any` types |
-| **Testing Standards** | Test-first, 80%+ coverage, red-green-refactor | All PRs include tests; coverage reports reviewed |
-| **UX Consistency** | WCAG 2.1 AA, mobile-first, plain language | Zero accessibility violations, all user journeys tested, user feedback positive |
-| **Performance** | ≤2s eligibility, ≤5s uploads, ≤500ms interactions | Load test results, p95 latencies tracked, alerts trigger >5s |
+| Principle             | Key Requirement                                          | Success Measure                                                                 |
+| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Code Quality**      | Clean architecture, strong typing, single responsibility | Code review approval, <300 line classes, zero `any` types                       |
+| **Testing Standards** | Test-first, 80%+ coverage, red-green-refactor            | All PRs include tests; coverage reports reviewed                                |
+| **UX Consistency**    | WCAG 2.1 AA, mobile-first, plain language                | Zero accessibility violations, all user journeys tested, user feedback positive |
+| **Performance**       | ≤2s eligibility, ≤5s uploads, ≤500ms interactions        | Load test results, p95 latencies tracked, alerts trigger >5s                    |
 
 ---
 

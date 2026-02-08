@@ -4,7 +4,7 @@ info:
   description: |
     Session and authentication endpoints for Medicaid Application Assistant.
     Handles anonymous session creation, session data persistence, encryption, and role-based access control.
-    
+
     **Phase 1 (MVP)**: Anonymous sessions only. Phase 5 adds authentication/JWT.
     **Base URL**: `https://api.maa.example.com/api`
   version: 1.0.0
@@ -34,7 +34,7 @@ paths:
       description: |
         Initiates a new anonymous session for an applicant.
         Returns session ID (in Set-Cookie) and initial session state.
-        
+
         **Business Logic**:
         - Session state = "pending"
         - Timeout = 30 minutes (inactivity)
@@ -56,7 +56,7 @@ paths:
                   default: anonymous
                   description: Session type (only 'anonymous' supported in Phase 1)
       responses:
-        '201':
+        "201":
           description: Session created successfully
           headers:
             Set-Cookie:
@@ -67,11 +67,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SessionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sessions/{sessionId}:
     get:
@@ -91,18 +91,18 @@ paths:
             format: uuid
           description: Session UUID
       responses:
-        '200':
+        "200":
           description: Session retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SessionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
     patch:
       summary: Update session state
@@ -110,7 +110,7 @@ paths:
       description: |
         Update session state machine (pending → in_progress → submitted → completed/abandoned).
         Also resets inactivity timeout (sliding window).
-        
+
         **State Transitions Allowed**:
         - pending → in_progress
         - in_progress → in_progress (no change; resets timeout)
@@ -140,21 +140,21 @@ paths:
               required:
                 - state
       responses:
-        '200':
+        "200":
           description: Session updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionResponse'
-        '400':
+                $ref: "#/components/schemas/SessionResponse"
+        "400":
           description: Invalid state transition
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '409':
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
           description: Concurrent modification (version conflict)
           content:
             application/json:
@@ -164,8 +164,8 @@ paths:
                   error:
                     type: string
                     example: "Session modified by another request; please retry"
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sessions/{sessionId}/answers:
     post:
@@ -173,7 +173,7 @@ paths:
       operationId: saveAnswer
       description: |
         Persist one or more applicant responses for a questionnaire field.
-        
+
         **Business Logic**:
         - Field type determines encryption: 'income' → encrypted, 'age' → plain
         - PII fields (income, ssn, address) → encrypted only
@@ -181,7 +181,7 @@ paths:
         - SSN → dual storage (encrypted + deterministic hash for lookup)
         - Session state must be 'in_progress' or 'submitted'
         - Updates inactivity timeout (sliding window)
-        
+
         **Validation**: Run field validation rules (e.g., income >= 0, age 0-150)
       tags:
         - SessionAnswers
@@ -198,37 +198,37 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/schemas/SaveAnswerSingleRequest'
-                - $ref: '#/components/schemas/SaveAnswerBatchRequest'
+                - $ref: "#/components/schemas/SaveAnswerSingleRequest"
+                - $ref: "#/components/schemas/SaveAnswerBatchRequest"
       responses:
-        '201':
+        "201":
           description: Answer(s) saved successfully
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/SessionAnswerResponse'
+                  - $ref: "#/components/schemas/SessionAnswerResponse"
                   - type: array
                     items:
-                      $ref: '#/components/schemas/SessionAnswerResponse'
-        '400':
+                      $ref: "#/components/schemas/SessionAnswerResponse"
+        "400":
           description: Validation error (invalid field type, value out of range, etc.)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Optimistic lock conflict
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
     get:
       summary: Retrieve session answers
@@ -236,7 +236,7 @@ paths:
       description: |
         Fetch all answers submitted for a session (with decryption).
         Useful for wizard "review" page or results calculation.
-        
+
         **Security Note**: Only returns answers for current session (no cross-session access).
       tags:
         - SessionAnswers
@@ -256,7 +256,7 @@ paths:
             collectionFormat: csv
           description: Optional filter by field keys (e.g., "income_annual_2025,household_size")
       responses:
-        '200':
+        "200":
           description: Answers retrieved successfully
           content:
             application/json:
@@ -269,17 +269,17 @@ paths:
                   answers:
                     type: array
                     items:
-                      $ref: '#/components/schemas/SessionAnswerResponse'
+                      $ref: "#/components/schemas/SessionAnswerResponse"
                   decryptedAt:
                     type: string
                     format: date-time
                     description: Server timestamp when answers were decrypted
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sessions/{sessionId}/answers/{answerId}:
     get:
@@ -301,16 +301,16 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Answer retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SessionAnswerResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/SessionAnswerResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
     delete:
       summary: Delete an answer
@@ -332,14 +332,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Answer deleted successfully
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /health/ready:
     get:
@@ -351,7 +351,7 @@ paths:
       tags:
         - Health
       responses:
-        '200':
+        "200":
           description: Service ready
           content:
             application/json:
@@ -370,7 +370,7 @@ paths:
                       keyVault:
                         type: string
                         enum: [up, down]
-        '503':
+        "503":
           description: Service not ready
           content:
             application/json:
@@ -392,7 +392,7 @@ paths:
       tags:
         - Health
       responses:
-        '200':
+        "200":
           description: Service alive
           content:
             application/json:
@@ -529,7 +529,7 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/SaveAnswerSingleRequest'
+            $ref: "#/components/schemas/SaveAnswerSingleRequest"
 
     ValidationErrorResponse:
       type: object
@@ -570,12 +570,12 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
     Unauthorized:
       description: |
         Unauthorized. Session ID missing or invalid.
-        
+
         Causes:
         - Session ID cookie not present
         - Session ID not found in database
@@ -584,19 +584,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
     NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
     InternalServerError:
       description: |
         Internal server error.
-        
+
         Possible causes:
         - Database unreachable
         - Key Vault unavailable (encryption key unavailable)
@@ -605,7 +605,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
   securitySchemes:
     SessionCookie:
@@ -619,34 +619,34 @@ security:
 
 x-phase-1-notes: |
   **Phase 1 (MVP) Implementation Notes**:
-  
+
   1. **Authentication (Phase 1)**: Only anonymous sessions supported.
      - No JWT tokens / bearer authorization yet (Phase 5)
      - Sessions identified solely by session_id cookie
-  
+
   2. **Encryption (Phase 1)**: PII fields encrypted before database storage.
      - Income, assets, disability status → randomized encryption
      - SSN → dual storage (encrypted + deterministic hash)
      - Non-PII fields → plain text
      - See data-model.md for detail
-  
+
   3. **Timeouts (Phase 1)**: Fixed 30-minute inactivity timeout.
      - No sliding window implementation yet
      - Timeout resets on any request (GET or POST to /api/sessions/{id})
      - See project plan for Phase 5 sliding window implementation
-  
+
   4. **Concurrency (Phase 1)**: Optimistic locking (version column).
      - Last write wins on conflict
      - Exception: State transitions validated server-side (pending→in_progress enforced)
-  
+
   5. **Error Handling**: All 5xx errors include traceId for correlation with monitoring logs.
-  
+
   6. **Rate Limiting (Phase 3)**: Not implemented in Phase 1.
      - Plan: 10 requests/second per session (prevent brute-force attacks)
-  
+
   7. **Logging**: All session operations logged to Application Insights.
      - Session creation, state changes, answer submission logged with PII scrubbing
      - Encryption operations logged at DEBUG level only (performance)
-  
+
   8. **CORS (Phase 2)**: Not needed for Phase 1 (SPA on same domain).
      - Will add when frontend assets move to separate origin

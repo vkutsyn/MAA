@@ -125,6 +125,7 @@ dotnet run
 ```
 
 **Verify API is running**:
+
 ```bash
 curl http://localhost:5000/api/health/live
 # Expected: { "status": "alive", "uptime": 123.456 }
@@ -203,13 +204,13 @@ src/
 
 **Key Files to Know**:
 
-| File | Purpose | Task |
-|------|---------|------|
-| `MAA.Domain/Sessions/Session.cs` | Core session entity | T10 |
-| `MAA.Infrastructure/Data/SessionContext.cs` | EF Core DbContext | T12 |
-| `Migrations/001_InitialCreate.cs` | Database schema | T12 |
-| `MAA.API/Middleware/SessionMiddleware.cs` | Request pipeline | T20 |
-| `MAA.Application/Sessions/Commands/SaveAnswerCommand.cs` | Answer persistence | T28 |
+| File                                                     | Purpose             | Task |
+| -------------------------------------------------------- | ------------------- | ---- |
+| `MAA.Domain/Sessions/Session.cs`                         | Core session entity | T10  |
+| `MAA.Infrastructure/Data/SessionContext.cs`              | EF Core DbContext   | T12  |
+| `Migrations/001_InitialCreate.cs`                        | Database schema     | T12  |
+| `MAA.API/Middleware/SessionMiddleware.cs`                | Request pipeline    | T20  |
+| `MAA.Application/Sessions/Commands/SaveAnswerCommand.cs` | Answer persistence  | T28  |
 
 ---
 
@@ -231,18 +232,19 @@ dotnet test /p:CollectCoverage=true /p:CoverageFormat=opencover
 ```
 
 **Example Unit Test**:
+
 ```csharp
 [TestFixture]
 public class SessionServiceTests
 {
     private readonly ISessionService _service = new SessionService(/* mocks */);
-    
+
     [Test]
     public async Task CreateSession_Returns_ValidSession()
     {
         // Arrange & Act
         var session = await _service.CreateSessionAsync("anonymous");
-        
+
         // Assert
         Assert.That(session.State, Is.EqualTo(SessionState.Pending));
         Assert.That(session.ExpiresAt, Is.GreaterThan(DateTime.UtcNow));
@@ -263,6 +265,7 @@ dotnet test --filter "Category=Integration" -v normal
 ```
 
 **Troubleshooting Integration Tests**:
+
 - If Docker not running: `docker start maa-postgres` or `docker-compose up -d`
 - If port 5432 busy: `lsof -i :5432` and stop conflicting process
 - Test data isolation: Each test gets fresh database (via DatabaseFixture)
@@ -284,6 +287,7 @@ dotnet test --filter "Category=Contract" -v normal
 ### Example 1: Create Anonymous Session
 
 **Request**:
+
 ```bash
 curl -X POST http://localhost:5000/api/sessions \
   -H "Content-Type: application/json" \
@@ -292,6 +296,7 @@ curl -X POST http://localhost:5000/api/sessions \
 ```
 
 **Response**:
+
 ```http
 HTTP/1.1 201 Created
 Content-Type: application/json
@@ -311,6 +316,7 @@ Set-Cookie: session_id=a1b2c3d4-e5f6....; HttpOnly; Secure; SameSite=Strict
 ```
 
 **Save session ID** (used in subsequent requests):
+
 ```bash
 SESSION_ID="a1b2c3d4-e5f6-4789-a123-b456c789d012"
 ```
@@ -318,6 +324,7 @@ SESSION_ID="a1b2c3d4-e5f6-4789-a123-b456c789d012"
 ### Example 2: Update Session State
 
 **Request** (transition pending → in_progress):
+
 ```bash
 curl -X PATCH http://localhost:5000/api/sessions/$SESSION_ID \
   -H "Content-Type: application/json" \
@@ -326,6 +333,7 @@ curl -X PATCH http://localhost:5000/api/sessions/$SESSION_ID \
 ```
 
 **Response**:
+
 ```json
 {
   "id": "a1b2c3d4-e5f6-4789-a123-b456c789d012",
@@ -338,6 +346,7 @@ curl -X PATCH http://localhost:5000/api/sessions/$SESSION_ID \
 ### Example 3: Save Applicant Answers (Single)
 
 **Request** (save income):
+
 ```bash
 curl -X POST http://localhost:5000/api/sessions/$SESSION_ID/answers \
   -H "Content-Type: application/json" \
@@ -351,13 +360,14 @@ curl -X POST http://localhost:5000/api/sessions/$SESSION_ID/answers \
 ```
 
 **Response**:
+
 ```json
 {
   "id": "f1a2b3c4-d5e6-4789-a123-b456c789d012",
   "sessionId": "a1b2c3d4-e5f6-4789-a123-b456c789d012",
   "fieldKey": "income_annual_2025",
   "fieldType": "currency",
-  "answer": 45000,  // Decrypted for display
+  "answer": 45000, // Decrypted for display
   "isPii": true,
   "validationErrors": [],
   "createdAt": "2026-02-08T10:05:00Z",
@@ -368,6 +378,7 @@ curl -X POST http://localhost:5000/api/sessions/$SESSION_ID/answers \
 ### Example 4: Save Multiple Answers (Batch)
 
 **Request** (save household info):
+
 ```bash
 curl -X POST http://localhost:5000/api/sessions/$SESSION_ID/answers \
   -H "Content-Type: application/json" \
@@ -395,12 +406,14 @@ curl -X POST http://localhost:5000/api/sessions/$SESSION_ID/answers \
 ### Example 5: Retrieve Decrypted Answers
 
 **Request**:
+
 ```bash
 curl -X GET http://localhost:5000/api/sessions/$SESSION_ID/answers \
   -H "Cookie: session_id=$SESSION_ID"
 ```
 
 **Response**:
+
 ```json
 {
   "sessionId": "a1b2c3d4-e5f6-4789-a123-b456c789d012",
@@ -408,7 +421,7 @@ curl -X GET http://localhost:5000/api/sessions/$SESSION_ID/answers \
     {
       "fieldKey": "income_annual_2025",
       "fieldType": "currency",
-      "answer": 45000,  // Decrypted
+      "answer": 45000, // Decrypted
       "isPii": true,
       "validationErrors": []
     },
@@ -427,6 +440,7 @@ curl -X GET http://localhost:5000/api/sessions/$SESSION_ID/answers \
 ### Example 6: Error Handling
 
 **Request** (invalid state transition):
+
 ```bash
 curl -X PATCH http://localhost:5000/api/sessions/$SESSION_ID \
   -H "Content-Type: application/json" \
@@ -435,6 +449,7 @@ curl -X PATCH http://localhost:5000/api/sessions/$SESSION_ID \
 ```
 
 **Response**:
+
 ```http
 HTTP/1.1 400 Bad Request
 Content-Type: application/json
@@ -461,6 +476,7 @@ builder.Services.AddLogging(config =>
 ```
 
 **Expected output**:
+
 ```
 [DEBUG] SessionMiddleware: Extracted session_id from cookie: a1b2c3d4-...
 [DEBUG] EncryptionService: Encrypting 155 bytes with key_version=1
@@ -484,17 +500,20 @@ psql -U devuser -d maa_dev -h localhost -c "SELECT id, field_key, is_pii, LENGTH
 ### 3. Visual Studio Debugging
 
 **Breakpoints**:
+
 1. Set breakpoint in `SessionMiddleware.InvokeAsync()`
 2. Make request: `curl http://localhost:5000/api/sessions/$SESSION_ID`
 3. Debugger pauses; inspect context.Items["SessionId"]
 
 **Watch Expressions**:
+
 - `session.ExpiresAt - DateTime.UtcNow` (remaining timeout)
 - `context.Request.Cookies["session_id"]` (session ID from cookie)
 
 ### 4. VS Code Debugging
 
 **Launch Configuration** (`.vscode/launch.json`):
+
 ```json
 {
   "version": "0.2.0",
@@ -530,6 +549,7 @@ az keyvault key list --vault-name maa-dev --query "[].name"
 ### Issue: "Connection refused" on localhost:5432
 
 **Solution**:
+
 ```bash
 # Check if PostgreSQL running
 docker ps | grep postgres
@@ -541,6 +561,7 @@ docker-compose up -d  # or docker start maa-postgres
 ### Issue: "pgcrypto extension not found"
 
 **Solution**:
+
 ```bash
 # Connect to database and enable
 psql -U devuser -d maa_dev -h localhost
@@ -552,6 +573,7 @@ maa_dev=# \dx  # Verify installed
 
 **Cause**: Test container PostgreSQL startup slow  
 **Solution**:
+
 ```bash
 # Pre-warm container before running tests
 docker run postgres:16-alpine --version
@@ -564,6 +586,7 @@ dotnet test --timeout 60000  # 60 seconds
 
 **Cause**: Authentication credentials invalid or missing permissions  
 **Solution**:
+
 ```bash
 # Verify credentials in appsettings.Development.json
 dotnet user-secrets list
@@ -577,6 +600,7 @@ az account show
 
 **Cause**: Two requests updated same session simultaneously  
 **Solution** (application code):
+
 ```csharp
 try
 {
@@ -602,7 +626,8 @@ catch (DbUpdateConcurrencyException)
 5. 📋 Write tests first (TDD per Constitution Principle II)
 6. 📋 Create PR and request code review
 
-**Questions?** 
+**Questions?**
+
 - Check [research.md](./research.md) for design rationale
 - Review [data-model.md](./data-model.md) for schema details
 - See [contracts/sessions-api.openapi.yaml](./contracts/sessions-api.openapi.yaml) for API spec

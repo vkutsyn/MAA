@@ -5,7 +5,7 @@
 **Total Tasks**: 42  
 **Story Points**: 90-110  
 **Team Size**: 3-4 engineers  
-**Timeline**: 2-3 weeks  
+**Timeline**: 2-3 weeks
 
 **Specification**: [spec.md](./spec.md)  
 **Implementation Plan**: [plan.md](./plan.md)  
@@ -27,6 +27,7 @@ T01 (Setup) ──→ T02 ──→ T03 ──→ T04 ──→ T10-T15 (Paralle
 **Critical Path**: T01 → T02 → T03 → T04 → T10/T12 → T20/T24 → T30 → T40 → T41
 
 **Parallel Opportunities**:
+
 - T10-T15: All entity/repo design (no dependencies between)
 - T20-T27: All auth/encryption logic (no dependencies between)
 - T30-T35: All API endpoints (can start once T20+ models ready)
@@ -38,6 +39,7 @@ T01 (Setup) ──→ T02 ──→ T03 ──→ T04 ──→ T10-T15 (Paralle
 All Phase 0 research questions answered ✅ — See [research.md](./research.md) for decision documentation.
 
 **Decisions Locked**:
+
 - ✅ ASP.NET Core middleware for session management
 - ✅ Dual encryption (randomized + deterministic hash)
 - ✅ Key versioning + 5-min cache strategy
@@ -454,6 +456,7 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 ## Success Criteria (End-of-Phase-2)
 
 ✅ **Technical**:
+
 - [ ] All 42 tasks marked complete (green checkboxes)
 - [ ] `dotnet build` succeeds with 0 warnings
 - [ ] `dotnet test` passes with ≥80% coverage (Domain + Application layers)
@@ -466,6 +469,7 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 - [ ] No PII in logs; traceIds present for error correlation
 
 ✅ **Process**:
+
 - [ ] All Constitution principles verified (code quality, testing, UX, performance)
 - [ ] Code reviewed by minimum 2 engineers (all PRs approved)
 - [ ] CI/CD pipeline green (build, test, deploy all passing)
@@ -473,6 +477,7 @@ All Phase 0 research questions answered ✅ — See [research.md](./research.md)
 - [ ] Project delivered on-time (4-week target met)
 
 ✅ **Deliverables**:
+
 - [ ] `src/MAA.sln` with all project structure
 - [ ] `docs/PERFORMANCE.md` with benchmark results
 - [ ] `src/MAA.API/` running locally and in Azure
@@ -490,14 +495,14 @@ graph TD
     T02["T02 Database Setup"]
     T03["T03 Dependency Injection"]
     T04["T04 Test Infrastructure"]
-    
+
     T10["T10 Domain Entities"]
     T11["T11 Repository Interfaces"]
     T12["T12 EF Core Schema"]
     T13["T13 JSONB Schema"]
     T14["T14 Key Versioning"]
     T15["T15 Unit Tests"]
-    
+
     T20["T20 SessionService"]
     T21["T21 EncryptionService"]
     T22["T22 Key Vault Integration"]
@@ -506,22 +511,22 @@ graph TD
     T25["T25 Session Middleware"]
     T26["T26 Encryption Tests"]
     T27["T27 Performance Tests"]
-    
+
     T30["T30 SessionsController"]
     T31["T31 SessionAnswersController"]
     T32["T32 Admin Middleware"]
     T33["T33 Exception Handling"]
     T34["T34 Contract Tests"]
     T35["T35 Integration Tests"]
-    
+
     T40["T40 Docker Setup"]
     T41["T41 Azure Deployment"]
     T42["T42 Monitoring"]
-    
+
     T01 --> T02
     T02 --> T03
     T03 --> T04
-    
+
     T01 --> T10
     T10 --> T11
     T04 --> T12
@@ -529,7 +534,7 @@ graph TD
     T12 --> T13
     T12 --> T14
     T11 --> T15
-    
+
     T10 --> T20
     T20 --> T24
     T11 --> T21
@@ -538,7 +543,7 @@ graph TD
     T21 --> T26
     T24 --> T25
     T26 --> T27
-    
+
     T20 --> T30
     T20 --> T31
     T21 --> T31
@@ -548,7 +553,7 @@ graph TD
     T31 --> T34
     T30 --> T35
     T31 --> T35
-    
+
     T35 --> T40
     T35 --> T41
     T41 --> T42
@@ -559,26 +564,31 @@ graph TD
 ## Parallel Execution Strategy
 
 **Week 1 (Setup)**: Execute T01-T04 sequentially (dependencies hard-block)
+
 - Estimated: 3-4 days
 
 **Week 1-2 (Domain)**: Execute T10-T15 in parallel after T04 completes
+
 - **Track 1** (Entities): T10 → T11 (1 engineer)
 - **Track 2** (Schema): T12 → T13 → T14 (1 engineer)
 - **Track 3** (Tests): T15 starts after T10, T11 complete (1 engineer)
 - Estimated: 4-5 days total
 
 **Week 2-3 (Auth)**: Execute T20-T27 in parallel after T11 completes
+
 - **Track 1** (Services): T20 → T24 (1 engineer)
 - **Track 2** (Encryption): T21 → T22 → T26 (1 engineer)
 - **Track 3** (JWT/Perf): T23 || T25, then T27 (0.5 engineer part-time)
 - Estimated: 4-5 days total
 
 **Week 3-4 (API)**: Execute T30-T35 in parallel after T20-T27
+
 - **Track 1** (Controllers): T30 → T31 → T34 (1 engineer)
 - **Track 2** (Middleware): T32 → T33 → T35 (1 engineer)
 - Estimated: 3-4 days total
 
 **Week 4 (Deploy)**: Execute T40-T42 sequentially after T35
+
 - Estimated: 2-3 days total
 
 **Total**: 14 days of effort; 3 engineers → ~4 weeks calendar time (overlapping tracks)
@@ -691,6 +701,7 @@ docs/PERFORMANCE.md                       (T27)
 ## PR Checklist (Before Merge)
 
 Each task should include PR with:
+
 - [ ] Code passes `dotnet build` (0 warnings)
 - [ ] Code passes `dotnet test` (all tests green)
 - [ ] Code coverage unchanged or improved (≥80% target)
@@ -718,35 +729,35 @@ Each task should include PR with:
 
 Print this table to track progress:
 
-| Task | Status | Assignee | Notes |
-|------|--------|----------|-------|
-| T01 | ⬜ not-started | — | Blocks all others |
-| T02 | ⬜ not-started | — | Blocks T12, T26 |
-| T03 | ⬜ not-started | — | Blocks T20-T35 |
-| T04 | ⬜ not-started | — | Blocks T26, T35 |
-| T10 | ⬜ not-started | — | Parallelizable (Week 1-2) |
-| T11 | ⬜ not-started | — | Depends on T10 |
-| T12 | ⬜ not-started | — | Depends on T02, T04 |
-| T13 | ⬜ not-started | — | Parallelizable (Week 1-2) |
-| T14 | ⬜ not-started | — | Parallelizable (Week 1-2) |
-| T15 | ⬜ not-started | — | Depends on T10, T11 |
-| T20 | ⬜ not-started | — | Depends on T03, T10 |
-| T21 | ⬜ not-started | — | Depends on T03, T11 |
-| T22 | ⬜ not-started | — | Depends on T03, T11 |
-| T23 | ⬜ not-started | — | Depends on T03, T11 |
-| T24 | ⬜ not-started | — | Depends on T20 |
-| T25 | ⬜ not-started | — | Depends on T24 |
-| T26 | ⬜ not-started | — | Depends on T21, T04 |
-| T27 | ⬜ not-started | — | Depends on T26 |
-| T30 | ⬜ not-started | — | Depends on T20, T25 |
-| T31 | ⬜ not-started | — | Depends on T20, T21 |
-| T32 | ⬜ not-started | — | Depends on T30 |
-| T33 | ⬜ not-started | — | Depends on T31 |
-| T34 | ⬜ not-started | — | Depends on T30, T31 |
-| T35 | ⬜ not-started | — | Depends on T30, T31 |
-| T40 | ⬜ not-started | — | Depends on T35 |
-| T41 | ⬜ not-started | — | Depends on T35 |
-| T42 | ⬜ not-started | — | Depends on T41 |
+| Task | Status         | Assignee | Notes                     |
+| ---- | -------------- | -------- | ------------------------- |
+| T01  | ⬜ not-started | —        | Blocks all others         |
+| T02  | ⬜ not-started | —        | Blocks T12, T26           |
+| T03  | ⬜ not-started | —        | Blocks T20-T35            |
+| T04  | ⬜ not-started | —        | Blocks T26, T35           |
+| T10  | ⬜ not-started | —        | Parallelizable (Week 1-2) |
+| T11  | ⬜ not-started | —        | Depends on T10            |
+| T12  | ⬜ not-started | —        | Depends on T02, T04       |
+| T13  | ⬜ not-started | —        | Parallelizable (Week 1-2) |
+| T14  | ⬜ not-started | —        | Parallelizable (Week 1-2) |
+| T15  | ⬜ not-started | —        | Depends on T10, T11       |
+| T20  | ⬜ not-started | —        | Depends on T03, T10       |
+| T21  | ⬜ not-started | —        | Depends on T03, T11       |
+| T22  | ⬜ not-started | —        | Depends on T03, T11       |
+| T23  | ⬜ not-started | —        | Depends on T03, T11       |
+| T24  | ⬜ not-started | —        | Depends on T20            |
+| T25  | ⬜ not-started | —        | Depends on T24            |
+| T26  | ⬜ not-started | —        | Depends on T21, T04       |
+| T27  | ⬜ not-started | —        | Depends on T26            |
+| T30  | ⬜ not-started | —        | Depends on T20, T25       |
+| T31  | ⬜ not-started | —        | Depends on T20, T21       |
+| T32  | ⬜ not-started | —        | Depends on T30            |
+| T33  | ⬜ not-started | —        | Depends on T31            |
+| T34  | ⬜ not-started | —        | Depends on T30, T31       |
+| T35  | ⬜ not-started | —        | Depends on T30, T31       |
+| T40  | ⬜ not-started | —        | Depends on T35            |
+| T41  | ⬜ not-started | —        | Depends on T35            |
+| T42  | ⬜ not-started | —        | Depends on T41            |
 
 ---
 
