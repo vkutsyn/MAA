@@ -44,7 +44,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            // Remove the production DbContext
+            // Remove the production DbContext registration if it exists
             var dbContextDescriptor = services.FirstOrDefault(
                 d => d.ServiceType == typeof(DbContextOptions<SessionContext>));
 
@@ -68,13 +68,24 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             }
             else
             {
-                // Contract tests: Use in-memory HTTP testing without database
-                // The API will use dependency injection configured by Program.cs
-                // Services are available, but no database is accessed in contract tests.
+                // Contract tests: Use in-memory database for HTTP testing
+                // This allows contract tests to run without Docker/PostgreSQL
+                services.AddDbContext<SessionContext>(options =>
+                    options.UseInMemoryDatabase("TestDatabase")
+                );
             }
 
             // Ensure all services are properly configured
-            services.BuildServiceProvider();
+            try
+            {
+                services.BuildServiceProvider();
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging
+                System.Diagnostics.Debug.WriteLine($"Service provider build failed: {ex.Message}");
+                throw;
+            }
         });
     }
 }

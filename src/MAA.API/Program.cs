@@ -4,6 +4,7 @@ using MAA.Application.Sessions;
 using MAA.Application.Eligibility.Handlers;
 using MAA.Application.Eligibility.Repositories;
 using MAA.Application.Eligibility.Caching;
+using MAA.Application.Eligibility.Services;
 using MAA.Application.Eligibility.Validators;
 using MAA.Domain.Repositories;
 using MAA.Domain.Rules;
@@ -75,6 +76,8 @@ try
     builder.Services.AddScoped<IRuleRepository, RuleRepository>();
     builder.Services.AddScoped<IFplRepository, FplRepository>();
     builder.Services.AddScoped<IRuleCacheService, RuleCacheService>();
+    builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
+    builder.Services.AddScoped<IFPLCacheService, FPLCacheService>();
 
     // Add controllers
     builder.Services.AddControllers();
