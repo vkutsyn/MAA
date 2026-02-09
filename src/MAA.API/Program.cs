@@ -1,8 +1,15 @@
 using MAA.API.Middleware;
 using MAA.Application.Services;
 using MAA.Application.Sessions;
+using MAA.Application.Eligibility.Handlers;
+using MAA.Application.Eligibility.Repositories;
+using MAA.Application.Eligibility.Caching;
+using MAA.Application.Eligibility.Validators;
 using MAA.Domain.Repositories;
+using MAA.Domain.Rules;
 using MAA.Infrastructure.Data;
+using MAA.Infrastructure.DataAccess;
+using MAA.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -55,6 +62,19 @@ try
     
     // Register validators
     builder.Services.AddScoped<MAA.Application.Sessions.Validators.SaveAnswerCommandValidator>();
+    
+    // Register Rules domain services (Phase 3-5: E2 Feature)
+    builder.Services.AddTransient<RuleEngine>();
+    builder.Services.AddTransient<FPLCalculator>();
+    
+    // Register Rules application layer services
+    builder.Services.AddScoped<IEvaluateEligibilityHandler, EvaluateEligibilityHandler>();
+    builder.Services.AddScoped<EligibilityInputValidator>();
+    
+    // Register Rules infrastructure services
+    builder.Services.AddScoped<IRuleRepository, RuleRepository>();
+    builder.Services.AddScoped<IFplRepository, FplRepository>();
+    builder.Services.AddScoped<IRuleCacheService, RuleCacheService>();
 
     // Add controllers
     builder.Services.AddControllers();
