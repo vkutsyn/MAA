@@ -625,6 +625,208 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
     #endregion
 
+    // ====== Phase 6 Integration Tests (T057): Plain-Language Explanations ======
+
+    /// <summary>
+    /// Test T057: IL Evaluation Scenario
+    /// Verify explanation includes concrete income values when evaluating IL eligibility
+    /// </summary>
+    [Fact]
+    public async Task EvaluateEligibility_IL_ExplanationIncludesConcreteIncomeValues()
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["state_code"] = "IL",
+            ["household_size"] = 2,
+            ["monthly_income_cents"] = 210_000,  // $2,100/month
+            ["age"] = 35,
+            ["has_disability"] = false,
+            ["is_pregnant"] = false,
+            ["receives_ssi"] = false,
+            ["is_citizen"] = true,
+            ["assets_cents"] = null
+        };
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        var explanation = root.GetProperty("explanation").GetString();
+        explanation.Should().NotBeNullOrEmpty();
+        
+        // Explanation should reference concrete income values
+        explanation!.ToLowerInvariant().Should().Contain("income",
+            "Explanation should reference income metric");
+        explanation.Should().Contain("2100",
+            "Explanation should include concrete monthly income value ($2,100)");
+    }
+
+    /// <summary>
+    /// Test T057: Pregnancy Scenario
+    /// Verify explanation includes pregnancy-specific language when evaluating pregnant users
+    /// </summary>
+    [Fact]
+    public async Task EvaluateEligibility_PregnancyScenario_ExplanationIsPregnancySpecific()
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["state_code"] = "IL",
+            ["household_size"] = 1,
+            ["monthly_income_cents"] = 180_000,  // $1,800/month
+            ["age"] = 25,
+            ["has_disability"] = false,
+            ["is_pregnant"] = true,  // KEY: Pregnancy status
+            ["receives_ssi"] = false,
+            ["is_citizen"] = true,
+            ["assets_cents"] = null
+        };
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        var explanation = root.GetProperty("explanation").GetString();
+        explanation.Should().NotBeNullOrEmpty();
+        
+        // Should mention pregnancy or pregnancy-related pathway
+        explanation!.ToLowerInvariant().Should().Contain("pregnant",
+            "Explanation should reference pregnancy when user reports pregnancy");
+    }
+
+    /// <summary>
+    /// Test T057: SSI (Categorical Eligibility) Scenario
+    /// Verify explanation explains how SSI receipt provides categorical eligibility bypass
+    /// </summary>
+    [Fact]
+    public async Task EvaluateEligibility_SSIScenario_ExplainsCategoricalEligibilityBypass()
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["state_code"] = "IL",
+            ["household_size"] = 1,
+            ["monthly_income_cents"] = 400_000,  // $4,000/month - would normally exceed threshold
+            ["age"] = 45,
+            ["has_disability"] = false,
+            ["is_pregnant"] = false,
+            ["receives_ssi"] = true,  // KEY: SSI recipient - bypasses income test
+            ["is_citizen"] = true,
+            ["assets_cents"] = null
+        };
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        var explanation = root.GetProperty("explanation").GetString();
+        explanation.Should().NotBeNullOrEmpty();
+        
+        // Should explain SSI-based categorical eligibility
+        var lowerExplanation = explanation!.ToLowerInvariant();
+        (lowerExplanation.Contains("ssi") || lowerExplanation.Contains("social security income"))
+            .Should().BeTrue("Explanation should reference SSI when user receives SSI benefits");
+    }
+
+    /// <summary>
+    /// Test T057: Readability Validation
+    /// Verify all explanations meet ≤8th grade reading level requirement
+    /// </summary>
+    [Fact]
+    public async Task EvaluateEligibility_Explanations_MeetReadabilityRequirement()
+    {
+        var testScenarios = new List<Dictionary<string, object?>>
+        {
+            // Scenario 1: Basic eligibility
+            new()
+            {
+                ["state_code"] = "IL",
+                ["household_size"] = 2,
+                ["monthly_income_cents"] = 200_000,
+                ["age"] = 30,
+                ["has_disability"] = false,
+                ["is_pregnant"] = false,
+                ["receives_ssi"] = false,
+                ["is_citizen"] = true,
+                ["assets_cents"] = null
+            },
+            // Scenario 2: Pregnancy
+            new()
+            {
+                ["state_code"] = "CA",
+                ["household_size"] = 1,
+                ["monthly_income_cents"] = 190_000,
+                ["age"] = 28,
+                ["has_disability"] = false,
+                ["is_pregnant"] = true,
+                ["receives_ssi"] = false,
+                ["is_citizen"] = true,
+                ["assets_cents"] = null
+            },
+            // Scenario 3: Disabled
+            new()
+            {
+                ["state_code"] = "NY",
+                ["household_size"] = 1,
+                ["monthly_income_cents"] = 220_000,
+                ["age"] = 55,
+                ["has_disability"] = true,
+                ["is_pregnant"] = false,
+                ["receives_ssi"] = false,
+                ["is_citizen"] = true,
+                ["assets_cents"] = null
+            }
+        };
+
+        var readabilityValidator = new MAA.Application.Eligibility.Validators.ReadabilityValidator();
+
+        foreach (var scenario in testScenarios)
+        {
+            // Act
+            var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", scenario);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            var explanation = root.GetProperty("explanation").GetString();
+            explanation.Should().NotBeNullOrEmpty();
+
+            // Assert: Explanation should meet readability target
+            var isReadable = readabilityValidator.IsBelow8thGrade(explanation!);
+            isReadable.Should().BeTrue(
+                $"Explanation for state {scenario["state_code"]} should be ≤8th grade reading level: '{explanation}'");
+
+            // Also validate per-program explanations if present
+            var matchedPrograms = root.GetProperty("matched_programs");
+            foreach (var program in matchedPrograms.EnumerateArray())
+            {
+                if (program.TryGetProperty("explanation", out var programExpl))
+                {
+                    var programExplanation = programExpl.GetString();
+                    if (!string.IsNullOrEmpty(programExplanation))
+                    {
+                        var programIsReadable = readabilityValidator.IsBelow8thGrade(programExplanation);
+                        programIsReadable.Should().BeTrue(
+                            $"Program explanation should be ≤8th grade reading level: '{programExplanation}'");
+                    }
+                }
+            }
+        }
+    }
+
     private static Dictionary<string, object?> CreateStateSpecificPayload(
         string stateCode,
         int monthlyIncomeCents,

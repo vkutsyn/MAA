@@ -306,7 +306,7 @@
 
 ### Integration Tests for US4
 
-- [ ] T057 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
+- [x] T057 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
   - Evaluate IL scenario → explanation includes concrete income values
   - Evaluate pregnancy scenario → includes pregnancy-specific explanation
   - Evaluate SSI scenario → explains categorical eligibility bypass
@@ -314,7 +314,7 @@
 
 ### Contract Tests for US4
 
-- [ ] T058 [P] Extend RulesApiContractTests.cs validating explanation field:
+- [x] T058 [P] Extend RulesApiContractTests.cs validating explanation field:
   - explanation field present in all responses
   - explanation is non-empty string
   - explanation does not contain unexplained jargon
