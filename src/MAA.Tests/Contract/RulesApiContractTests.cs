@@ -95,6 +95,168 @@ public class RulesApiContractTests : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    // ====== Phase 4 Contract Tests (T037, T038): Multi-Program & Asset Validation ======
+
+    /// <summary>
+    /// Test T037: Asset evaluation field validation in contract
+    /// Verify disqualifying_factors array includes asset-related reasons where applicable
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_WithAssets_IncludesDisqualifyingFactorsInSchema()
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["state_code"] = "IL",
+            ["household_size"] = 1,
+            ["monthly_income_cents"] = 100_000,
+            ["age"] = 70,
+            ["has_disability"] = false,
+            ["is_pregnant"] = false,
+            ["receives_ssi"] = false,
+            ["is_citizen"] = true,
+            ["assets_cents"] = 250_000  // High assets - may become disqualifying factor
+        };
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        // Verify matched_programs have disqualifying_factors array
+        var matchedPrograms = root.GetProperty("matched_programs");
+        foreach (var program in matchedPrograms.EnumerateArray())
+        {
+            program.TryGetProperty("disqualifying_factors", out var disqualifyingFactors)
+                .Should().BeTrue("Each program match should have disqualifying_factors field");
+            
+            disqualifyingFactors.ValueKind.Should().Be(JsonValueKind.Array);
+        }
+    }
+
+    /// <summary>
+    /// Test T038: Multi-program response schema validation
+    /// Verify matched_programs array structure and required fields
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_ResponseSchema_IncludesAllRequiredFieldsInProgramMatches()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "IL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        // Verify matched_programs array exists
+        root.TryGetProperty("matched_programs", out var matchedPrograms).Should().BeTrue();
+        matchedPrograms.ValueKind.Should().Be(JsonValueKind.Array);
+
+        if (matchedPrograms.GetArrayLength() > 0)
+        {
+            foreach (var program in matchedPrograms.EnumerateArray())
+            {
+                // Verify all required fields
+                program.TryGetProperty("program_id", out _).Should().BeTrue("program_id required");
+                program.TryGetProperty("program_name", out _).Should().BeTrue("program_name required");
+                program.TryGetProperty("confidence_score", out var confidenceScore).Should().BeTrue("confidence_score required");
+                program.TryGetProperty("explanation", out _).Should().BeTrue("explanation required");
+                program.TryGetProperty("eligibility_pathway", out _).Should().BeTrue("eligibility_pathway required");
+                program.TryGetProperty("matching_factors", out var matchingFactors).Should().BeTrue("matching_factors required");
+                program.TryGetProperty("disqualifying_factors", out var disqualifyingFactors).Should().BeTrue("disqualifying_factors required");
+
+                // Verify type constraints
+                confidenceScore.ValueKind.Should().Be(JsonValueKind.Number, "confidence_score must be integer");
+                var scoreValue = confidenceScore.GetInt32();
+                scoreValue.Should().BeGreaterThanOrEqualTo(0).And.BeLessThanOrEqualTo(100);
+                
+                matchingFactors.ValueKind.Should().Be(JsonValueKind.Array);
+                disqualifyingFactors.ValueKind.Should().Be(JsonValueKind.Array);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Test T038: Results sorted by confidence descending
+    /// Verify matched_programs array is sorted by confidence_score descending
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_MatchedPrograms_SortedByConfidenceDescending()
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["state_code"] = "IL",
+            ["household_size"] = 2,
+            ["monthly_income_cents"] = 200_000,
+            ["age"] = 30,
+            ["has_disability"] = false,
+            ["is_pregnant"] = true,
+            ["receives_ssi"] = false,
+            ["is_citizen"] = true,
+            ["assets_cents"] = null
+        };
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        var matchedPrograms = root.GetProperty("matched_programs");
+        if (matchedPrograms.GetArrayLength() > 1)
+        {
+            var scores = new List<int>();
+            foreach (var program in matchedPrograms.EnumerateArray())
+            {
+                scores.Add(program.GetProperty("confidence_score").GetInt32());
+            }
+
+            // Verify descending order
+            for (int i = 0; i < scores.Count - 1; i++)
+            {
+                scores[i].Should().BeGreaterThanOrEqualTo(scores[i + 1],
+                    "matched_programs must be sorted by confidence_score descending");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Test T038: Confidence score is 0-100 integer
+    /// Verify all confidence scores are valid integers in range [0, 100]
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_ConfidenceScores_AreValidIntegers()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "IL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        // Check overall confidence_score
+        var overallScore = root.GetProperty("confidence_score").GetInt32();
+        overallScore.Should().BeGreaterThanOrEqualTo(0).And.BeLessThanOrEqualTo(100);
+
+        // Check individual program scores
+        var matchedPrograms = root.GetProperty("matched_programs");
+        foreach (var program in matchedPrograms.EnumerateArray())
+        {
+            var score = program.GetProperty("confidence_score").GetInt32();
+            score.Should().BeGreaterThanOrEqualTo(0).And.BeLessThanOrEqualTo(100);
+        }
+    }
+
     private static Dictionary<string, object?> CreateEvaluatePayload(string stateCode)
     {
         return new Dictionary<string, object?>

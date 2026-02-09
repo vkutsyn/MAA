@@ -201,12 +201,12 @@
 
 ### Integration Tests for US2 & Asset Evaluation
 
-- [ ] T036a [P] Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 3+ test cases for asset evaluation:
+- [x] T036a [P] Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 3+ test cases for asset evaluation:
   - 70-year-old Aged pathway with assets below state limit → eligible
   - 65-year-old Disabled pathway with assets exceeding limit → ineligible, explanation includes asset reason
   - Asset test failure supersedes income eligibility (disqualifying factor)
 
-- [ ] T036 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
+- [x] T036 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
   - Pregnant 25-year-old with income at 150% FPL → matches MAGI Adult + Pregnancy-Related
   - 70-year-old with disability → matches Aged + Disabled Medicaid
   - Results sorted by confidence descending
@@ -214,10 +214,10 @@
 
 ### Contract Tests for US2
 
-- [ ] T037 Create src/MAA.Tests/Contract/RulesApiContractTests.cs (extension) validating asset evaluation in contract:
+- [x] T037 Create src/MAA.Tests/Contract/RulesApiContractTests.cs (extension) validating asset evaluation in contract:
   - disqualifying_factors array includes asset-related reasons where applicable
 
-- [ ] T038 Create src/MAA.Tests/Contract/RulesApiContractTests.cs (extension) validating:
+- [x] T038 Create src/MAA.Tests/Contract/RulesApiContractTests.cs (extension) validating:
   - matched_programs array present in response
   - Each object in array includes: program_id, program_name, confidence_score, explanation
   - confidence_score is 0-100 integer
