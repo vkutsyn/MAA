@@ -170,7 +170,7 @@ public class SessionContext : DbContext
             entity.HasIndex(e => e.KeyVersion).IsUnique();
             entity.HasIndex(e => new { e.Algorithm, e.IsActive })
                 .IsUnique()
-                .HasFilter("is_active = TRUE");
+                .HasFilter("\"IsActive\" = TRUE");
         });
     }
 

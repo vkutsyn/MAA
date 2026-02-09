@@ -1,8 +1,16 @@
 using MAA.API.Middleware;
 using MAA.Application.Services;
 using MAA.Application.Sessions;
+using MAA.Application.Eligibility.Handlers;
+using MAA.Application.Eligibility.Repositories;
+using MAA.Application.Eligibility.Caching;
+using MAA.Application.Eligibility.Services;
+using MAA.Application.Eligibility.Validators;
 using MAA.Domain.Repositories;
+using MAA.Domain.Rules;
 using MAA.Infrastructure.Data;
+using MAA.Infrastructure.DataAccess;
+using MAA.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -43,7 +51,26 @@ try
     builder.Services.AddMemoryCache();
 
     // Register infrastructure services (US4: Azure Key Vault integration)
-    builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+    // In test environment, skip Azure Key Vault - tests provide mock
+    if (builder.Environment.IsProduction() || builder.Configuration["Azure:KeyVault:Uri"] == null)
+    {
+        // Production: Use real Key Vault
+        // Test: Use mock (provided by TestWebApplicationFactory or use default)
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+        }
+        else
+        {
+            // For non-production environments without Key Vault config, skip registration
+            // Test factory will provide implementation
+        }
+    }
+    else
+    {
+        // Configuration available, register normally
+        builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+    }
 
     // Register domain services
     builder.Services.AddScoped<ISessionService, SessionService>();
@@ -55,6 +82,21 @@ try
     
     // Register validators
     builder.Services.AddScoped<MAA.Application.Sessions.Validators.SaveAnswerCommandValidator>();
+    
+    // Register Rules domain services (Phase 3-5: E2 Feature)
+    builder.Services.AddTransient<RuleEngine>();
+    builder.Services.AddTransient<FPLCalculator>();
+    
+    // Register Rules application layer services
+    builder.Services.AddScoped<IEvaluateEligibilityHandler, EvaluateEligibilityHandler>();
+    builder.Services.AddScoped<EligibilityInputValidator>();
+    
+    // Register Rules infrastructure services
+    builder.Services.AddScoped<IRuleRepository, RuleRepository>();
+    builder.Services.AddScoped<IFplRepository, FplRepository>();
+    builder.Services.AddScoped<IRuleCacheService, RuleCacheService>();
+    builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
+    builder.Services.AddScoped<IFPLCacheService, FPLCacheService>();
 
     // Add controllers
     builder.Services.AddControllers();

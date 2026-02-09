@@ -19,7 +19,7 @@ namespace MAA.Infrastructure.Migrations
             // ============= ILLINOIS (IL) =============
             migrationBuilder.InsertData(
                 table: "medicaid_programs",
-                columns: new[] { "program_id", "state_code", "program_name", "program_code", "eligibility_pathway", "description", "created_at", "updated_at" },
+                columns: new[] { "ProgramId", "StateCode", "ProgramName", "ProgramCode", "EligibilityPathway", "Description", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), "IL", "MAGI Adult", "IL_MAGI_ADULT", "MAGI", "Income-based Medicaid for working-age adults (18-64) without dependent children", new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
@@ -33,7 +33,7 @@ namespace MAA.Infrastructure.Migrations
             // ============= CALIFORNIA (CA) =============
             migrationBuilder.InsertData(
                 table: "medicaid_programs",
-                columns: new[] { "program_id", "state_code", "program_name", "program_code", "eligibility_pathway", "description", "created_at", "updated_at" },
+                columns: new[] { "ProgramId", "StateCode", "ProgramName", "ProgramCode", "EligibilityPathway", "Description", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), "CA", "CalMediConnect", "CA_CALMEDICONNECT", "MAGI", "California's MAGI Medicaid expansion program for working-age adults", new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
@@ -47,7 +47,7 @@ namespace MAA.Infrastructure.Migrations
             // ============= NEW YORK (NY) =============
             migrationBuilder.InsertData(
                 table: "medicaid_programs",
-                columns: new[] { "program_id", "state_code", "program_name", "program_code", "eligibility_pathway", "description", "created_at", "updated_at" },
+                columns: new[] { "ProgramId", "StateCode", "ProgramName", "ProgramCode", "EligibilityPathway", "Description", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), "NY", "MAGI Medicaid", "NY_MAGI", "MAGI", "Modified Adjusted Gross Income Medicaid for working-age adults", new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
@@ -61,7 +61,7 @@ namespace MAA.Infrastructure.Migrations
             // ============= TEXAS (TX) =============
             migrationBuilder.InsertData(
                 table: "medicaid_programs",
-                columns: new[] { "program_id", "state_code", "program_name", "program_code", "eligibility_pathway", "description", "created_at", "updated_at" },
+                columns: new[] { "ProgramId", "StateCode", "ProgramName", "ProgramCode", "EligibilityPathway", "Description", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), "TX", "CHIP", "TX_CHIP", "MAGI", "Children's Health Insurance Program for low-income children (CHIP = MAGI pathway)", new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
@@ -75,7 +75,7 @@ namespace MAA.Infrastructure.Migrations
             // ============= FLORIDA (FL) =============
             migrationBuilder.InsertData(
                 table: "medicaid_programs",
-                columns: new[] { "program_id", "state_code", "program_name", "program_code", "eligibility_pathway", "description", "created_at", "updated_at" },
+                columns: new[] { "ProgramId", "StateCode", "ProgramName", "ProgramCode", "EligibilityPathway", "Description", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), "FL", "MAGI Medicaid", "FL_MAGI", "MAGI", "Modified Adjusted Gross Income Medicaid for working-age adults and families", new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },

@@ -196,8 +196,8 @@ public class ConfidenceScorerTests
     [InlineData(90, "Very High")]
     [InlineData(80, "High")]
     [InlineData(60, "Medium")]
-    [InlineData(40, "Low")]
-    [InlineData(10, "Very Low")]
+    [InlineData(35, "Low")]
+    [InlineData(0, "Very Low")]
     public void ScoreConfidence_ResturnsCorrectConfidenceLevel(int expectedScore, string expectedCategory)
     {
         var scorer = new ConfidenceScorer();

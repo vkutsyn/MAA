@@ -1,9 +1,13 @@
+using MAA.Application.Services;
 using MAA.Infrastructure.Data;
+using MAA.Infrastructure.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 
 namespace MAA.Tests.Integration;
 
@@ -42,15 +46,51 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     /// </summary>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Set test environment so Program.cs skips certain registrations
+        builder.UseEnvironment("test");
+
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            // Add test configuration that provides required settings
+            var testConfig = new Dictionary<string, string>
+            {
+                ["Azure:KeyVault:Uri"] = "https://test-keyvault.vault.azure.net/",
+                ["ConnectionStrings:DefaultConnection"] = _databaseFixture?.GetConnectionString() 
+                    ?? "Host=127.0.0.1;Port=5432;Database=maa_test;Username=postgres;Password=postgres"
+            };
+            config.AddInMemoryCollection(testConfig);
+        });
+
         builder.ConfigureServices(services =>
         {
-            // Remove the production DbContext
+            // Find and remove the old DbContext registration to prevent DI validation errors
             var dbContextDescriptor = services.FirstOrDefault(
                 d => d.ServiceType == typeof(DbContextOptions<SessionContext>));
 
             if (dbContextDescriptor != null)
             {
                 services.Remove(dbContextDescriptor);
+            }
+
+            // Find and remove any DbContextOptions registrations to get a clean slate
+            var allDbContextOptions = services.Where(
+                d => d.ServiceType.IsGenericType && 
+                     d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>) &&
+                     d.ServiceType.GetGenericArguments()[0] == typeof(SessionContext)
+            ).ToList();
+
+            foreach (var descriptor in allDbContextOptions)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Remove production KeyVaultClient to replace with mock
+            var keyVaultDescriptor = services.FirstOrDefault(
+                d => d.ServiceType == typeof(IKeyVaultClient));
+
+            if (keyVaultDescriptor != null)
+            {
+                services.Remove(keyVaultDescriptor);
             }
 
             // Add test-specific DbContext configuration
@@ -68,13 +108,23 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             }
             else
             {
-                // Contract tests: Use in-memory HTTP testing without database
-                // The API will use dependency injection configured by Program.cs
-                // Services are available, but no database is accessed in contract tests.
+                // Contract tests: Use in-memory database for HTTP testing
+                // This allows contract tests to run without Docker/PostgreSQL
+                services.AddDbContext<SessionContext>(options =>
+                    options.UseInMemoryDatabase("TestDatabase_" + Guid.NewGuid().ToString())
+                );
             }
 
-            // Ensure all services are properly configured
-            services.BuildServiceProvider();
+            // Register mock KeyVaultClient for testing (no Azure Key Vault access needed)
+            var mockKeyVaultClient = new Mock<IKeyVaultClient>();
+            mockKeyVaultClient
+                .Setup(x => x.GetKeyAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("test-encryption-key-material-32-bytes-long-1234567890");
+            
+            services.AddScoped(_ => mockKeyVaultClient.Object);
+
+            // DO NOT validate the service provider here - let the host do it
+            // This allows the host to properly initialize all services
         });
     }
 }

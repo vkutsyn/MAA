@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MAA.Infrastructure.Migrations
 {
     [DbContext(typeof(SessionContext))]
-    [Migration("20260209010443_AddRulesEngine")]
-    partial class AddRulesEngine
+    [Migration("20260209233645_EnablePgcrypto")]
+    partial class EnablePgcrypto
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -220,7 +220,7 @@ namespace MAA.Infrastructure.Migrations
 
                     b.HasIndex("Algorithm", "IsActive")
                         .IsUnique()
-                        .HasFilter("is_active = TRUE");
+                        .HasFilter("\"IsActive\" = TRUE");
 
                     b.ToTable("encryption_keys", (string)null);
                 });

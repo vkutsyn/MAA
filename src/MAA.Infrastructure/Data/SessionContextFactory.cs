@@ -15,7 +15,7 @@ public class SessionContextFactory : IDesignTimeDbContextFactory<SessionContext>
         
         // Use a dummy connection string for migrations generation
         // Actual connection string comes from appsettings at runtime
-        optionsBuilder.UseNpgsql("Host=localhost;Database=maa_dev;Username=postgres;Password=postgres");
+        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=maa_dev;Username=maa;Password=devpass");
 
         return new SessionContext(optionsBuilder.Options);
     }

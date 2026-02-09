@@ -217,7 +217,7 @@ namespace MAA.Infrastructure.Migrations
 
                     b.HasIndex("Algorithm", "IsActive")
                         .IsUnique()
-                        .HasFilter("is_active = TRUE");
+                        .HasFilter("\"IsActive\" = TRUE");
 
                     b.ToTable("encryption_keys", (string)null);
                 });

@@ -24,7 +24,7 @@ namespace MAA.Infrastructure.Migrations
             // ============= BASELINE FPL (48 states + DC) =============
             migrationBuilder.InsertData(
                 table: "federal_poverty_levels",
-                columns: new[] { "fpl_id", "year", "household_size", "annual_income_cents", "state_code", "adjustment_multiplier", "created_at", "updated_at" },
+                columns: new[] { "FplId", "Year", "HouseholdSize", "AnnualIncomeCents", "StateCode", "AdjustmentMultiplier", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     // Household size 1-8
@@ -44,7 +44,7 @@ namespace MAA.Infrastructure.Migrations
             // Example: 1 person baseline $14,580 * 1.25 = $18,225
             migrationBuilder.InsertData(
                 table: "federal_poverty_levels",
-                columns: new[] { "fpl_id", "year", "household_size", "annual_income_cents", "state_code", "adjustment_multiplier", "created_at", "updated_at" },
+                columns: new[] { "FplId", "Year", "HouseholdSize", "AnnualIncomeCents", "StateCode", "AdjustmentMultiplier", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), 2026, 1, 1822500L, "AK", 1.25m, new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
@@ -63,7 +63,7 @@ namespace MAA.Infrastructure.Migrations
             // Example: 1 person baseline $14,580 * 1.15 = $16,767
             migrationBuilder.InsertData(
                 table: "federal_poverty_levels",
-                columns: new[] { "fpl_id", "year", "household_size", "annual_income_cents", "state_code", "adjustment_multiplier", "created_at", "updated_at" },
+                columns: new[] { "FplId", "Year", "HouseholdSize", "AnnualIncomeCents", "StateCode", "AdjustmentMultiplier", "CreatedAt", "UpdatedAt" },
                 values: new object[,]
                 {
                     { Guid.NewGuid(), 2026, 1, 1676700L, "HI", 1.15m, new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },

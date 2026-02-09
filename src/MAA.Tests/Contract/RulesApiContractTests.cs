@@ -435,4 +435,246 @@ public class RulesApiContractTests : IAsyncLifetime
         // Response should normalize to uppercase
         root.GetProperty("state_code").GetString().Should().Be("IL");
     }
+
+    // ====== Phase 6 Contract Tests (T058): Explanation Field Validation ======
+
+    /// <summary>
+    /// Test T058: Explanation field is present in all responses
+    /// Verify all evaluation responses include the explanation field
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_AllResponses_ContainExplanationField()
+    {
+        var testStates = new[] { "IL", "CA", "NY", "TX", "FL" };
+
+        foreach (var state in testStates)
+        {
+            var payload = CreateEvaluatePayload(stateCode: state);
+
+            var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+
+            // Main explanation field must exist
+            root.TryGetProperty("explanation", out var explanation).Should().BeTrue(
+                $"Response for state {state} should contain 'explanation' field");
+
+            // Explanation must not be null
+            explanation.ValueKind.Should().NotBe(JsonValueKind.Null,
+                $"Explanation field for state {state} should not be null");
+        }
+    }
+
+    /// <summary>
+    /// Test T058: Explanation is non-empty string
+    /// Verify explanation always contains meaningful content, not empty or whitespace
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_Explanation_IsNonEmptyString()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "IL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        var explanation = root.GetProperty("explanation").GetString();
+        
+        // Must be non-null
+        explanation.Should().NotBeNull("Explanation should not be null");
+        
+        // Must be non-empty
+        explanation.Should().NotBeEmpty("Explanation should not be empty string");
+        
+        // Must not be only whitespace
+        explanation!.Trim().Should().NotBeEmpty("Explanation should contain meaningful content, not just whitespace");
+        
+        // Should have reasonable length (at least 20 characters for any useful explanation)
+        explanation.Length.Should().BeGreaterThan(20,
+            "Explanation should provide substantive content (>20 chars)");
+    }
+
+    /// <summary>
+    /// Test T058: Each program match includes non-empty explanation
+    /// Verify program-specific explanations are also non-empty
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_ProgramExplanations_AreNonEmpty()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "IL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        var matchedPrograms = root.GetProperty("matched_programs");
+        matchedPrograms.GetArrayLength().Should().BeGreaterThan(0, "Should have at least one matched program");
+
+        foreach (var program in matchedPrograms.EnumerateArray())
+        {
+            program.TryGetProperty("explanation", out var programExpl).Should().BeTrue(
+                "Each program match should have 'explanation' field");
+
+            var programExplanation = programExpl.GetString();
+            programExplanation.Should().NotBeNullOrEmpty(
+                "Program explanation should not be null or empty");
+            programExplanation!.Trim().Should().NotBeEmpty(
+                "Program explanation should contain meaningful content");
+        }
+    }
+
+    /// <summary>
+    /// Test T058: Explanation does not contain unexplained jargon
+    /// Verify explanations define all acronyms inline or avoid jargon entirely
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_Explanation_DefinesJargonTerms()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "IL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        var explanation = root.GetProperty("explanation").GetString();
+        explanation.Should().NotBeNullOrEmpty();
+
+        // Common government acronyms that should be explained if used
+        var jargonRules = new Dictionary<string, string>
+        {
+            { "MAGI", "Modified Adjusted Gross Income" },
+            { "FPL", "Federal Poverty Level" },
+            { "SSI", "Social Security Income" },
+            { "SSDI", "Social Security Disability Insurance" },
+            { "TANF", "Temporary Assistance for Needy Families" }
+        };
+
+        foreach (var (acronym, definition) in jargonRules)
+        {
+            // If acronym is present in explanation, ensure it's defined
+            if (explanation!.Contains(acronym))
+            {
+                // Either the full definition should appear nearby, or the acronym should appear in explained form
+                var isExplained = explanation.Contains(definition) ||
+                                  explanation.Contains($"{definition} ({acronym})") ||
+                                  explanation.Contains($"{acronym} ({definition.ToLower()})");
+
+                isExplained.Should().BeTrue(
+                    $"Acronym '{acronym}' should be defined as '{definition}' in the explanation");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Test T058: Explanation does not contain common undefined acronyms in different scenarios
+    /// Verify SSI, pregnancy, and asset scenarios all provide jargon-free explanations
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_MultipleScenarios_AllHaveJargonFreeExplanations()
+    {
+        var scenarios = new List<(Dictionary<string, object?> payload, string description)>
+        {
+            (
+                new Dictionary<string, object?>
+                {
+                    ["state_code"] = "IL",
+                    ["household_size"] = 1,
+                    ["monthly_income_cents"] = 300_000,
+                    ["age"] = 50,
+                    ["has_disability"] = false,
+                    ["is_pregnant"] = false,
+                    ["receives_ssi"] = true,
+                    ["is_citizen"] = true,
+                    ["assets_cents"] = null
+                },
+                "SSI scenario"
+            ),
+            (
+                new Dictionary<string, object?>
+                {
+                    ["state_code"] = "CA",
+                    ["household_size"] = 1,
+                    ["monthly_income_cents"] = 180_000,
+                    ["age"] = 25,
+                    ["has_disability"] = false,
+                    ["is_pregnant"] = true,
+                    ["receives_ssi"] = false,
+                    ["is_citizen"] = true,
+                    ["assets_cents"] = null
+                },
+                "Pregnancy scenario"
+            ),
+            (
+                new Dictionary<string, object?>
+                {
+                    ["state_code"] = "NY",
+                    ["household_size"] = 1,
+                    ["monthly_income_cents"] = 150_000,
+                    ["age"] = 70,
+                    ["has_disability"] = false,
+                    ["is_pregnant"] = false,
+                    ["receives_ssi"] = false,
+                    ["is_citizen"] = true,
+                    ["assets_cents"] = 300_000
+                },
+                "Aged pathway with assets"
+            )
+        };
+
+        foreach (var (payload, description) in scenarios)
+        {
+            var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var document = JsonDocument.Parse(json);
+            var root = document.RootElement;
+
+            var explanation = root.GetProperty("explanation").GetString();
+            explanation.Should().NotBeNullOrEmpty($"Explanation for {description} should not be empty");
+
+            // Verify explanation has meaningful content (not just generic error messages)
+            explanation!.Length.Should().BeGreaterThan(30,
+                $"Explanation for {description} should provide substantive content");
+
+            // Ensure no undefined standalone acronyms (basic check)
+            // This is a simple heuristic: lone uppercase 3-4 letter words followed by punctuation
+            var suspiciousAcronyms = new[] { "AMI", "AGI", "CMS", "HHS", "DHH", "SOC" };
+            foreach (var acronym in suspiciousAcronyms)
+            {
+                if (explanation.Contains($" {acronym} ") || explanation.Contains($" {acronym}.") || explanation.Contains($" {acronym},"))
+                {
+                    // If found, should have definition nearby (within same sentence)
+                    var acronymIndex = explanation.IndexOf(acronym);
+                    var contextBefore = acronymIndex > 30 ? explanation.Substring(acronymIndex - 30, 30) : explanation.Substring(0, acronymIndex);
+                    var contextAfter = acronymIndex + acronym.Length + 40 < explanation.Length
+                        ? explanation.Substring(acronymIndex, 40)
+                        : explanation.Substring(acronymIndex);
+
+                    var hasDefinition = contextBefore.Contains("(") || contextAfter.Contains("(") ||
+                                        char.IsLower(contextAfter[acronym.Length + 1]);
+
+                    hasDefinition.Should().BeTrue(
+                        $"Acronym '{acronym}' in {description} should be defined or avoided: context = '{contextBefore + contextAfter}'");
+                }
+            }
+        }
+    }
 }

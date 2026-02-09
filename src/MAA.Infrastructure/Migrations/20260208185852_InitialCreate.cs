@@ -125,7 +125,7 @@ namespace MAA.Infrastructure.Migrations
                 table: "encryption_keys",
                 columns: new[] { "Algorithm", "IsActive" },
                 unique: true,
-                filter: "is_active = TRUE");
+                filter: "\"IsActive\" = TRUE");
 
             migrationBuilder.CreateIndex(
                 name: "IX_encryption_keys_KeyVersion",
@@ -138,7 +138,7 @@ namespace MAA.Infrastructure.Migrations
                 table: "session_answers",
                 column: "AnswerHash",
                 unique: true,
-                filter: "answer_hash IS NOT NULL");
+                filter: "\"AnswerHash\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_session_answers_KeyVersion",
@@ -170,7 +170,7 @@ namespace MAA.Infrastructure.Migrations
                 name: "IX_sessions_UserId",
                 table: "sessions",
                 column: "UserId",
-                filter: "user_id IS NOT NULL");
+                filter: "\"UserId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_Email",

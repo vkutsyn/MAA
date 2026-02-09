@@ -45,19 +45,19 @@ public class AssetEvaluator
     private static readonly Dictionary<string, long> StateAssetLimitsCents = new(StringComparer.OrdinalIgnoreCase)
     {
         // IL: $2,000 limit for Aged/Disabled pathways
-        { "IL", 200_000_00L },  // $2,000.00 in cents
+        { "IL", 200_000L },  // $2,000.00 in cents
 
         // CA: $3,000 limit (higher than federal baseline)
-        { "CA", 300_000_00L },  // $3,000.00 in cents
+        { "CA", 300_000L },  // $3,000.00 in cents
 
         // NY: $4,500 limit (highest among pilot states)
-        { "NY", 450_000_00L },  // $4,500.00 in cents
+        { "NY", 450_000L },  // $4,500.00 in cents
 
         // TX: $2,000 limit (federal baseline)
-        { "TX", 200_000_00L },  // $2,000.00 in cents
+        { "TX", 200_000L },  // $2,000.00 in cents
 
         // FL: $2,500 limit (hybrid approach between low and high limits)
-        { "FL", 250_000_00L }   // $2,500.00 in cents
+        { "FL", 250_000L }   // $2,500.00 in cents
     };
 
     /// <summary>
@@ -165,7 +165,7 @@ public class AssetEvaluator
         {
             decimal overage = (assetsCents - limitCents) / 100m;
             return $"Your assets (${assetsAmount:F2}) exceed the ${limitAmount:F2} limit " +
-                   $"for {pathwayName} Medicaid in {stateCode} by ${overage:F2}. " +
+                   $"for {pathwayName} Medicaid in {stateCode} by ${overage:F2} overage. " +
                    $"You may regain eligibility by reducing assets below the limit.";
         }
     }
