@@ -102,13 +102,16 @@ public class ConfidenceScorer
         // Start with base score
         int score = BASE_SCORE;
 
-        // Add points for matching factors
-        score += matching.Count * POINTS_PER_MATCHING_FACTOR;
-
-        // Apply categorical eligibility bonus if applicable
+        // If categorical eligibility applies, use only the categorical bonus (not factor points)
+        // Otherwise add points for matching factors
         if (hasCategoricalEligibility)
         {
             score += CATEGORICAL_ELIGIBILITY_BONUS;
+        }
+        else
+        {
+            // Add points for matching factors (only when not categorically eligible)
+            score += matching.Count * POINTS_PER_MATCHING_FACTOR;
         }
 
         // Deduct points for disqualifying factors
@@ -137,18 +140,20 @@ public class ConfidenceScorer
               || f.Contains("supplemental security income", StringComparison.OrdinalIgnoreCase));
 
         int score = BASE_SCORE;
+        int matchingPoints = hasCategoricalEligibility ? 0 : (matching.Count * POINTS_PER_MATCHING_FACTOR);
+        
         var details = new ConfidenceCalculationDetails
         {
             BaseScore = BASE_SCORE,
             MatchingFactorCount = matching.Count,
             DisqualifyingFactorCount = disqualifying.Count,
-            MatchingFactorPoints = matching.Count * POINTS_PER_MATCHING_FACTOR,
+            MatchingFactorPoints = matchingPoints,
             DisqualifyingFactorPoints = disqualifying.Count * POINTS_PER_DISQUALIFYING_FACTOR,
             HasCategoricalEligibility = hasCategoricalEligibility,
             CategoricalBonusPoints = hasCategoricalEligibility ? CATEGORICAL_ELIGIBILITY_BONUS : 0
         };
 
-        score += details.MatchingFactorPoints;
+        score += matchingPoints;
         if (hasCategoricalEligibility)
         {
             score += CATEGORICAL_ELIGIBILITY_BONUS;
