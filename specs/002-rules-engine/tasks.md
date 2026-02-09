@@ -363,9 +363,9 @@
 
 ### FPL Management
 
-- [ ] T059 Create src/MAA.Application/Eligibility/Services/FPLThresholdCalculator.cs: CalculateThreshold(fplAmount: decimal, percentage: int) → decimal, GetFPLForYear(year: int, householdSize: int, stateCode?: string) → FPL using per-person increment formula for household 8+
-- [ ] T060 [P] Extend FPLRepository.cs with: GetCurrentYearFPL(householdSize, stateCode), GetFPLRange(year, householdSizes: List<int>), HasFPLForYear(year)
-- [ ] T061 [P] Create src/MAA.Infrastructure/Caching/FPLCacheService.cs: In-memory cache for FPL tables with 1-year TTL, refresh on year boundary
+- [x] T059 Create src/MAA.Application/Eligibility/Services/FPLThresholdCalculator.cs: CalculateThreshold(fplAmount: decimal, percentage: int) → decimal, GetFPLForYear(year: int, householdSize: int, stateCode?: string) → FPL using per-person increment formula for household 8+
+- [x] T060 [P] Extend FPLRepository.cs with: GetCurrentYearFPL(householdSize, stateCode), GetFPLRange(year, householdSizes: List<int>), HasFPLForYear(year)
+- [x] T061 [P] Create src/MAA.Infrastructure/Caching/FPLCacheService.cs: In-memory cache for FPL tables with 1-year TTL, refresh on year boundary
 
 ### Unit Tests for US5
 
