@@ -51,7 +51,26 @@ try
     builder.Services.AddMemoryCache();
 
     // Register infrastructure services (US4: Azure Key Vault integration)
-    builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+    // In test environment, skip Azure Key Vault - tests provide mock
+    if (builder.Environment.IsProduction() || builder.Configuration["Azure:KeyVault:Uri"] == null)
+    {
+        // Production: Use real Key Vault
+        // Test: Use mock (provided by TestWebApplicationFactory or use default)
+        if (builder.Environment.IsProduction())
+        {
+            builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+        }
+        else
+        {
+            // For non-production environments without Key Vault config, skip registration
+            // Test factory will provide implementation
+        }
+    }
+    else
+    {
+        // Configuration available, register normally
+        builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+    }
 
     // Register domain services
     builder.Services.AddScoped<ISessionService, SessionService>();
