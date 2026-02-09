@@ -14,6 +14,20 @@ public interface IRuleRepository
     Task<EligibilityRule?> GetByIdAsync(Guid ruleId);
     Task<IEnumerable<EligibilityRule>> GetRuleVersionsAsync(Guid programId);
     Task<IEnumerable<EligibilityRule>> GetRulesByPathwayAsync(string stateCode, EligibilityPathway pathway);
+    Task<List<(MedicaidProgram program, EligibilityRule rule)>> GetProgramsWithActiveRulesByStateAsync(string stateCode);
+}
+
+/// <summary>
+/// Repository interface for accessing Medicaid Programs
+/// Defined in Application layer (dependency inversion)
+/// Implemented in Infrastructure layer
+/// </summary>
+public interface IMedicaidProgramRepository
+{
+    Task<MedicaidProgram?> GetByIdAsync(Guid programId);
+    Task<IEnumerable<MedicaidProgram>> GetByStateAsync(string stateCode);
+    Task<IEnumerable<MedicaidProgram>> GetByPathwayAsync(string stateCode, EligibilityPathway pathway);
+    Task<IEnumerable<MedicaidProgram>> GetAllAsync();
 }
 
 /// <summary>

@@ -169,31 +169,31 @@
 
 ### Asset Evaluation Logic (CRITICAL FOR FR-016, SC-006)
 
-- [ ] T031a [P] Create src/MAA.Domain/Rules/AssetEvaluator.cs pure function: EvaluateAssets(assets: decimal, pathway: EligibilityPathway, state: string, currentYear: int) → (isEligible: bool, reason: string) for non-MAGI Aged/Disabled asset limits per state
+- [x] T031a [P] Create src/MAA.Domain/Rules/AssetEvaluator.cs pure function: EvaluateAssets(assets: decimal, pathway: EligibilityPathway, state: string, currentYear: int) → (isEligible: bool, reason: string) for non-MAGI Aged/Disabled asset limits per state
 
 ### Multi-Program Matching Logic
 
-- [ ] T031 Create src/MAA.Domain/Rules/ProgramMatcher.cs: findMatchingPrograms(input: UserEligibilityInput, allPrograms: List<EligibilityRule>) → List<ProgramMatch> (pure function)
-- [ ] T032 [P] Create src/MAA.Application/Eligibility/Handlers/ProgramMatchingHandler.cs that orchestrates multi-program matching: fetch all active rules for state, evaluate each program via RuleEngine, collect all matches (not just first), apply ConfidenceScorer, sort by confidence descending, return List<ProgramMatch>. Used by main POST /api/rules/evaluate endpoint. (Note: T021 EvaluateEligibilityHandler for single program queries)
-- [ ] T033 [P] Create src/MAA.Domain/Rules/ConfidenceScorer.cs pure function: scoreConfidence(matchingFactors: List<string>, disqualifyingFactors: List<string>) → int (0-100) and confidence level
+- [x] T031 Create src/MAA.Domain/Rules/ProgramMatcher.cs: findMatchingPrograms(input: UserEligibilityInput, allPrograms: List<EligibilityRule>) → List<ProgramMatch> (pure function)
+- [x] T032 [P] Create src/MAA.Application/Eligibility/Handlers/ProgramMatchingHandler.cs that orchestrates multi-program matching: fetch all active rules for state, evaluate each program via RuleEngine, collect all matches (not just first), apply ConfidenceScorer, sort by confidence descending, return List<ProgramMatch>. Used by main POST /api/rules/evaluate endpoint. (Note: T021 EvaluateEligibilityHandler for single program queries)
+- [x] T033 [P] Create src/MAA.Domain/Rules/ConfidenceScorer.cs pure function: scoreConfidence(matchingFactors: List<string>, disqualifyingFactors: List<string>) → int (0-100) and confidence level
 
 ### Unit Tests for US2 & Asset Evaluation
 
-- [ ] T034a [P] Create src/MAA.Tests/Unit/Rules/AssetEvaluatorTests.cs with 6+ test cases:
+- [x] T034a [P] Create src/MAA.Tests/Unit/Rules/AssetEvaluatorTests.cs with 6+ test cases:
   - Assets below state limit for Aged pathway → eligible
   - Assets at state limit for Aged pathway → eligible
   - Assets above state limit for Aged pathway → ineligible with reason "Assets exceed $X limit for Aged Medicaid"
   - Different state (IL vs CA) has different limits → both evaluated correctly
   - Assets at boundary value (exact limit) → eligible
 
-- [ ] T034 Create src/MAA.Tests/Unit/Rules/ProgramMatcherTests.cs with 8+ test cases:
+- [x] T034 Create src/MAA.Tests/Unit/Rules/ProgramMatcherTests.cs with 8+ test cases:
   - User qualifies for MAGI Adult only → 1 match returned
   - User qualifies for MAGI Adult + Pregnancy-Related → 2 matches, sorted by confidence (95%, 85%)
   - User qualifies for multiple pathways (Aged + Disabled) → all matches returned
   - No programs match → empty list returned (not null)
   - Confidence scores: high (95%) for certain match, medium (75%) for uncertain, low (25%) for possible
 
-- [ ] T035 [P] Create src/MAA.Tests/Unit/Rules/ConfidenceScorerTests.cs with 6+ test cases:
+- [x] T035 [P] Create src/MAA.Tests/Unit/Rules/ConfidenceScorerTests.cs with 6+ test cases:
   - All factors present → 95% confidence
   - Missing one factor → 75% confidence
   - Multiple disqualifying factors → 25% confidence

@@ -140,4 +140,45 @@ public class RuleRepository : IRuleRepository
             .ToListAsync()
             .ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Gets all programs with their active rules for a state
+    /// Returns tuples of (MedicaidProgram, EligibilityRule) for multi-program evaluation
+    /// 
+    /// Used by Phase 4 multi-program matching for bulk evaluation
+    /// </summary>
+    public async Task<List<(MedicaidProgram program, EligibilityRule rule)>> GetProgramsWithActiveRulesByStateAsync(string stateCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(stateCode, nameof(stateCode));
+
+        var now = DateTime.UtcNow;
+
+        var activeRules = await _context.EligibilityRules
+            .Include(r => r.Program)
+            .Where(r => r.StateCode == stateCode
+                     && r.EffectiveDate <= now
+                     && (r.EndDate == null || r.EndDate >= now))
+            .OrderByDescending(r => r.Version)
+            .ThenByDescending(r => r.EffectiveDate)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        // Group by program and take latest version per program
+        var latestRulesByProgram = activeRules
+            .GroupBy(r => r.ProgramId)
+            .Select(g => g.First())  // Already ordered by version descending
+            .ToList();
+
+        // Return tuples of program + rule
+        var results = new List<(MedicaidProgram program, EligibilityRule rule)>();
+        foreach (var rule in latestRulesByProgram)
+        {
+            if (rule.Program != null)
+            {
+                results.Add((rule.Program, rule));
+            }
+        }
+
+        return results;
+    }
 }
