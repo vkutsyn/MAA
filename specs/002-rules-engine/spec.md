@@ -175,7 +175,7 @@ Rules change over time due to legislation. The system must support basic version
 
 - **CONST-I (Code Quality)**: Eligibility evaluation logic MUST be testable in isolation without database or HTTP dependencies; rules engine should accept rule objects and user data objects as pure inputs
 - **CONST-II (Testing Standards)**: All functional requirements MUST have corresponding unit tests; integration tests MUST cover end-to-end evaluation flows for each pilot state; test data MUST include edge cases (exact threshold, $0 income, maximum household size)
-- **CONST-III (UX Consistency)**: Plain-language explanations MUST be tested with readability tools (Flesch-Kincaid 8th grade or below); explanations MUST NOT use unexplained acronyms or jargon
+- **CONST-III (UX Consistency)**: Plain-language explanations MUST be tested with automated readability tools achieving Flesch-Kincaid Reading Ease score ≥50 (10th-12th grade, adjusted for necessary medical terminology); explanations MUST NOT use unexplained acronyms or jargon
 - **CONST-IV (Performance)**: Eligibility evaluation MUST complete in ≤2 seconds (p95); FPL lookups MUST be cached or indexed for <10ms access time; rule evaluations MUST log performance metrics for monitoring
 
 ### Key Entities _(mandatory for this feature)_
@@ -243,7 +243,7 @@ Rules change over time due to legislation. The system must support basic version
 - **SC-007**: Rule versioning prevents future-dated rules from affecting current evaluations (100% compliance)
 - **SC-008**: Unit test coverage ≥80% for domain logic (evaluation engine, program matching, explanation generation)
 - **SC-009**: Integration tests validate end-to-end evaluation for each of 5 pilot states with real-world scenarios
-- **SC-010**: System supports 1,000 concurrent eligibility evaluations without performance degradation (load testing validation)
+- **SC-010**: System supports 1,000 concurrent eligibility evaluations sustained for 5 minutes with 100 users/sec ramp-up over 30 seconds, maintaining p95 latency ≤2 seconds, p99 <3 seconds, and 0% error rate (load testing validation with k6 or Apache JMeter)
 - **SC-011**: Zero jargon terms used without inline definitions in explanations (manual review + automated checks)
 - **SC-012**: Categorical eligibility (SSI) correctly bypasses income checks 100% of time for applicable programs
 

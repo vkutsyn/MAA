@@ -201,10 +201,14 @@
 
 ### Integration Tests for US2 & Asset Evaluation
 
-- [x] T036a [P] Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 3+ test cases for asset evaluation:
-  - 70-year-old Aged pathway with assets below state limit → eligible
-  - 65-year-old Disabled pathway with assets exceeding limit → ineligible, explanation includes asset reason
-  - Asset test failure supersedes income eligibility (disqualifying factor)
+- [x] T036a [P] Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 7+ test cases for asset evaluation:
+  - 70-year-old Aged pathway with assets below state limit (IL: assets $2,000 vs limit $2,000) → eligible (boundary test)
+  - 65-year-old Disabled pathway with assets exceeding limit (CA: assets $5,000 vs limit $3,000) → ineligible, explanation includes asset reason
+  - Asset test failure supersedes income eligibility (income qualifies but assets disqualify)
+  - Different states have different asset limits: IL $2,000 vs TX $2,500 → same user, different results
+  - MAGI pathway (age 35) with high assets → still eligible (asset test not applied to MAGI)
+  - Zero assets → eligible for all pathways (edge case)
+  - Asset exactly at limit → eligible (boundary condition)
 
 - [x] T036 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
   - Pregnant 25-year-old with income at 150% FPL → matches MAGI Adult + Pregnancy-Related
@@ -267,13 +271,15 @@
 
 ## Phase 6: US4 - Plain-Language Explanation Generation (P1)
 
+**⚠️ ASSIGNMENT REQUIRED**: Tasks T051-T074 (Phase 6-9) are incomplete. Assign owners and target completion dates before Phase 1 implementation begins.
+
 **Story Goal**: Users understand WHY they are/aren't eligible with jargon-free explanations using concrete numbers
 
 **Independent Test Criteria**:
 
 - Explanation includes actual user data values (income $2,100, threshold $2,500)
 - No unexplained jargon; MAGI → "Modified Adjusted Gross Income (MAGI)"
-- Reading level ≤ 8th grade (Flesch-Kincaid automated check)
+- Reading level ≤ 8th grade (Flesch-Kincaid Reading Ease score ≥60, automated check)
 
 ### Explanation Generation Logic
 
@@ -300,8 +306,10 @@
   - Definition lookup returns formatted string with term + definition
 
 - [ ] T056 [P] Create src/MAA.Tests/Unit/Eligibility/ReadabilityValidatorTests.cs with 5+ test cases:
-  - Simple explanation → scores 8th grade or below
-  - Complex explanation → requires simplification
+  - Simple explanation → scores Flesch-Kincaid Reading Ease ≥50 (acceptable with medical terms)
+  - Complex explanation → requires simplification (score <50 flagged)
+  - ReadabilityValidator uses Flesch-Kincaid Reading Ease formula (industry standard)
+  - Threshold validation: Score ≥50 passes (adjusted for medical terminology), <50 fails with actionable message
   - ReadabilityValidator flags explanations exceeding target
 
 ### Integration Tests for US4
@@ -450,11 +458,13 @@
 
 - [ ] T075 Create load test script (k6 or Apache JMeter) targeting 1,000 concurrent POST /api/rules/evaluate requests:
   - Target: ≤2 seconds (p95) latency per evaluation
-  - Ramp-up: 100 users/sec for 30 seconds (reach 1,000 concurrent)
-  - Duration: 5 minutes sustained load
-  - Success criteria: 0 errors, p95 latency ≤2 sec, p99 < 3 sec
-  - Measure: Cache hit rates (rules, FPL), database query performance, thread pool utilization
-  - Results: Generate performance report showing bottleneck analysis
+  - Ramp-up: 100 users/sec for 30 seconds (reach 1,000 concurrent users)
+  - Duration: 5 minutes sustained load at 1,000 concurrent users
+  - Success criteria: 0% error rate (no failed requests), p95 latency ≤2 sec, p99 latency <3 sec, p50 latency <1 sec
+  - Test data: Randomized state selection (IL, CA, NY, TX, FL) and household sizes (1-8) to simulate production distribution
+  - Measure: Response times (p50/p95/p99), cache hit rates (rules, FPL), database query performance, thread pool utilization, memory usage
+  - Results: Generate performance report showing bottleneck analysis, resource utilization graphs, and recommendations
+  - Validation: All 1,000 concurrent users must receive responses within SLO; any degradation requires optimization before merge
   - Link to: SC-010, CONST-IV (Performance requirement)
 
 ---
