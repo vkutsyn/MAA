@@ -97,7 +97,7 @@
 
 ### Core Evaluation Logic
 
-- [ ] T019 Create src/MAA.Domain/Rules/RuleEngine.cs pure function: evaluate(rule: EligibilityRule, input: UserEligibilityInput) → EvaluationResult (no I/O, no dependencies)
+- [x] T019 Create src/MAA.Domain/Rules/RuleEngine.cs pure function: evaluate(rule: EligibilityRule, input: UserEligibilityInput) → EvaluationResult (no I/O, no dependencies)
   - **Integration Approach** (CLARIFICATION FOR A7): Rule evaluation uses JSONLogic.Net library (per Phase 0 research task R3 decision: see phase-0-deliverables/R3-rule-engine-library-decision.md for library comparison and examples)
   - **Implementation Substep**: RuleEngine.Evaluate() method must:
     1. Parse rule.rule_logic JSON string into JSONLogic expression (using JSONLogic.Net Parse API)
@@ -106,12 +106,12 @@
     4. Extract confidence_score and eligibility_status from result
     5. Return EvaluationResult or throw EligibilityEvaluationException if rule_logic malformed
   - **Reference**: See phase-0-deliverables/R3 for JSONLogic rule syntax examples and library API usage
-- [ ] T020 [P] Create src/MAA.Domain/Rules/FPLCalculator.cs pure function: calculateThreshold(fplAmount: decimal, percentage: int, householdSize: int) → decimal (no database access)
-- [ ] T021 [P] Create src/MAA.Application/Eligibility/Handlers/EvaluateEligibilityHandler.cs orchestrator for single program evaluation: fetches active rule by program_id, calls RuleEngine.Evaluate(), applies FPL calculator, returns single EligibilityResult. Used for individual program detail queries. (Note: T032 ProgramMatchingHandler evaluates all programs for a state)
-- [ ] T022 [P] Create src/MAA.Application/Eligibility/Validators/EligibilityInputValidator.cs with FluentValidation rules: state_code in [IL,CA,NY,TX,FL], household_size 1-8, is_citizen required
-- [ ] T023 [P] Create src/MAA.Infrastructure/Data/Rules/RuleRepository.cs with methods: GetActiveRuleByProgram(stateCode, programId), GetRulesByState(stateCode)
-- [ ] T024 [P] Create src/MAA.Infrastructure/Data/Rules/FPLRepository.cs with methods: GetFPLByYearAndHouseholdSize(year, size), GetFPLForState(year, size, stateCode)
-- [ ] T025 [P] Create src/MAA.Infrastructure/Caching/RuleCacheService.cs in-memory cache: rules cached for 1 hour with manual invalidation on update
+- [x] T020 [P] Create src/MAA.Domain/Rules/FPLCalculator.cs pure function: calculateThreshold(fplAmount: decimal, percentage: int, householdSize: int) → decimal (no database access)
+- [x] T021 [P] Create src/MAA.Application/Eligibility/Handlers/EvaluateEligibilityHandler.cs orchestrator for single program evaluation: fetches active rule by program_id, calls RuleEngine.Evaluate(), applies FPL calculator, returns single EligibilityResult. Used for individual program detail queries. (Note: T032 ProgramMatchingHandler evaluates all programs for a state)
+- [x] T022 [P] Create src/MAA.Application/Eligibility/Validators/EligibilityInputValidator.cs with FluentValidation rules: state_code in [IL,CA,NY,TX,FL], household_size 1-8, is_citizen required
+- [x] T023 [P] Create src/MAA.Infrastructure/Data/Rules/RuleRepository.cs with methods: GetActiveRuleByProgram(stateCode, programId), GetRulesByState(stateCode)
+- [x] T024 [P] Create src/MAA.Infrastructure/Data/Rules/FPLRepository.cs with methods: GetFPLByYearAndHouseholdSize(year, size), GetFPLForState(year, size, stateCode)
+- [x] T025 [P] Create src/MAA.Infrastructure/Caching/RuleCacheService.cs in-memory cache: rules cached for 1 hour with manual invalidation on update
 
 ### Unit Tests for US1
 
@@ -123,13 +123,13 @@
   - Missing required field → throws validation exception
   - $0 income → evaluated against $0 threshold
 
-- [ ] T027 [P] Create src/MAA.Tests/Unit/Rules/FPLCalculatorTests.cs with 6+ test cases:
+- [x] T027 [P] Create src/MAA.Tests/Unit/Rules/FPLCalculatorTests.cs with 6+ test cases:
   - Calculate 138% FPL for household of 2 (2026)
   - Calculate 138% FPL for household of 8+ (per-person increment)
   - Exact threshold matching
   - FPL lookup with null state code (baseline)
 
-- [ ] T028 [P] Create src/MAA.Tests/Unit/Eligibility/EligibilityEvaluatorTests.cs with 5+ test cases:
+- [x] T028 [P] Create src/MAA.Tests/Unit/Eligibility/EligibilityEvaluatorTests.cs with 5+ test cases:
   - End-to-end evaluation (fetch rule, calculate threshold, evaluate)
   - Invalid state code (e.g., "XX") → EligibilityInputValidator catches error at layer 1, throws FluentValidation.ValidationException with message "State code must be one of: IL, CA, NY, TX, FL", caught by API middleware returning 400 BadRequest. (Alternative flow: if validator bypassed, RuleRepository.GetActiveRuleByProgramAsync() returns null, handler throws EligibilityEvaluationException("No active rule found for state XX, program XYZ"))
   - Missing rule for program → throws EligibilityEvaluationException with helpful message "No active rule found for program [program_name] in state [state_code]. Please contact support."
