@@ -236,13 +236,13 @@
 
 ### State-Specific Integration
 
-- [ ] T044 Create src/MAA.Application/Eligibility/Services/StateRuleLoader.cs: loadRulesForState(stateCode: string) → List<EligibilityRule> (with cache)
-- [ ] T045 [P] Create src/MAA.Infrastructure/Data/Rules/StateRuleRepository.cs: GetAllProgramsForState(stateCode), GetProgramsWithRules(stateCode, effectiveDate)
-- [ ] T046 [P] Extend RuleCacheService with state-scoped cache: rules cached by state_code key, invalidated per-state
+- [x] T044 Create src/MAA.Application/Eligibility/Services/StateRuleLoader.cs: loadRulesForState(stateCode: string) → List<EligibilityRule> (with cache)
+- [x] T045 [P] Create src/MAA.Infrastructure/Data/Rules/StateRuleRepository.cs: GetAllProgramsForState(stateCode), GetProgramsWithRules(stateCode, effectiveDate)
+- [x] T046 [P] Extend RuleCacheService with state-scoped cache: rules cached by state_code key, invalidated per-state
 
 ### Unit Tests for US3
 
-- [ ] T047 Create src/MAA.Tests/Unit/Eligibility/StateRuleLoaderTests.cs with 6+ test cases:
+- [x] T047 Create src/MAA.Tests/Unit/Eligibility/StateRuleLoaderTests.cs with 6+ test cases:
   - Load IL rules → only IL programs returned
   - Load CA rules → only CA programs returned
   - Invalid state code → throws exception with "State not found" message
@@ -250,7 +250,7 @@
 
 ### Integration Tests for US3
 
-- [ ] T048 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
+- [x] T048 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 6+ test cases:
   - Same user (household 3, $35k/year) in IL → passes threshold
   - Same user in TX (different threshold: 133% vs 138% FPL) → different result
   - CA evaluation uses only CA programs
@@ -258,8 +258,10 @@
 
 ### Contract Tests for US3
 
-- [ ] T049 [P] Create state-specific test data: src/MAA.Tests/Data/pilot-states-test-cases.json with IL, CA, NY, TX, FL scenarios
-- [ ] T050 [P] Extend RulesApiContractTests.cs validating state_code parameter validation in requests
+- [x] T049 [P] Create state-specific test data: src/MAA.Tests/Data/pilot-states-test-cases.json with IL, CA, NY, TX, FL scenarios
+- [x] T050 [P] Extend RulesApiContractTests.cs validating state_code parameter validation in requests
+
+**Phase 5 Status**: ✅ COMPLETE - 2026-02-09
 
 ---
 
