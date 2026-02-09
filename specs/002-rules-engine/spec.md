@@ -320,3 +320,51 @@ Rules change over time due to legislation. The system must support basic version
 - ✅ **Testing (CONST-II)**: Each pilot state gets ≥10 test scenarios; edge cases covered; unit + integration tests planned
 - ✅ **UX Consistency (CONST-III)**: Plain-language requirement explicitly defined; readability metrics will be automated
 - ✅ **Performance (CONST-IV)**: 2-second SLO defined; caching strategy planned; load testing in acceptance criteria
+
+## Post-MVP State Expansion Roadmap (Phase 11+)
+
+**Scope**: Adding new states beyond 5 pilot states (IL, CA, NY, TX, FL) to rules engine
+
+### Process for Adding a New State
+
+1. **Research Phase**:
+   - Gather official Medicaid eligibility documentation for target state
+   - Map state-specific programs (e.g., "Texas Health Steps" unique to TX)
+   - Document state-specific income thresholds and asset limits
+   - Identify unique eligibility pathways (pregnant adults, veterans, etc.)
+
+2. **Database Extension** (No schema changes; data-only updates):
+   - Create MedicaidProgram records for new state (INSERT into medicaid_programs table)
+   - Define EligibilityRule records with JSONLogic for each program (INSERT into eligibility_rules)
+   - Add FPL adjustments if state requires multiplier (e.g., Alaska 1.25×, Hawaii 1.15×) to federal_poverty_levels table
+   - Create new migration file: `AddStateXXRules.cs`
+
+3. **Validation & Testing**:
+   - Create ≥10 test scenarios for new state (edge cases, multi-program matches, asset limits)
+   - Validate plain-language explanations use state-specific terminology (e.g., "Texas" not generic location)
+   - Run integration tests: POST /api/rules/evaluate with new state_code returns correct results
+   - Verify determinism: same input evaluated twice → identical results
+
+4. **Quality Gates Before Production**:
+   - Code review: rules approved by domain expert (Medicaid administrator)
+   - Contract test: validate API responses against OpenAPI schema
+   - Load test: new state doesn't degrade performance (p95 evaluation latency ≤2 sec maintained)
+   - Documentation: update state list in spec.md and deployment guides
+
+5. **Deployment**:
+   - Deploy migration (creates state rules in production database)
+   - Deploy updated RuleCacheService (refreshes cache to include new state)
+   - Announce state availability in API documentation
+   - Monitor evaluation latency and cache hit rates
+
+### Effort Estimate per State
+- Research: 1-2 weeks (gathering official documentation)
+- Implementation: 2-3 days (17 rules × 5 programs per state, testing)
+- Validation: 1 week (QA, domain expert review)
+- **Total**: 2-3 weeks per state
+
+### Scalability Considerations
+- **Database**: Current schema supports unlimited states (no state_code enum limit)
+- **Caching**: Per-state caching strategy (key: `rules:STATE_CODE`) supports future expansion without performance penalty
+- **Maintenance**: Rules updated via admin portal (Phase 11+); no code deployment needed for rule logic changes
+- **Governance**: Each state's rules owned by state-specific Medicaid office (future feature: per-state admin roles)

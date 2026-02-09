@@ -13,15 +13,16 @@
 - **Phase 1 (Setup)**: 7 tasks (T001-T007)
 - **Phase 2 (Foundational)**: 11 tasks (T008-T018)
 - **Phase 3 (US1: Basic Eligibility Evaluation)**: 12 tasks (T019-T030)
-- **Phase 4 (US2: Program Matching & Asset Evaluation)**: 13 tasks (T031-T043) - *Added: T031a, T034a, T036a*
+- **Phase 4 (US2: Program Matching & Asset Evaluation)**: 13 tasks (T031-T043) - _Added: T031a, T034a, T036a_
 - **Phase 5 (US3: State-Specific Rules)**: 8 tasks (T044-T051)
 - **Phase 6 (US4: Plain-Language Explanations)**: 9 tasks (T052-T060)
 - **Phase 7 (US5: FPL Integration)**: 8 tasks (T061-T068)
 - **Phase 8 (US6: Eligibility Pathway Identification)**: [P] 3 tasks (T069-T071) ✓ Parallelizable with Phase 3
 - **Phase 9 (US7: Rule Versioning)**: Integrated into foundational tasks
-- **Phase 10 (Performance & Load Testing)**: 1 task (T075) - *Added: Critical for SC-010*
+- **Phase 10 (Performance & Load Testing)**: 1 task (T075) - _Added: Critical for SC-010_
 
-**Note on Parallelization**: 
+**Note on Parallelization**:
+
 - Tasks marked [P] can execute in parallel (different files, no dependencies on incomplete tasks)
 - US3-US7 tasks show [P] parallelization opportunities within their stories
 - US1-US3 must complete before US4-US7 begin (progressive integration)
@@ -41,6 +42,7 @@
 - [x] T007 Create folder structure for new tests: src/MAA.Tests/Unit/Rules/, Integration/, Contract/
 
 **Implementation Summary**:
+
 - ✅ Feature branch 002-rules-engine: Active and verified
 - ✅ JSONLogic.Net v1.1.11: Added to MAA.API.csproj
 - ✅ Domain folder structure: src/MAA.Domain/Rules/ with ValueObjects/ and Exceptions/ subfolders
@@ -85,7 +87,8 @@
 
 **Story Goal**: System must evaluate a user's Medicaid eligibility based on household size, income, age, state and return clear yes/no result with explanation
 
-**Independent Test Criteria**: 
+**Independent Test Criteria**:
+
 - Provide sample input (state=IL, household=2, income=$2000/month) → returns eligibility status (Likely/Possibly/Unlikely) with explanation
 - Same input evaluated twice → identical output (determinism)
 - Invalid input (household_size=0) → validation error "Household size must be at least 1"
@@ -95,8 +98,16 @@
 ### Core Evaluation Logic
 
 - [ ] T019 Create src/MAA.Domain/Rules/RuleEngine.cs pure function: evaluate(rule: EligibilityRule, input: UserEligibilityInput) → EvaluationResult (no I/O, no dependencies)
+  - **Integration Approach** (CLARIFICATION FOR A7): Rule evaluation uses JSONLogic.Net library (per Phase 0 research task R3 decision: see phase-0-deliverables/R3-rule-engine-library-decision.md for library comparison and examples)
+  - **Implementation Substep**: RuleEngine.Evaluate() method must:
+    1. Parse rule.rule_logic JSON string into JSONLogic expression (using JSONLogic.Net Parse API)
+    2. Build variable context from UserEligibilityInput (state_code, household_size, monthly_income, age, is_citizen, has_disability, is_pregnant, receives_ssi, assets)
+    3. Apply JSONLogic.Net Apply() method to evaluate expression
+    4. Extract confidence_score and eligibility_status from result
+    5. Return EvaluationResult or throw EligibilityEvaluationException if rule_logic malformed
+  - **Reference**: See phase-0-deliverables/R3 for JSONLogic rule syntax examples and library API usage
 - [ ] T020 [P] Create src/MAA.Domain/Rules/FPLCalculator.cs pure function: calculateThreshold(fplAmount: decimal, percentage: int, householdSize: int) → decimal (no database access)
-- [ ] T021 [P] Create src/MAA.Application/Eligibility/Handlers/EvaluateEligibilityHandler.cs orchestrator that fetches rule, calls RuleEngine, returns result
+- [ ] T021 [P] Create src/MAA.Application/Eligibility/Handlers/EvaluateEligibilityHandler.cs orchestrator for single program evaluation: fetches active rule by program_id, calls RuleEngine.Evaluate(), applies FPL calculator, returns single EligibilityResult. Used for individual program detail queries. (Note: T032 ProgramMatchingHandler evaluates all programs for a state)
 - [ ] T022 [P] Create src/MAA.Application/Eligibility/Validators/EligibilityInputValidator.cs with FluentValidation rules: state_code in [IL,CA,NY,TX,FL], household_size 1-8, is_citizen required
 - [ ] T023 [P] Create src/MAA.Infrastructure/Data/Rules/RuleRepository.cs with methods: GetActiveRuleByProgram(stateCode, programId), GetRulesByState(stateCode)
 - [ ] T024 [P] Create src/MAA.Infrastructure/Data/Rules/FPLRepository.cs with methods: GetFPLByYearAndHouseholdSize(year, size), GetFPLForState(year, size, stateCode)
@@ -104,7 +115,7 @@
 
 ### Unit Tests for US1
 
-- [ ] T026 Create src/MAA.Tests/Unit/Rules/RuleEngineTests.cs with 8+ test cases (UNIT LAYER: in-memory, no DB/HTTP):
+- [x] T026 Create src/MAA.Tests/Unit/Rules/RuleEngineTests.cs with 8+ test cases (UNIT LAYER: in-memory, no DB/HTTP):
   - Income below threshold → Likely Eligible
   - Income above threshold → Unlikely Eligible
   - Income exactly at threshold → Likely Eligible
@@ -120,12 +131,12 @@
 
 - [ ] T028 [P] Create src/MAA.Tests/Unit/Eligibility/EligibilityEvaluatorTests.cs with 5+ test cases:
   - End-to-end evaluation (fetch rule, calculate threshold, evaluate)
-  - Invalid state code → throws exception
-  - Missing rule for program → throws exception with helpful message
+  - Invalid state code (e.g., "XX") → EligibilityInputValidator catches error at layer 1, throws FluentValidation.ValidationException with message "State code must be one of: IL, CA, NY, TX, FL", caught by API middleware returning 400 BadRequest. (Alternative flow: if validator bypassed, RuleRepository.GetActiveRuleByProgramAsync() returns null, handler throws EligibilityEvaluationException("No active rule found for state XX, program XYZ"))
+  - Missing rule for program → throws EligibilityEvaluationException with helpful message "No active rule found for program [program_name] in state [state_code]. Please contact support."
 
 ### Integration Tests for US1
 
-- [ ] T029 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs with 8+ test cases (INTEGRATION LAYER: via HTTP with real database):
+- [x] T029 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs with 8+ test cases (INTEGRATION LAYER: via HTTP with real database):
   - Evaluate with IL rules via HTTP POST /api/rules/evaluate
   - Evaluate with CA rules via HTTP POST /api/rules/evaluate
   - Evaluate with TX rules (different threshold) → different result
@@ -136,7 +147,7 @@
 
 ### Contract Tests for US1
 
-- [ ] T030 Create src/MAA.Tests/Contract/RulesApiContractTests.cs validating API against OpenAPI spec:
+- [x] T030 Create src/MAA.Tests/Contract/RulesApiContractTests.cs validating API against OpenAPI spec:
   - POST /api/rules/evaluate request body matches UserEligibilityInputDto schema
   - POST /api/rules/evaluate response matches EligibilityResultDto schema
   - All required fields present in request and response
@@ -149,6 +160,7 @@
 **Story Goal**: For users qualifying for multiple programs, system identifies all matches, ranks by confidence, and explains each
 
 **Independent Test Criteria**:
+
 - User data qualifying for 2+ programs → returns all matches with confidence scores
 - Results sorted by confidence descending
 - Each match includes program-specific explanation
@@ -162,7 +174,7 @@
 ### Multi-Program Matching Logic
 
 - [ ] T031 Create src/MAA.Domain/Rules/ProgramMatcher.cs: findMatchingPrograms(input: UserEligibilityInput, allPrograms: List<EligibilityRule>) → List<ProgramMatch> (pure function)
-- [ ] T032 [P] Create src/MAA.Application/Eligibility/Handlers/ProgramMatchingHandler.cs that orchestrates: fetch all rules for state, evaluate each, collect matches, sort by confidence
+- [ ] T032 [P] Create src/MAA.Application/Eligibility/Handlers/ProgramMatchingHandler.cs that orchestrates multi-program matching: fetch all active rules for state, evaluate each program via RuleEngine, collect all matches (not just first), apply ConfidenceScorer, sort by confidence descending, return List<ProgramMatch>. Used by main POST /api/rules/evaluate endpoint. (Note: T021 EvaluateEligibilityHandler for single program queries)
 - [ ] T033 [P] Create src/MAA.Domain/Rules/ConfidenceScorer.cs pure function: scoreConfidence(matchingFactors: List<string>, disqualifyingFactors: List<string>) → int (0-100) and confidence level
 
 ### Unit Tests for US2 & Asset Evaluation
@@ -218,6 +230,7 @@
 **Story Goal**: Each of 5 pilot states has different rules; system applies correct state's rules based on user selection
 
 **Independent Test Criteria**:
+
 - Same user profile evaluated in IL vs TX → different results (reflecting state-specific thresholds)
 - State selection persists through evaluation → no cross-state rule mixing
 
@@ -255,6 +268,7 @@
 **Story Goal**: Users understand WHY they are/aren't eligible with jargon-free explanations using concrete numbers
 
 **Independent Test Criteria**:
+
 - Explanation includes actual user data values (income $2,100, threshold $2,500)
 - No unexplained jargon; MAGI → "Modified Adjusted Gross Income (MAGI)"
 - Reading level ≤ 8th grade (Flesch-Kincaid automated check)
@@ -310,6 +324,7 @@
 **Story Goal**: System stores and correctly applies FPL tables (updated annually) to calculate income thresholds
 
 **Independent Test Criteria**:
+
 - User income correctly compared to FPL-based threshold
 - FPL lookup for household size 1-8+ accurate to penny
 - System switches to new year's FPL automatically
@@ -353,6 +368,7 @@
 **Story Goal**: System determines which eligibility pathway(s) apply (MAGI, non-MAGI, SSI, aged, disability, pregnancy) based on user characteristics
 
 **Independent Test Criteria**:
+
 - User age 35, no disability → routes to MAGI pathway only
 - User age 68 → routes to Aged pathway
 - User reporting pregnancy → evaluates Pregnancy-Related pathway
@@ -392,6 +408,7 @@
 **Story Goal**: Basic versioning foundation set; track when rules were active and allow future effective-date scheduling
 
 **Integration Note**: **Implemented across foundational and all user story phases** via:
+
 - T008: Migration includes version + effective_date + end_date columns
 - T012: EligibilityRule entity includes version, effective_date, end_date
 - T023: RuleRepository.GetActiveRuleByProgram filters by effective_date
@@ -500,21 +517,25 @@ Phase 10 (Performance & Load Testing) - runs after all integration complete, val
 **Deliverables Gate**: All 4 research items complete. Phase 1 ready to begin.
 
 **Research Task 1**: ✅ Gather official Medicaid eligibility documentation for 5 pilot states (IL, CA, NY, TX, FL)
+
 - Status: COMPLETE
 - Deliverable: [phase-0-deliverables/R1-pilot-state-rules-2026.md](./phase-0-deliverables/R1-pilot-state-rules-2026.md)
 - Summary: Comprehensive rules for IL, CA, NY, TX, FL including MAGI/Non-MAGI pathways, income thresholds, categorical eligibility, asset limits
 
 **Research Task 2**: ✅ Obtain 2026 FPL tables from HHS (baseline + state adjustments)
+
 - Status: COMPLETE
 - Deliverable: [phase-0-deliverables/fpl-2026-test-data.json](./phase-0-deliverables/fpl-2026-test-data.json)
 - Summary: 2026 FPL schema with household sizes 1-8+, common thresholds (138%, 150%, 160%, 200%, 213% FPL), state adjustments for AK/HI
 
 **Research Task 3**: ✅ Finalize rule engine library decision (JSONLogic.Net vs custom DSL)
+
 - Status: COMPLETE - JSONLogic.Net RECOMMENDED
 - Deliverable: [phase-0-deliverables/R3-rule-engine-library-decision.md](./phase-0-deliverables/R3-rule-engine-library-decision.md)
 - Summary: Evaluation matrix comparing JSONLogic.Net (WINNER) vs Custom C# DSL. Recommendation based on admin editability, determinism, performance, time-to-market
 
 **Research Task 4**: ✅ Design explanation templates with jargon dictionary
+
 - Status: COMPLETE
 - Deliverable: [phase-0-deliverables/R4-explanation-templates-jargon-dictionary.md](./phase-0-deliverables/R4-explanation-templates-jargon-dictionary.md)
 - Summary: 5 explanation templates (Likely Eligible, Possibly Eligible, Unlikely Eligible, Categorical, Multi-Program), 12-term jargon dictionary, readability guidelines (Flesch-Kincaid ≤8th grade)
@@ -551,4 +572,3 @@ Phase 10 (Performance & Load Testing) - runs after all integration complete, val
    - Implement E4 Eligibility Wizard (uses E2 engine for routing questions)
    - Implement E5 Results Display (shows E2 evaluation output + E3 document management)
    - Launch MVP to pilot user group (public beta)
-

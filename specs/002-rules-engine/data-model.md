@@ -148,10 +148,46 @@
 - age: 0-130 (if provided)
 - is_citizen: required
 
+**Citizenship & Residency Interpretation** (CLARIFICATION FOR A14):
+- `is_citizen` field: Boolean representing user's self-reported citizenship status (TRUE = U.S. citizen or qualified non-citizen; FALSE = not citizen/non-citizen). This is a data collection marker only; no document proof of citizenship is collected during eligibility evaluation.
+  - Frontend displays citizenship question; user self-reports
+  - Backend validation: TRUE required for most Medicaid programs (some states allow qualified non-citizens for specific programs)
+  - Note: Full citizenship verification (I-131, passport, etc.) occurs during enrollment confirmation layer (out of scope for E2)
+- `is_state_resident`: Implicitly determined by state_code selection. User selects one state (IL, CA, NY, TX, or FL); residency requirements are state-specific and are embedded in rule_logic JSON. If user moves between states during application, they must re-select state and re-evaluate (new Session).
+  - Rationale: Medicaid is state-administered; eligibility determined by state of current residence
+  - No explicit residency proof collected during evaluation (assumed via state selection)
+  - Verification occurs during enrollment enrollment confirmation (out of scope for E2)
+
 **Rationale**:
 - Frontend normalizes income to monthly format; backend validates
 - NULL fields for optional characteristics (age, disability)
 - Cents representation for precise dollar calculations
+
+---
+
+### 4b. Non-MAGI Asset Limits (Reference Table by State)
+
+**Purpose**: Defines maximum asset limits for non-MAGI Aged and Disabled pathways by state
+
+**State-Specific Asset Limits** (2026 pilot states):
+```
+| State | Pathway | Asset Limit | Notes |
+|-------|---------|-------------|-------|
+| IL | Aged | $2,000 | Individual; higher for married couples (per HFS rules) |
+| IL | Disabled | $2,000 | Same as Aged for SSDI/SSI recipients |
+| CA | Aged | $3,000 | California uses higher limit for aged population |
+| CA | Disabled | $3,000 | Aligned with aged pathway |
+| NY | Aged | $4,500 | New York uses highest limit among pilot states |
+| NY | Disabled | $4,500 | Equal treatment across pathways |
+| TX | Aged | $2,000 | Texas follows federal baseline (lower limit) |
+| TX | Disabled | $2,000 | Same as aged pathway |
+| FL | Aged | $2,500 | Florida hybrid approach (between IL/TX and CA/NY) |
+| FL | Disabled | $2,500 | No differentiation by pathway |
+```
+
+**Integration**: Used by AssetEvaluator.cs (T031a) to determine non-MAGI eligibility. Exceeding asset limit = disqualifying factor; explanation includes: "Your assets ($X) exceed the limit ($Y) for [Pathway] Medicaid in [State]."
+
+**Rationale**: Asset tests are state-specific and vary by eligibility pathway. This reference table enables consistent evaluation rules across all 5 pilot states.
 
 ---
 
