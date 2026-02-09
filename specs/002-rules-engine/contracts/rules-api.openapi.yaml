@@ -1,0 +1,448 @@
+openapi: 3.0.0
+info:
+  title: MAA Rules Engine API (E2)
+  version: 1.0.0
+  description: Medicaid eligibility evaluation API for Rules Engine & State Data feature
+  contact:
+    name: Medicaid Application Assistant
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development
+  - url: https://maa-staging.azurewebsites.net/api
+    description: Staging environment
+  - url: https://maa.azurewebsites.net/api
+    description: Production environment
+
+paths:
+  /rules/evaluate:
+    post:
+      summary: Evaluate Medicaid eligibility
+      description: Accepts user inputs and returns eligibility status, matched programs, and plain-language explanation
+      operationId: evaluateEligibility
+      tags:
+        - Eligibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEligibilityInput'
+      responses:
+        '200':
+          description: Eligibility evaluation completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityResult'
+            examples:
+              likely_eligible:
+                value:
+                  evaluation_date: '2026-02-09T15:00:00Z'
+                  status: Likely Eligible
+                  matched_programs:
+                    - program_id: 550e8400-e29b-41d4-a716-446655440000
+                      program_name: MAGI Adult
+                      confidence_score: 95
+                      explanation: Your income ($2,100/month) is below the MAGI limit of $2,435 for a household of 2 in Illinois.
+                  explanation: Based on your answers, you are likely eligible for MAGI Adult Medicaid.
+                  rule_version_used: 1.0
+                  confidence_score: 95
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: INVALID_INPUT
+                message: Household size must be at least 1
+                details:
+                  - field: household_size
+                    error: Must be between 1 and 8+
+        '404':
+          description: State not found or no rules available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error_code: STATE_NOT_FOUND
+                message: No eligibility rules configured for state TX
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /rules:
+    get:
+      summary: List eligibility rules
+      description: Get all active rules for a state or program (admin query)
+      operationId: listRules
+      tags:
+        - Rules
+      parameters:
+        - name: state_code
+          in: query
+          description: 2-character state code (IL, CA, NY, TX, FL)
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+        - name: program_id
+          in: query
+          description: Program UUID (optional filter)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EligibilityRuleResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /programs:
+    get:
+      summary: List available programs
+      description: Get all Medicaid programs for a state
+      operationId: listPrograms
+      tags:
+        - Programs
+      parameters:
+        - name: state_code
+          in: query
+          required: true
+          description: 2-character state code
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+      responses:
+        '200':
+          description: List of programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MedicaidProgramResponse'
+        '404':
+          description: State not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /fpl:
+    get:
+      summary: Get Federal Poverty Level table
+      description: Retrieve FPL thresholds for a given year and state
+      operationId: getFPLTable
+      tags:
+        - FPL
+      parameters:
+        - name: year
+          in: query
+          required: true
+          description: Year for FPL table (e.g., 2026)
+          schema:
+            type: integer
+            minimum: 2020
+        - name: state_code
+          in: query
+          description: 2-character state code (optional, defaults to baseline)
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+      responses:
+        '200':
+          description: FPL table for year and household sizes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FPLTableResponse'
+        '404':
+          description: FPL data not found for year
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    UserEligibilityInput:
+      type: object
+      required:
+        - state_code
+        - household_size
+        - monthly_income_cents
+        - is_citizen
+      properties:
+        state_code:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          description: 2-character state code (IL, CA, NY, TX, FL)
+          example: IL
+        household_size:
+          type: integer
+          minimum: 1
+          maximum: 8
+          description: Number of people in household (8 represents 8 or more)
+          example: 2
+        monthly_income_cents:
+          type: integer
+          minimum: 0
+          description: Monthly income in cents (e.g., 210000 = $2,100)
+          example: 210000
+        age:
+          type: integer
+          minimum: 0
+          maximum: 130
+          nullable: true
+          description: Age in years (optional)
+          example: 35
+        has_disability:
+          type: boolean
+          nullable: true
+          description: Whether applicant has disability (optional)
+          example: false
+        is_pregnant:
+          type: boolean
+          nullable: true
+          description: Whether applicant is pregnant (optional)
+          example: false
+        receives_ssi:
+          type: boolean
+          nullable: true
+          description: Whether applicant receives Social Security Income (optional)
+          example: false
+        is_citizen:
+          type: boolean
+          description: Whether applicant is US citizen or qualified immigrant (required)
+          example: true
+        assets_cents:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Total assets in cents for non-MAGI asset tests (optional)
+          example: null
+
+    EligibilityResult:
+      type: object
+      properties:
+        evaluation_date:
+          type: string
+          format: date-time
+          description: Timestamp of evaluation
+          example: '2026-02-09T15:00:00Z'
+        status:
+          type: string
+          enum:
+            - Likely Eligible
+            - Possibly Eligible
+            - Unlikely Eligible
+          description: Overall eligibility status
+          example: Likely Eligible
+        matched_programs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramMatch'
+          description: Programs user qualifies for, sorted by confidence descending
+        explanation:
+          type: string
+          description: Plain-language summary of eligibility determination
+          example: Based on your household size of 2 and monthly income of $2,100, you are likely eligible for MAGI Adult Medicaid in Illinois.
+        rule_version_used:
+          type: number
+          format: decimal
+          description: Version of rules applied (for audit trail)
+          example: 1.0
+        confidence_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Overall confidence 0-100% across all programs
+          example: 95
+        disqualifying_factors:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Reasons for reduced confidence (null if all confident)
+          example: null
+
+    ProgramMatch:
+      type: object
+      required:
+        - program_id
+        - program_name
+        - confidence_score
+        - explanation
+      properties:
+        program_id:
+          type: string
+          format: uuid
+          description: Unique program identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        program_name:
+          type: string
+          description: Program name (e.g., 'MAGI Adult', 'Aged Medicaid')
+          example: MAGI Adult
+        confidence_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Confidence user matches this program (0-100%)
+          example: 95
+        explanation:
+          type: string
+          description: Why user matches this program (program-specific)
+          example: Your income ($2,100/month) is below the MAGI limit of $2,435 for a household of 2.
+        disqualifying_factors:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Reasons confidence is not 100% (if applicable)
+          example: null
+
+    EligibilityRuleResponse:
+      type: object
+      properties:
+        rule_id:
+          type: string
+          format: uuid
+        program_id:
+          type: string
+          format: uuid
+        rule_name:
+          type: string
+        version:
+          type: number
+          format: decimal
+        effective_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        rule_logic:
+          type: object
+          description: JSONLogic rule definition
+        description:
+          type: string
+          nullable: true
+
+    MedicaidProgramResponse:
+      type: object
+      properties:
+        program_id:
+          type: string
+          format: uuid
+        state_code:
+          type: string
+        program_name:
+          type: string
+        program_code:
+          type: string
+        eligibility_pathway:
+          type: string
+          enum:
+            - MAGI
+            - NonMAGI_Aged
+            - NonMAGI_Disabled
+            - SSI_Linked
+            - Pregnancy
+            - Other
+        description:
+          type: string
+          nullable: true
+
+    FPLTableResponse:
+      type: object
+      properties:
+        year:
+          type: integer
+          example: 2026
+        state_code:
+          type: string
+          nullable: true
+          example: null
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              household_size:
+                type: integer
+                example: 2
+              annual_income_cents:
+                type: integer
+                example: 1972000
+              monthly_income_cents:
+                type: integer
+                example: 164333
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+      properties:
+        error_code:
+          type: string
+          enum:
+            - INVALID_INPUT
+            - VALIDATION_ERROR
+            - STATE_NOT_FOUND
+            - RULE_NOT_FOUND
+            - EVALUATION_ERROR
+            - INTERNAL_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              error:
+                type: string
+          nullable: true
+          description: Field-level validation errors (if applicable)
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authenticated requests (future: Phase 5)
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Eligibility
+    description: Eligibility evaluation endpoints
+  - name: Rules
+    description: Rules management (admin-only in Phase 3)
+  - name: Programs
+    description: Program reference data
+  - name: FPL
+    description: Federal Poverty Level reference data
+

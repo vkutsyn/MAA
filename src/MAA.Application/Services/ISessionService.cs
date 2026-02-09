@@ -63,4 +63,40 @@ public interface ISessionService
     /// <param name="sessionId">Session ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task ResetInactivityTimeoutAsync(Guid sessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the standard CONST-III compliant session timeout error message.
+    /// </summary>
+    /// <returns>Session timeout error message</returns>
+    Task<string> GetSessionTimeoutMessageAsync();
+
+    /// <summary>
+    /// Creates an authenticated session for a registered user (Phase 5).
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="ipAddress">Client IP address</param>
+    /// <param name="userAgent">Browser user agent</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Created session</returns>
+    Task<Session> CreateAuthenticatedSessionAsync(
+        Guid userId,
+        string ipAddress,
+        string userAgent,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all active (non-revoked, non-expired) sessions for a user (Phase 5).
+    /// </summary>
+    /// <param name="userId">User ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of active sessions</returns>
+    Task<List<Session>> GetActiveSessionsAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revokes a specific session (Phase 5).
+    /// Marks session as IsRevoked = true.
+    /// </summary>
+    /// <param name="sessionId">Session ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task RevokeSessionAsync(Guid sessionId, CancellationToken cancellationToken = default);
 }

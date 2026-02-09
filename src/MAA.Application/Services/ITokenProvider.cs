@@ -49,4 +49,18 @@ public interface ITokenProvider
     /// <param name="token">JWT token</param>
     /// <returns>User roles</returns>
     IEnumerable<string> GetRolesFromToken(string token);
+
+    /// <summary>
+    /// Checks if access token needs automatic refresh (expires soon).
+    /// </summary>
+    /// <param name="token">JWT token</param>
+    /// <returns>True if token expires in less than RefreshThresholdMinutes</returns>
+    bool NeedsRefresh(string token);
+
+    /// <summary>
+    /// Gets token expiration timestamp.
+    /// </summary>
+    /// <param name="token">JWT token</param>
+    /// <returns>DateTime when token expires (UTC)</returns>
+    DateTime GetTokenExpiration(string token);
 }

@@ -1,3 +1,7 @@
+using MAA.API.Middleware;
+using MAA.Application.Services;
+using MAA.Application.Sessions;
+using MAA.Domain.Repositories;
 using MAA.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -28,16 +32,29 @@ try
         )
     );
 
-    // Register domain services (placeholder - will be implemented in later tasks)
-    // builder.Services.AddScoped<ISessionService, SessionService>();
-    // builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+    // Register repositories
+    builder.Services.AddScoped<ISessionRepository, SessionRepository>();
+    builder.Services.AddScoped<ISessionAnswerRepository, SessionAnswerRepository>();
 
-    // Register infrastructure services (placeholder)
-    // builder.Services.AddScoped<ISessionRepository, SessionRepository>();
-    // builder.Services.AddScoped<IKeyVaultClient, KeyVaultClient>();
+    // Add AutoMapper
+    builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-    // Add AutoMapper (placeholder)
-    // builder.Services.AddAutoMapper(typeof(Program));
+    // Add memory cache for key caching (US4: Encryption Service)
+    builder.Services.AddMemoryCache();
+
+    // Register infrastructure services (US4: Azure Key Vault integration)
+    builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.KeyVaultClient>();
+
+    // Register domain services
+    builder.Services.AddScoped<ISessionService, SessionService>();
+    builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // US4: Production implementation with Azure Key Vault
+
+    // Register command/query handlers (US2: Session Data Persistence)
+    builder.Services.AddScoped<MAA.Application.Sessions.Commands.SaveAnswerCommandHandler>();
+    builder.Services.AddScoped<MAA.Application.Sessions.Queries.GetAnswersQueryHandler>();
+    
+    // Register validators
+    builder.Services.AddScoped<MAA.Application.Sessions.Validators.SaveAnswerCommandValidator>();
 
     // Add controllers
     builder.Services.AddControllers();
@@ -51,10 +68,16 @@ try
         app.UseDeveloperExceptionPage();
     }
 
-    // Middleware will be added in later tasks:
-    // - app.UseMiddleware<SessionMiddleware>();
-    // - app.UseMiddleware<AdminRoleMiddleware>();
-    // - app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+    // Global exception handler middleware
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // Session validation middleware - validates session cookies and timeouts
+    // Must be before routing to validate all requests except bypass paths
+    app.UseMiddleware<SessionMiddleware>();
+
+    // US3: Admin role-based access control middleware
+    // Enforces Admin/Reviewer/Analyst roles for /api/admin/* endpoints
+    app.UseMiddleware<AdminRoleMiddleware>();
 
     app.UseHttpsRedirection();
 

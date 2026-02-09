@@ -22,6 +22,157 @@ namespace MAA.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MAA.Domain.Rules.EligibilityRule", b =>
+                {
+                    b.Property<Guid>("RuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RuleLogic")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("RuleName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StateCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<decimal>("Version")
+                        .HasColumnType("numeric(4,2)");
+
+                    b.HasKey("RuleId");
+
+                    b.HasIndex("ProgramId", "Version")
+                        .IsUnique();
+
+                    b.HasIndex("StateCode", "EffectiveDate");
+
+                    b.HasIndex("ProgramId", "EffectiveDate", "EndDate");
+
+                    b.ToTable("eligibility_rules", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Rules.FederalPovertyLevel", b =>
+                {
+                    b.Property<Guid>("FplId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("AdjustmentMultiplier")
+                        .HasColumnType("numeric(3,2)");
+
+                    b.Property<long>("AnnualIncomeCents")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("HouseholdSize")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StateCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("FplId");
+
+                    b.HasIndex("Year", "HouseholdSize");
+
+                    b.HasIndex("Year", "HouseholdSize", "StateCode")
+                        .IsUnique();
+
+                    b.ToTable("federal_poverty_levels", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Rules.MedicaidProgram", b =>
+                {
+                    b.Property<Guid>("ProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EligibilityPathway")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ProgramCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ProgramName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("StateCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("ProgramId");
+
+                    b.HasIndex("ProgramCode")
+                        .IsUnique();
+
+                    b.HasIndex("StateCode", "EligibilityPathway");
+
+                    b.HasIndex("StateCode", "ProgramName")
+                        .IsUnique();
+
+                    b.ToTable("medicaid_programs", (string)null);
+                });
+
             modelBuilder.Entity("MAA.Domain.Sessions.EncryptionKey", b =>
                 {
                     b.Property<Guid>("Id")
@@ -251,6 +402,9 @@ namespace MAA.Infrastructure.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -268,6 +422,17 @@ namespace MAA.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Rules.EligibilityRule", b =>
+                {
+                    b.HasOne("MAA.Domain.Rules.MedicaidProgram", "Program")
+                        .WithMany("Rules")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Program");
                 });
 
             modelBuilder.Entity("MAA.Domain.Sessions.Session", b =>
@@ -299,6 +464,11 @@ namespace MAA.Infrastructure.Migrations
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MAA.Domain.Rules.MedicaidProgram", b =>
+                {
+                    b.Navigation("Rules");
                 });
 #pragma warning restore 612, 618
         }

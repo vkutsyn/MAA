@@ -1,0 +1,118 @@
+[
+  {
+    "year": 2026,
+    "effective_date": "2026-01-01",
+    "source": "HHS Department of Health and Human Services Poverty Guidelines",
+    "baseline": [
+      {
+        "household_size": 1,
+        "annual_income_cents": 1594800,
+        "annual_income_dollars": 15948,
+        "monthly_income_dollars": 1329
+      },
+      {
+        "household_size": 2,
+        "annual_income_cents": 2155200,
+        "annual_income_dollars": 21552,
+        "monthly_income_dollars": 1796
+      },
+      {
+        "household_size": 3,
+        "annual_income_cents": 2715600,
+        "annual_income_dollars": 27156,
+        "monthly_income_dollars": 2263
+      },
+      {
+        "household_size": 4,
+        "annual_income_cents": 3276000,
+        "annual_income_dollars": 32760,
+        "monthly_income_dollars": 2730
+      },
+      {
+        "household_size": 5,
+        "annual_income_cents": 3836400,
+        "annual_income_dollars": 38364,
+        "monthly_income_dollars": 3197
+      },
+      {
+        "household_size": 6,
+        "annual_income_cents": 4396800,
+        "annual_income_dollars": 43968,
+        "monthly_income_dollars": 3664
+      },
+      {
+        "household_size": 7,
+        "annual_income_cents": 4957200,
+        "annual_income_dollars": 49572,
+        "monthly_income_dollars": 4131
+      },
+      {
+        "household_size": 8,
+        "annual_income_cents": 5517600,
+        "annual_income_dollars": 55176,
+        "monthly_income_dollars": 4598
+      }
+    ],
+    "perPersonIncrement": {
+      "annual_cents": 560400,
+      "annual_dollars": 5604,
+      "monthly_dollars": 467,
+      "notes": "Use this to calculate 8+ household sizes: Base(8) + (householdSize - 8) * increment"
+    },
+    "stateAdjustments": {
+      "AK": {
+        "multiplier": 1.25,
+        "notes": "Alaska has 1.25x multiplier for higher cost of living"
+      },
+      "HI": {
+        "multiplier": 1.15,
+        "notes": "Hawaii has 1.15x multiplier for higher cost of living"
+      }
+    },
+    "commonThresholds": {
+      "138_percent": {
+        "household_size_1": 2200724,
+        "household_size_2": 2974176,
+        "household_size_3": 3748528,
+        "household_size_4": 4522880,
+        "description": "138% FPL - MAGI Medicaid expansion threshold"
+      },
+      "150_percent": {
+        "household_size_1": 2392200,
+        "household_size_2": 3232800,
+        "household_size_3": 4073400,
+        "household_size_4": 4914000,
+        "description": "150% FPL - Often used for pregnant women and children"
+      },
+      "160_percent": {
+        "household_size_1": 2551680,
+        "household_size_2": 3448320,
+        "household_size_3": 4344960,
+        "household_size_4": 5241600,
+        "description": "160% FPL - New York threshold for certain groups"
+      },
+      "200_percent": {
+        "household_size_1": 3189600,
+        "household_size_2": 4310400,
+        "household_size_3": 5431200,
+        "household_size_4": 6552000,
+        "description": "200% FPL - Common for children and emergency services"
+      },
+      "213_percent": {
+        "household_size_1": 3396924,
+        "household_size_2": 4590576,
+        "household_size_3": 5784228,
+        "household_size_4": 6977880,
+        "description": "213% FPL - California pregnant women threshold"
+      }
+    },
+    "implementation_notes": {
+      "income_counting": "Use MAGI (Modified Adjusted Gross Income) methodology for all MAGI pathways",
+      "frequency": "FPL tables update annually (typically January)",
+      "rounding": "All amounts calculated and rounded to nearest cent",
+      "household_size_calculation": "For household size 9+: Use household_size 8 value + ((actual_size - 8) * per_person_increment)",
+      "decimal_cents": "All amounts store as cents (integers) to avoid floating-point precision issues",
+      "usage": "Compare annual_income_cents against threshold_cents for evaluation"
+    }
+  }
+]

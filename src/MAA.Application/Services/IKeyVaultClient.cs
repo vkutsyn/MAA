@@ -16,6 +16,13 @@ public interface IKeyVaultClient
     Task<string> GetKeyAsync(int keyVersion, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the current active encryption key version from the database.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The version number of the current active key.</returns>
+    Task<int> GetCurrentKeyVersionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a new key in Azure Key Vault (manual trigger).
     /// Used during key rotation process.
     /// </summary>
