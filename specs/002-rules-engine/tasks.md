@@ -353,32 +353,42 @@
 
 ## Phase 7: US5 - Federal Poverty Level (FPL) Table Integration (P1)
 
+**Status**: ✅ CORE COMPLETE - 2026-02-10
+
 **Story Goal**: System stores and correctly applies FPL tables (updated annually) to calculate income thresholds
 
 **Independent Test Criteria**:
 
-- User income correctly compared to FPL-based threshold
-- FPL lookup for household size 1-8+ accurate to penny
-- System switches to new year's FPL automatically
+- ✅ User income correctly compared to FPL-based threshold (unit tests verify)
+- ✅ FPL lookup for household size 1-8+ accurate to penny (test coverage)
+- ✅ System switches to new year's FPL automatically (TTL validation)
 
 ### FPL Management
 
 - [x] T059 Create src/MAA.Application/Eligibility/Services/FPLThresholdCalculator.cs: CalculateThreshold(fplAmount: decimal, percentage: int) → decimal, GetFPLForYear(year: int, householdSize: int, stateCode?: string) → FPL using per-person increment formula for household 8+
-- [x] T060 [P] Extend FPLRepository.cs with: GetCurrentYearFPL(householdSize, stateCode), GetFPLRange(year, householdSizes: List<int>), HasFPLForYear(year)
+- [x] T060 [P] Extend FPLRepository.cs with: GetCurrentYearFPL(householdSize, stateCode), GetFPLRange(year, householdSizes: List<int>), HasFPLForYear(year) — REPO ALREADY HAD THESE METHODS FROM PHASE 3
 - [x] T061 [P] Create src/MAA.Infrastructure/Caching/FPLCacheService.cs: In-memory cache for FPL tables with 1-year TTL, refresh on year boundary
 
-### Unit Tests for US5
+### Unit Tests for US5 (T062)
 
-- [ ] T062 Create src/MAA.Tests/Unit/Eligibility/FPLThresholdCalculatorTests.cs with 10+ test cases:
-  - Calculate 138% FPL for household 4 with 2026 baseline → uses correct amount
-  - Calculate for household 8+ with per-person increment → correct calculation
-  - Alaska adjustment (1.25x multiplier) → correct adjusted amount
-  - Hawaii adjustment (1.15x multiplier) → correct adjusted amount
-  - Edge case: household size exact at boundary (8 vs 8+)
-  - Missing FPL for year → throws exception with helpful message
-  - Precision test: calculation accurate to penny ($X.XX)
+- [x] T062 Create src/MAA.Tests/Unit/Eligibility/FPLThresholdCalculatorTests.cs with 22+ test cases:
+  - Calculate 138% FPL for household 4 with 2026 baseline → uses correct amount ✓
+  - Calculate for household 8+ with per-person increment → correct calculation ✓
+  - Alaska adjustment (1.25x multiplier) → correct adjusted amount ✓
+  - Hawaii adjustment (1.15x multiplier) → correct adjusted amount ✓
+  - Edge case: household size exact at boundary (8 vs 8+) ✓
+  - Missing FPL for year → throws exception with helpful message ✓
+  - Precision test: calculation accurate to penny ✓
 
-### Integration Tests for US5
+### Caching Unit Tests
+
+- [x] FPLCacheServiceTests.cs with 15+ test cases:
+  - Get/set operations ✓
+  - Cache expiration on January 1st ✓
+  - Per-year invalidation ✓
+  - Cache statistics and utilities ✓
+
+### Integration Tests for US5 (Pending T063)
 
 - [ ] T063 Create src/MAA.Tests/Integration/RulesApiIntegrationTests.cs (extension) with 7+ test cases:
   - Household 4 with income $35k vs 138% FPL threshold → correct eligibility determination
@@ -388,10 +398,13 @@
   - FPL cache hit: second lookup same household/year → uses cache
   - Performance: FPL lookup completes in <10ms
 
-### Contract Tests for US5
+### Contract Tests for US5 (Pending T064-T065)
 
 - [ ] T064 [P] Create src/MAA.Tests/Data/fpl-2026-test-data.json with 8 household sizes (1-8+) and baseline FPL amounts
 - [ ] T065 [P] Extend RulesApiContractTests.cs validating FPL endpoint: GET /api/fpl?year=2026&state_code=IL returns correctly structured FPL data
+
+**Phase 7 Status**: ✅ CORE COMPLETE (T059-T062) - Unit tests passing  
+**Phase 7 Blocking**: Integration/Contract tests blocked on application host fixes (T063-T065 ready after)
 
 ---
 
