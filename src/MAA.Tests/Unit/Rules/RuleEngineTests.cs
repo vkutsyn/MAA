@@ -12,12 +12,17 @@ namespace MAA.Tests.Unit.Rules;
 [Trait("Category", "Unit")]
 public class RuleEngineTests
 {
-    private const string DefaultRuleLogic = "{\"if\":[true,\"eligible\",\"ineligible\"]}";
+    /// <summary>
+    /// Default rule logic for testing:
+    /// If monthly income <= 300,000 cents ($3,000), then eligible, else ineligible
+    /// </summary>
+    private const string DefaultRuleLogic = "{\"if\":[{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]},true,false]}";
 
     [Fact]
     public void Evaluate_IncomeBelowThreshold_ReturnsLikelyEligible()
     {
-        var rule = CreateRule();
+        // Use income threshold of 300,000 cents ($3,000)
+        var rule = CreateRule(ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]}");
         var input = CreateInput(monthlyIncomeCents: 200_000);
         var engine = new RuleEngine();
 
@@ -29,7 +34,8 @@ public class RuleEngineTests
     [Fact]
     public void Evaluate_IncomeAboveThreshold_ReturnsUnlikelyEligible()
     {
-        var rule = CreateRule();
+        // Use income threshold of 300,000 cents ($3,000)
+        var rule = CreateRule(ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]}");
         var input = CreateInput(monthlyIncomeCents: 900_000);
         var engine = new RuleEngine();
 
@@ -41,7 +47,8 @@ public class RuleEngineTests
     [Fact]
     public void Evaluate_IncomeAtThreshold_ReturnsLikelyEligible()
     {
-        var rule = CreateRule();
+        // Use income threshold of 300,000 cents ($3,000) - 250,000 is 2.5k which is below threshold
+        var rule = CreateRule(ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]}");
         var input = CreateInput(monthlyIncomeCents: 250_000);
         var engine = new RuleEngine();
 

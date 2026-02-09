@@ -1,5 +1,6 @@
 using MAA.Domain.Rules.ValueObjects;
 using MAA.Domain.Rules.Exceptions;
+using Newtonsoft.Json.Linq;
 
 namespace MAA.Domain.Rules;
 
@@ -77,17 +78,24 @@ public class RuleEngine
 
     /// <summary>
     /// Parses a rule logic JSON string into an evaluable form
-    /// Placeholder for actual JSONLogic integration
     /// </summary>
-    private object ParseRuleLogic(string ruleLogicJson)
+    private JToken ParseRuleLogic(string ruleLogicJson)
     {
         if (string.IsNullOrWhiteSpace(ruleLogicJson))
             throw new EligibilityEvaluationException("Rule logic cannot be empty");
 
-        // TODO: Parse JSONLogic from JSON string
-        // For now, return the JSON string itself; actual implementation will parse to JSONLogic objects
-        // This is where JSONLogic.Net library will be integrated
-        return ruleLogicJson;
+        try
+        {
+            // Parse the JSON string into a JToken for evaluation
+            var ruleLogic = JToken.Parse(ruleLogicJson);
+            return ruleLogic;
+        }
+        catch (Exception ex)
+        {
+            throw new EligibilityEvaluationException(
+                $"Failed to parse rule logic JSON: {ex.Message}. Rule JSON: {ruleLogicJson}", 
+                ex);
+        }
     }
 
     /// <summary>
@@ -100,7 +108,6 @@ public class RuleEngine
         {
             { "monthly_income_cents", input.MonthlyIncomeCents },
             { "household_size", input.HouseholdSize },
-            { "age", input.Age },
             { "has_disability", input.HasDisability },
             { "is_pregnant", input.IsPregnant },
             { "receives_ssi", input.ReceivesSsi },
@@ -109,19 +116,258 @@ public class RuleEngine
             { "current_date", DateTime.UtcNow }
         };
 
+        // Only add age if it has a value
+        if (input.Age.HasValue)
+        {
+            context["age"] = input.Age.Value;
+        }
+
         return context;
     }
 
     /// <summary>
     /// Evaluates the parsed rule logic against the context
-    /// Placeholder for actual JSONLogic evaluation
+    /// Implements JSONLogic evaluation with support for common operators
     /// </summary>
-    private (bool passed, string explanation) EvaluateJsonLogic(object ruleLogic, Dictionary<string, object> context)
+    private (bool passed, string explanation) EvaluateJsonLogic(JToken ruleLogic, Dictionary<string, object> context)
     {
-        // TODO: Integrate JSONLogic.Net evaluation
-        // For now, this is a placeholder that always returns true
-        // Actual implementation will use JsonLogic library to evaluate rule against context
-        return (true, "Rule evaluation passed");
+        try
+        {
+            // Evaluate the rule logic recursively
+            var result = EvaluateRule(ruleLogic, context);
+            
+            // Convert result to boolean
+            bool passed = IsTruthy(result);
+            
+            string explanation = passed 
+                ? "Rule logic evaluated to true/passed" 
+                : "Rule logic evaluated to false/did not pass";
+            
+            return (passed, explanation);
+        }
+        catch (Exception ex)
+        {
+            throw new EligibilityEvaluationException(
+                $"Failed to apply rule logic: {ex.Message}", 
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Recursively evaluates JSONLogic rules
+    /// Supports: comparison operators (<=, >=, <, >, ==, !=), logical operators (and, or), conditionals (if)
+    /// </summary>
+    private object? EvaluateRule(JToken rule, Dictionary<string, object> context)
+    {
+        // If it's a primitive value, return it as-is
+        if (rule is JValue jValue)
+        {
+            return jValue.Value;
+        }
+
+        // If it's an array, evaluate each element and return the array
+        if (rule is JArray jArray)
+        {
+            return rule;
+        }
+
+        // If it's an object, it could be either a variable reference or an operator
+        if (rule is JObject ruleObj)
+        {
+            // Check if this is a variable reference: { "var": "variable_name" }
+            if (ruleObj.Count == 1)
+            {
+                var firstProp = ruleObj.First as JProperty;
+                if (firstProp?.Name == "var" && firstProp.Value is JValue varValue)
+                {
+                    var varKey = varValue.ToString();
+                    return context.TryGetValue(varKey, out var value) ? value : null;
+                }
+            }
+
+            // Otherwise, it's an operator - get the first property name and value
+            var operatorProp = ruleObj.First as JProperty;
+            if (operatorProp == null)
+                return null;
+
+            var operatorName = operatorProp.Name;
+            var operands = operatorProp.Value;
+
+            if (operatorName == "<=")
+                return EvaluateComparison(operands, context, (a, b) => Compare(a, b) <= 0);
+            else if (operatorName == ">=")
+                return EvaluateComparison(operands, context, (a, b) => Compare(a, b) >= 0);
+            else if (operatorName == "<")
+                return EvaluateComparison(operands, context, (a, b) => Compare(a, b) < 0);
+            else if (operatorName == ">")
+                return EvaluateComparison(operands, context, (a, b) => Compare(a, b) > 0);
+            else if (operatorName == "==" || operatorName == "===")
+                return EvaluateComparison(operands, context, (a, b) => EqualsValue(a, b));
+            else if (operatorName == "!=" || operatorName == "!==")
+                return EvaluateComparison(operands, context, (a, b) => !EqualsValue(a, b));
+            else if (operatorName == "and")
+                return EvaluateLogicalAnd(operands, context);
+            else if (operatorName == "or")
+                return EvaluateLogicalOr(operands, context);
+            else if (operatorName == "if")
+                return EvaluateConditional(operands, context);
+            else
+                return null; // Unknown operator
+        }
+
+        return rule;
+    }
+
+    /// <summary>
+    /// Evaluates a comparison operation
+    /// </summary>
+    private bool EvaluateComparison(JToken? operands, Dictionary<string, object> context, Func<object?, object?, bool> comparisonFunc)
+    {
+        if (operands is not JArray operandArray || operandArray.Count != 2)
+            return false;
+
+        var leftVal = EvaluateRule(operandArray[0], context);
+        var rightVal = EvaluateRule(operandArray[1], context);
+
+        return comparisonFunc(leftVal, rightVal);
+    }
+
+    /// <summary>
+    /// Evaluates logical AND operation
+    /// </summary>
+    private bool EvaluateLogicalAnd(JToken? operands, Dictionary<string, object> context)
+    {
+        if (operands is not JArray operandArray)
+            return false;
+
+        foreach (var operand in operandArray)
+        {
+            if (!IsTruthy(EvaluateRule(operand, context)))
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Evaluates logical OR operation
+    /// </summary>
+    private bool EvaluateLogicalOr(JToken? operands, Dictionary<string, object> context)
+    {
+        if (operands is not JArray operandArray)
+            return false;
+
+        foreach (var operand in operandArray)
+        {
+            if (IsTruthy(EvaluateRule(operand, context)))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Evaluates conditional (if-then-else) operation
+    /// Format: { "if": [condition, then_value, else_value] }
+    /// </summary>
+    private object? EvaluateConditional(JToken? operands, Dictionary<string, object> context)
+    {
+        if (operands is not JArray operandArray || operandArray.Count < 2)
+            return null;
+
+        var condition = EvaluateRule(operandArray[0], context);
+        
+        if (IsTruthy(condition))
+        {
+            // Condition is true, return then value
+            return operandArray.Count > 1 ? EvaluateRule(operandArray[1], context) : null;
+        }
+        else
+        {
+            // Condition is false, return else value if present
+            return operandArray.Count > 2 ? EvaluateRule(operandArray[2], context) : null;
+        }
+    }
+
+    /// <summary>
+    /// Compares two values for ordering
+    /// </summary>
+    private int Compare(object? a, object? b)
+    {
+        // Convert to comparable types
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+
+        // Try to compare as numbers
+        if (IsNumeric(a) && IsNumeric(b))
+        {
+            var aNum = Convert.ToDecimal(a);
+            var bNum = Convert.ToDecimal(b);
+            return aNum.CompareTo(bNum);
+        }
+
+        // Compare as booleans if both are boolean
+        if (a is bool && b is bool)
+        {
+            return ((bool)a).CompareTo((bool)b);
+        }
+
+        // Compare as strings
+        return string.Compare(a.ToString(), b.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Checks equality between two values
+    /// </summary>
+    private bool EqualsValue(object? a, object? b)
+    {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+
+        // If both are numeric, compare as numbers
+        if (IsNumeric(a) && IsNumeric(b))
+        {
+            var aNum = Convert.ToDecimal(a);
+            var bNum = Convert.ToDecimal(b);
+            return aNum == bNum;
+        }
+
+        // Otherwise use standard equality
+        return a.Equals(b);
+    }
+
+    /// <summary>
+    /// Checks if a value is numeric
+    /// </summary>
+    private bool IsNumeric(object? value)
+    {
+        return value is byte || value is sbyte || value is short || value is ushort ||
+               value is int || value is uint || value is long || value is ulong ||
+               value is float || value is double || value is decimal;
+    }
+
+    /// <summary>
+    /// Determines if a value is truthy in JSONLogic semantics
+    /// Following JSON Logic standard: false, 0, "", [], {}, null are falsy; everything else is truthy
+    /// </summary>
+    private bool IsTruthy(object? value)
+    {
+        return value switch
+        {
+            null => false,
+            false => false,
+            0 => false,
+            0.0 => false,
+            0m => false,
+            0L => false,
+            0u => false,
+            0ul => false,
+            "" => false,
+            _ when value is JArray jArray && jArray.Count == 0 => false,
+            _ when value is JObject jObj && jObj.Count == 0 => false,
+            _ => true
+        };
     }
 
     /// <summary>
