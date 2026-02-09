@@ -233,4 +233,31 @@ public class RuleCacheService : IRuleCacheService
     {
         return $"{stateCode.ToUpperInvariant()}:{programId}";
     }
+
+    /// <summary>
+    /// Internal cache entry wrapper
+    /// Holds rule data with expiration tracking
+    /// </summary>
+    private class CacheEntry
+    {
+        /// <summary>
+        /// The cached rule
+        /// </summary>
+        required public EligibilityRule Rule { get; set; }
+
+        /// <summary>
+        /// Timestamp when entry was cached
+        /// </summary>
+        required public DateTime CachedAt { get; set; }
+
+        /// <summary>
+        /// Timestamp when entry expires
+        /// </summary>
+        required public DateTime ExpiresAt { get; set; }
+
+        /// <summary>
+        /// Computed property: true if entry has expired
+        /// </summary>
+        public bool IsExpired => DateTime.UtcNow > ExpiresAt;
+    }
 }
