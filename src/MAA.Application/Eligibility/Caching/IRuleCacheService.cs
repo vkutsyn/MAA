@@ -15,6 +15,7 @@ public interface IRuleCacheService
     IEnumerable<EligibilityRule> GetCachedRulesByState(string stateCode);
     void InvalidateRule(string stateCode, Guid programId);
     void InvalidateProgram(Guid programId);
+    void InvalidateState(string stateCode);
     void InvalidateAll();
     Task RefreshCacheAsync(IRuleRepository repository, string? stateCode = null);
 }

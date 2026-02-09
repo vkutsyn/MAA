@@ -1,0 +1,259 @@
+{
+  "pilot_states_test_scenarios": [
+    {
+      "scenario_id": "IL-001",
+      "state": "IL",
+      "description": "Illinois MAGI Adult with income at 138% FPL threshold",
+      "test_cases": [
+        {
+          "case_id": "IL-MAGI-ELIGIBLE",
+          "household_size": 2,
+          "monthly_income_cents": 200000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "IL MAGI Adult program should match at 138% FPL threshold (~$1,850/month for family of 2)"
+        },
+        {
+          "case_id": "IL-MAGI-INELIGIBLE",
+          "household_size": 2,
+          "monthly_income_cents": 400000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Unlikely Eligible",
+          "expected_minimum_matches": 0,
+          "notes": "IL MAGI program should not match at high income levels"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CA-001",
+      "state": "CA",
+      "description": "California MAGI Adult with income at 138% FPL threshold",
+      "test_cases": [
+        {
+          "case_id": "CA-MAGI-ELIGIBLE",
+          "household_size": 2,
+          "monthly_income_cents": 210000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "CA MAGI Adult program - California has similar 138% FPL threshold"
+        },
+        {
+          "case_id": "CA-MAGI-BORDERLINE",
+          "household_size": 3,
+          "monthly_income_cents": 280000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "Household of 3 at income level testing CA thresholds"
+        }
+      ]
+    },
+    {
+      "scenario_id": "NY-001",
+      "state": "NY",
+      "description": "New York MAGI Adult program evaluation",
+      "test_cases": [
+        {
+          "case_id": "NY-MAGI-ELIGIBLE",
+          "household_size": 2,
+          "monthly_income_cents": 220000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "NY MAGI Adult - New York has 138% FPL expansion"
+        },
+        {
+          "case_id": "NY-ELDERLY",
+          "household_size": 1,
+          "monthly_income_cents": 120000,
+          "age": 70,
+          "eligibility_pathway": "NonMAGI_Aged",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "NY Aged pathway for 70-year-old with modest income"
+        }
+      ]
+    },
+    {
+      "scenario_id": "TX-001",
+      "state": "TX",
+      "description": "Texas program evaluation - more restrictive thresholds",
+      "test_cases": [
+        {
+          "case_id": "TX-MAGI-ELIGIBLE",
+          "household_size": 2,
+          "monthly_income_cents": 180000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "TX has more restrictive MAGI threshold (typically lower than other pilot states)"
+        },
+        {
+          "case_id": "TX-PREGNANCY",
+          "household_size": 2,
+          "monthly_income_cents": 250000,
+          "age": 28,
+          "is_pregnant": true,
+          "eligibility_pathway": "Pregnancy",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "TX Pregnancy-Related pathway should be available for eligible income"
+        }
+      ]
+    },
+    {
+      "scenario_id": "FL-001",
+      "state": "FL",
+      "description": "Florida program evaluation",
+      "test_cases": [
+        {
+          "case_id": "FL-MAGI-ELIGIBLE",
+          "household_size": 2,
+          "monthly_income_cents": 210000,
+          "age": 35,
+          "eligibility_pathway": "MAGI",
+          "expected_status": "Likely Eligible",
+          "expected_minimum_matches": 1,
+          "notes": "FL MAGI Adult program at 138% FPL threshold"
+        },
+        {
+          "case_id": "FL-SSI-LINKED",
+          "household_size": 1,
+          "monthly_income_cents": 50000,
+          "age": 55,
+          "receives_ssi": true,
+          "eligibility_pathway": "SSI_Linked",
+          "expected_status": "Likely Eligible",
+          "expected_status_reason": "Categorical eligibility",
+          "expected_minimum_matches": 1,
+          "notes": "FL SSI-Linked pathway - categorical eligibility bypasses income test"
+        }
+      ]
+    },
+    {
+      "scenario_id": "CROSS-STATE-001",
+      "state": "MULTI",
+      "description": "Cross-state comparison - same user in different states",
+      "test_cases": [
+        {
+          "case_id": "CROSS-COMPARE-IL-vs-TX",
+          "household_size": 3,
+          "monthly_income_cents": 235000,
+          "age": 35,
+          "comment": "User evaluation in IL should produce different results than TX",
+          "il_expected": "Likely Eligible",
+          "tx_expected": "Depends on TX threshold",
+          "notes": "Demonstrates state-specific thresholds: IL vs TX may have different FPL percentages"
+        },
+        {
+          "case_id": "CROSS-COMPARE-CA-vs-NY",
+          "household_size": 2,
+          "monthly_income_cents": 200000,
+          "age": 45,
+          "comment": "Same household in CA vs NY for comparison",
+          "ca_expected": "Likely Eligible",
+          "ny_expected": "Likely Eligible",
+          "notes": "Both CA and NY have 138% FPL, should be similar results"
+        }
+      ]
+    },
+    {
+      "scenario_id": "ASSET-EVALUATION-001",
+      "state": "MULTI",
+      "description": "Asset-based disqualification for non-MAGI pathways",
+      "test_cases": [
+        {
+          "case_id": "AGED-ASSETS-ELIGIBLE",
+          "household_size": 1,
+          "monthly_income_cents": 150000,
+          "age": 72,
+          "assets_cents": 200000,
+          "eligibility_pathway": "NonMAGI_Aged",
+          "expected_status": "Possibly Eligible",
+          "notes": "72-year-old with $2,000 in assets (IL limit ~$2,000 for Aged)"
+        },
+        {
+          "case_id": "AGED-ASSETS-INELIGIBLE",
+          "household_size": 1,
+          "monthly_income_cents": 150000,
+          "age": 68,
+          "assets_cents": 350000,
+          "eligibility_pathway": "NonMAGI_Aged",
+          "expected_status": "Unlikely Eligible",
+          "expected_disqualifying_factors": ["Assets exceed non-MAGI limit"],
+          "notes": "65-year-old with $3,500 in assets exceeds most state limits for Aged pathway"
+        },
+        {
+          "case_id": "DISABLED-ASSETS-ELIGIBLE",
+          "household_size": 1,
+          "monthly_income_cents": 120000,
+          "age": 45,
+          "has_disability": true,
+          "assets_cents": 150000,
+          "eligibility_pathway": "NonMAGI_Disabled",
+          "expected_status": "Possibly Eligible",
+          "notes": "45-year-old disabled with $1,500 in assets (within Disabled limits)"
+        }
+      ]
+    },
+    {
+      "scenario_id": "EDGE-CASES-001",
+      "state": "MULTI",
+      "description": "Edge cases and boundary conditions",
+      "test_cases": [
+        {
+          "case_id": "ZERO-INCOME",
+          "household_size": 2,
+          "monthly_income_cents": 0,
+          "age": 30,
+          "state": "IL",
+          "expected_status": "Likely Eligible",
+          "notes": "Zero income should always qualify for MAGI pathway"
+        },
+        {
+          "case_id": "HOUSEHOLD-SIZE-ONE",
+          "household_size": 1,
+          "monthly_income_cents": 140000,
+          "age": 25,
+          "state": "CA",
+          "expected_status": "Likely Eligible",
+          "notes": "Household size 1 at FPL threshold"
+        },
+        {
+          "case_id": "LARGE-HOUSEHOLD",
+          "household_size": 8,
+          "monthly_income_cents": 500000,
+          "age": 35,
+          "state": "TX",
+          "expected_status": "Possibly Eligible",
+          "notes": "Household size 8 with per-person increment FPL calculation"
+        },
+        {
+          "case_id": "BOUNDARY-AGE-ELDERLY",
+          "household_size": 1,
+          "monthly_income_cents": 100000,
+          "age": 65,
+          "state": "NY",
+          "expected_status": "Likely Eligible",
+          "notes": "Age 65 is boundary for Aged pathway eligibility"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created_date": "2026-02-09",
+    "phase": 5,
+    "specification": "US3 - State-Specific Rule Evaluation",
+    "pilot_states": ["IL", "CA", "NY", "TX", "FL"],
+    "test_coverage": "All 5 pilot states with state-specific thresholds, cross-state comparisons, asset evaluation, and edge cases"
+  }
+}

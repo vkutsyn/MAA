@@ -272,4 +272,167 @@ public class RulesApiContractTests : IAsyncLifetime
             ["assets_cents"] = null
         };
     }
+
+    // ====== Phase 5 Contract Tests (T050): State-Specific Rules ======
+
+    /// <summary>
+    /// Test T050: state_code parameter validation
+    /// Verify API validates state_code against supported pilot states: IL, CA, NY, TX, FL
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_UnsupportedStateCode_ReturnsBadRequestOrNotFound()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "XX");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        // Should be either 400 (bad request) or 404 (not found) for unsupported state
+        (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.NotFound)
+            .Should().BeTrue("Unsupported state code should return 400 or 404");
+    }
+
+    /// <summary>
+    /// Test T050: state_code is required in request
+    /// Verify API requires state_code parameter (cannot be null or empty)
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_MissingStateCode_ReturnsBadRequest()
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["household_size"] = 2,
+            ["monthly_income_cents"] = 210_000,
+            ["age"] = 35,
+            ["has_disability"] = false,
+            ["is_pregnant"] = false,
+            ["receives_ssi"] = false,
+            ["is_citizen"] = true,
+            ["assets_cents"] = null
+        };
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    /// <summary>
+    /// Test T050: IL state code returns IL results
+    /// Verify response state_code matches request for IL
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_IL_ResponseContainsILStateCode()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "IL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        root.GetProperty("state_code").GetString().Should().Be("IL");
+    }
+
+    /// <summary>
+    /// Test T050: CA state code returns CA results
+    /// Verify response state_code matches request for CA
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_CA_ResponseContainsCAStateCode()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "CA");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        root.GetProperty("state_code").GetString().Should().Be("CA");
+    }
+
+    /// <summary>
+    /// Test T050: NY state code returns NY results
+    /// Verify response state_code matches request for NY
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_NY_ResponseContainsNYStateCode()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "NY");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        root.GetProperty("state_code").GetString().Should().Be("NY");
+    }
+
+    /// <summary>
+    /// Test T050: TX state code returns TX results
+    /// Verify response state_code matches request for TX
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_TX_ResponseContainsTXStateCode()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "TX");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        root.GetProperty("state_code").GetString().Should().Be("TX");
+    }
+
+    /// <summary>
+    /// Test T050: FL state code returns FL results
+    /// Verify response state_code matches request for FL
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_FL_ResponseContainsFLStateCode()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "FL");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        root.GetProperty("state_code").GetString().Should().Be("FL");
+    }
+
+    /// <summary>
+    /// Test T050: State codes are case-insensitive
+    /// Verify API handles lowercase state codes (il, ca, ny, tx, fl)
+    /// </summary>
+    [Fact]
+    public async Task PostEvaluateEligibility_LowercaseStateCode_IsAccepted()
+    {
+        var payload = CreateEvaluatePayload(stateCode: "il");
+
+        var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        // Response should normalize to uppercase
+        root.GetProperty("state_code").GetString().Should().Be("IL");
+    }
 }

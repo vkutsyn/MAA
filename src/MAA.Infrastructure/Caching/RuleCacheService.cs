@@ -161,6 +161,29 @@ public class RuleCacheService : IRuleCacheService
     }
 
     /// <summary>
+    /// Removes all rules for a specific state from cache
+    /// Called when state rules are updated or invalidated
+    /// Phase 5 Enhancement: T046 - State-scoped cache invalidation
+    /// </summary>
+    public void InvalidateState(string stateCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(stateCode, nameof(stateCode));
+
+        stateCode = stateCode.ToUpperInvariant();
+        var statePrefix = stateCode + ":";
+
+        var keysToRemove = _cache
+            .Where(kvp => kvp.Key.StartsWith(statePrefix))
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (var key in keysToRemove)
+        {
+            _cache.TryRemove(key, out _);
+        }
+    }
+
+    /// <summary>
     /// Clears all cache entries
     /// </summary>
     public void InvalidateAll()
