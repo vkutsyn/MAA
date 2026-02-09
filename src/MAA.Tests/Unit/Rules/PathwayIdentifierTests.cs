@@ -18,28 +18,28 @@ public class PathwayIdentifierTests
     public void DetermineApplicablePathways_Age35NoDisabilityNotSsi_ReturnsMAGI()
     {
         var pathways = _identifier.DetermineApplicablePathways(35, false, false);
-        pathways.Should().ContainSingle(EligibilityPathway.MAGI);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.MAGI);
     }
 
     [Fact]
     public void DetermineApplicablePathways_Age68_ReturnsAged()
     {
         var pathways = _identifier.DetermineApplicablePathways(68, false, false);
-        pathways.Should().ContainSingle(EligibilityPathway.NonMAGI_Aged);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.NonMAGI_Aged);
     }
 
     [Fact]
     public void DetermineApplicablePathways_Age45WithDisability_ReturnsDisabled()
     {
         var pathways = _identifier.DetermineApplicablePathways(45, true, false);
-        pathways.Should().ContainSingle(EligibilityPathway.NonMAGI_Disabled);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.NonMAGI_Disabled);
     }
 
     [Fact]
     public void DetermineApplicablePathways_ReceivesSsi_ReturnsSsiLinked()
     {
         var pathways = _identifier.DetermineApplicablePathways(50, false, true);
-        pathways.Should().ContainSingle(EligibilityPathway.SSI_Linked);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.SSI_Linked);
     }
 
     #endregion
@@ -79,7 +79,7 @@ public class PathwayIdentifierTests
     public void DetermineApplicablePathways_Age19_ReturnsMAGI()
     {
         var pathways = _identifier.DetermineApplicablePathways(19, false, false);
-        pathways.Should().ContainSingle(EligibilityPathway.MAGI);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.MAGI);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class PathwayIdentifierTests
     public void DetermineApplicablePathways_Age65_ReturnsAged()
     {
         var pathways = _identifier.DetermineApplicablePathways(65, false, false);
-        pathways.Should().ContainSingle(EligibilityPathway.NonMAGI_Aged);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.NonMAGI_Aged);
     }
 
     #endregion
@@ -126,7 +126,7 @@ public class PathwayIdentifierTests
     public void DetermineApplicablePathways_PregnantMale_DoesNotReturnPregnancy()
     {
         var pathways = _identifier.DetermineApplicablePathways(25, false, false, true, false);
-        pathways.Should().ContainSingle(EligibilityPathway.MAGI);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.MAGI);
         pathways.Should().NotContain(EligibilityPathway.Pregnancy);
     }
 
@@ -134,7 +134,7 @@ public class PathwayIdentifierTests
     public void DetermineApplicablePathways_NonpregnantFemale_DoesNotReturnPregnancy()
     {
         var pathways = _identifier.DetermineApplicablePathways(30, false, false, false, true);
-        pathways.Should().ContainSingle(EligibilityPathway.MAGI);
+        pathways.Should().HaveCount(1).And.Contain(EligibilityPathway.MAGI);
         pathways.Should().NotContain(EligibilityPathway.Pregnancy);
     }
 

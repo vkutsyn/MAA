@@ -53,11 +53,11 @@ public class PathwayEvaluationService
 
         // Step 1: Identify applicable pathways
         var applicablePathways = _pathwayIdentifier.DetermineApplicablePathways(
-            age: input.Age ?? 0,
-            hasDisability: input.HasDisability ?? false,
-            receivesSsi: input.ReceivesSsi ?? false,
-            isPregnant: input.IsPregnant ?? false,
-            isFemale: input.IsFemale ?? false
+            age: input.Age,
+            hasDisability: input.HasDisability,
+            receivesSsi: input.ReceivesSsi,
+            isPregnant: input.IsPregnant,
+            isFemale: false  // Not currently captured in DTO, default to false
         );
 
         if (!applicablePathways.Any())
@@ -89,8 +89,8 @@ public class PathwayEvaluationService
             MatchedPrograms = evaluationResult.MatchedPrograms,
             Explanation = evaluationResult.Explanation,
             EvaluationDate = evaluationResult.EvaluationDate,
-            Status = evaluationResult.Status,
-            RuleVersionUsed = evaluationResult.RuleVersionUsed
+            Status = evaluationResult.OverallStatus,
+            RuleVersionUsed = evaluationResult.RuleVersionUsed?.ToString()
         };
     }
 
@@ -107,10 +107,10 @@ public class PathwayEvaluationService
     {
         var pathways = _pathwayIdentifier.DetermineApplicablePathways(
             age: age ?? 0,
-            hasDisability: hasDisability ?? false,
-            receivesSsi: receivesSsi ?? false,
-            isPregnant: isPregnant ?? false,
-            isFemale: isFemale ?? false
+            hasDisability: hasDisability.GetValueOrDefault(),
+            receivesSsi: receivesSsi.GetValueOrDefault(),
+            isPregnant: isPregnant.GetValueOrDefault(),
+            isFemale: isFemale.GetValueOrDefault()
         );
 
         return pathways.Select(p => p.ToString()).ToList();
@@ -130,10 +130,10 @@ public class PathwayEvaluationService
     {
         var pathways = _pathwayIdentifier.DetermineApplicablePathways(
             age: age ?? 0,
-            hasDisability: hasDisability ?? false,
-            receivesSsi: receivesSsi ?? false,
-            isPregnant: isPregnant ?? false,
-            isFemale: isFemale ?? false
+            hasDisability: hasDisability.GetValueOrDefault(),
+            receivesSsi: receivesSsi.GetValueOrDefault(),
+            isPregnant: isPregnant.GetValueOrDefault(),
+            isFemale: isFemale.GetValueOrDefault()
         );
 
         return _pathwayRouter.CountAvailableProgramsForPathways(pathways, allPrograms);

@@ -15,10 +15,10 @@ public class PathwayRouterTests
     {
         return new List<MedicaidProgram>
         {
-            new MedicaidProgram { ProgramId = 1, ProgramName = "MAGI Adult", ProgramCode = "MAGI_ADULT", State = "IL", EligibilityPathway = EligibilityPathway.MAGI },
-            new MedicaidProgram { ProgramId = 2, ProgramName = "Aged Medicaid", ProgramCode = "AGED", State = "IL", EligibilityPathway = EligibilityPathway.NonMAGI_Aged },
-            new MedicaidProgram { ProgramId = 3, ProgramName = "Disabled Medicaid", ProgramCode = "DISABLED", State = "IL", EligibilityPathway = EligibilityPathway.NonMAGI_Disabled },
-            new MedicaidProgram { ProgramId = 4, ProgramName = "Pregnancy-Related", ProgramCode = "PREG", State = "IL", EligibilityPathway = EligibilityPathway.Pregnancy }
+            new MedicaidProgram { ProgramId = Guid.NewGuid(), ProgramName = "MAGI Adult", ProgramCode = "MAGI_ADULT", StateCode = "IL", EligibilityPathway = EligibilityPathway.MAGI },
+            new MedicaidProgram { ProgramId = Guid.NewGuid(), ProgramName = "Aged Medicaid", ProgramCode = "AGED", StateCode = "IL", EligibilityPathway = EligibilityPathway.NonMAGI_Aged },
+            new MedicaidProgram { ProgramId = Guid.NewGuid(), ProgramName = "Disabled Medicaid", ProgramCode = "DISABLED", StateCode = "IL", EligibilityPathway = EligibilityPathway.NonMAGI_Disabled },
+            new MedicaidProgram { ProgramId = Guid.NewGuid(), ProgramName = "Pregnancy-Related", ProgramCode = "PREG", StateCode = "IL", EligibilityPathway = EligibilityPathway.Pregnancy }
         };
     }
 
