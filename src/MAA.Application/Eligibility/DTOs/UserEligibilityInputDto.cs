@@ -55,4 +55,11 @@ public class UserEligibilityInputDto
     /// Required for most Medicaid programs (emergency Medicaid excluded)
     /// </summary>
     public required bool IsCitizen { get; set; }
+
+    /// <summary>
+    /// Household assets in cents (savings, investments, property)
+    /// Some programs have asset limits or consider assets for categorically eligibility
+    /// Optional: not all programs check assets
+    /// </summary>
+    public long? AssetsCents { get; set; }
 }
