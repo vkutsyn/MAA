@@ -109,7 +109,7 @@ Medicaid has different eligibility pathways (MAGI, non-MAGI, SSI-linked, aged, d
 1. **Given** a user age 35 with no disability or pregnancy, **When** system determines pathways, **Then** it evaluates MAGI Adult pathway only
 2. **Given** a user age 68, **When** system determines pathways, **Then** it evaluates Aged Medicaid pathway (non-MAGI) instead of MAGI
 3. **Given** a user reporting current pregnancy, **When** evaluation is performed, **Then** system evaluates both Pregnancy-Related Medicaid and standard MAGI pathways
-4. **Given** a user reporting SSI receipt, **When** evaluation is performed, **Then** system applies categorical eligibility and bypasses income checks for Disabled Medicaid
+4. **Given** a user reporting SSI receipt, **When** evaluation is performed, **Then** system applies categorical eligibility and bypasses INCOME checks for Disabled Medicaid (note: asset tests may still apply per state rules)
 5. **Given** a user with multiple applicable pathways (e.g., aged + disabled), **When** system evaluates, **Then** it checks all applicable pathways and returns best matches
 
 ---
@@ -165,17 +165,17 @@ Rules change over time due to legislation. The system must support basic version
 - **FR-010**: System MUST validate user inputs before evaluation and return clear error messages for invalid data (e.g., "Household size must be at least 1")
 - **FR-011**: System MUST support rule versioning with effective dates; evaluations MUST use rules active on evaluation date or application date
 - **FR-012**: System MUST track which rule version was applied to each evaluation for audit purposes
-- **FR-013**: System MUST support categorical eligibility (e.g., SSI recipients automatically qualify for Disabled Medicaid regardless of income)
+- **FR-013**: System MUST support categorical eligibility (e.g., SSI recipients bypass income checks for Disabled Medicaid); note that categorical eligibility does NOT bypass asset tests where required by state rules
 - **FR-014**: System MUST handle multiple program matches by returning all qualifying programs, not just the first match
 - **FR-015**: System MUST distinguish between "income too high" vs "other disqualifying factors" in explanations
-- **FR-016**: System MUST support asset tests for non-MAGI pathways (Aged, Disabled) where applicable by state
+- **FR-016**: System MUST support asset tests for non-MAGI pathways (Aged, Disabled) where applicable by state; asset limits and thresholds are documented in research folder for each pilot state (see phase-0-deliverables/R1-state-rules-analysis.md for asset test matrix)
 - **FR-017**: System MUST return eligibility results in ≤2 seconds (p95) to meet Constitution IV performance requirement
 
 ### Constitution Compliance Requirements
 
 - **CONST-I (Code Quality)**: Eligibility evaluation logic MUST be testable in isolation without database or HTTP dependencies; rules engine should accept rule objects and user data objects as pure inputs
 - **CONST-II (Testing Standards)**: All functional requirements MUST have corresponding unit tests; integration tests MUST cover end-to-end evaluation flows for each pilot state; test data MUST include edge cases (exact threshold, $0 income, maximum household size)
-- **CONST-III (UX Consistency)**: Plain-language explanations MUST be tested with automated readability tools achieving Flesch-Kincaid Reading Ease score ≥50 (10th-12th grade, adjusted for necessary medical terminology); explanations MUST NOT use unexplained acronyms or jargon
+- **CONST-III (UX Consistency)**: Plain-language explanations MUST be tested with automated readability tools achieving Flesch-Kincaid Reading Ease score 50-60 (9th-10th grade equivalent, adjusted for necessary medical terminology); explanations MUST NOT use unexplained acronyms or jargon
 - **CONST-IV (Performance)**: Eligibility evaluation MUST complete in ≤2 seconds (p95); FPL lookups MUST be cached or indexed for <10ms access time; rule evaluations MUST log performance metrics for monitoring
 
 ### Key Entities _(mandatory for this feature)_
@@ -236,7 +236,7 @@ Rules change over time due to legislation. The system must support basic version
 
 - **SC-001**: Eligibility evaluation completes in ≤2 seconds (p95) for all 5 pilot states with standard user inputs
 - **SC-002**: System produces identical results when evaluating same user data multiple times (100% deterministic)
-- **SC-003**: All plain-language explanations score at 8th-grade reading level or below on Flesch-Kincaid scale
+- **SC-003**: All plain-language explanations achieve Flesch-Kincaid Reading Ease score 50-60 (9th-10th grade level) as measured by automated readability validation tool in CI/CD
 - **SC-004**: System correctly evaluates 100+ test cases covering all pilot states, pathways, and edge cases without errors
 - **SC-005**: FPL threshold calculations accurate to the penny for household sizes 1-8+ based on 2026 FPL tables
 - **SC-006**: Multi-program scenarios return all qualifying programs (0 missed matches in test suite)

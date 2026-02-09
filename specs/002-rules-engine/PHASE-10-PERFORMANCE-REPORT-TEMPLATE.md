@@ -11,10 +11,12 @@
 
 [Brief overview of test execution and results]
 
-**Key Finding**: 
+**Key Finding**:
+
 - [Primary achievement or concern]
 
-**Recommendation**: 
+**Recommendation**:
+
 - [Go/No-Go decision and next steps]
 
 ---
@@ -22,6 +24,7 @@
 ## Test Execution Summary
 
 ### Configuration
+
 - **Test Tool**: k6 v[VERSION]
 - **Duration**: [TOTAL_DURATION]
 - **Ramp-up**: 0 to 1,000 users over 30 seconds
@@ -29,6 +32,7 @@
 - **Cool-down**: 5 minutes to 0 users
 
 ### Environment Details
+
 - **API Endpoint**: http://[HOST]:[PORT]/api/rules/evaluate
 - **Database**: [DB_NAME]@[SERVER]
 - **Application Server**: [SERVER_SPECS]
@@ -36,6 +40,7 @@
 - **Timestamp**: [ISO_8601_TIMESTAMP]
 
 ### Test Data Distribution
+
 - **States**: IL, CA, NY, TX, FL
 - **Household Sizes**: 1-8
 - **Income Levels**: $1K-$7.5K/month (randomized)
@@ -50,18 +55,18 @@
 
 ### Latency SLOs
 
-| Metric | Target | Actual | Status | Notes |
-|--------|--------|--------|--------|-------|
-| p50 (Median) | < 1,000 ms | [X] ms | ✓/✗ | [Details] |
-| p95 (95th %ile) | ≤ 2,000 ms | [X] ms | ✓/✗ | **CRITICAL** |
-| p99 (99th %ile) | < 3,000 ms | [X] ms | ✓/✗ | [Details] |
-| Max Response | < 5,000 ms | [X] ms | ✓/✗ | [Details] |
+| Metric          | Target     | Actual | Status | Notes        |
+| --------------- | ---------- | ------ | ------ | ------------ |
+| p50 (Median)    | < 1,000 ms | [X] ms | ✓/✗    | [Details]    |
+| p95 (95th %ile) | ≤ 2,000 ms | [X] ms | ✓/✗    | **CRITICAL** |
+| p99 (99th %ile) | < 3,000 ms | [X] ms | ✓/✗    | [Details]    |
+| Max Response    | < 5,000 ms | [X] ms | ✓/✗    | [Details]    |
 
 ### Error Rate SLO
 
-| Metric | Target | Actual | Status | Notes |
-|--------|--------|--------|--------|-------|
-| Error Rate | = 0% | [X]% | ✓/✗ | [X] errors out of [Y] requests |
+| Metric     | Target | Actual | Status | Notes                          |
+| ---------- | ------ | ------ | ------ | ------------------------------ |
+| Error Rate | = 0%   | [X]%   | ✓/✗    | [X] errors out of [Y] requests |
 
 **Overall SLO Status**: ✅ **PASS** / ⚠️ **FAIL**
 
@@ -83,57 +88,57 @@ Response Time Percentiles:
 
 ### Throughput Metrics
 
-| Metric | Value | Notes |
-|--------|-------|---------|
-| Total Requests | [X] | [X] requests over [Y] minutes |
-| Avg Throughput | [X] req/s | Requests per second |
-| Peak Throughput | [X] req/s | Maximum requests per second |
-| Avg Request Size | [X] bytes | Payload size |
-| Avg Response Size | [X] bytes | Response payload size |
+| Metric            | Value     | Notes                         |
+| ----------------- | --------- | ----------------------------- |
+| Total Requests    | [X]       | [X] requests over [Y] minutes |
+| Avg Throughput    | [X] req/s | Requests per second           |
+| Peak Throughput   | [X] req/s | Maximum requests per second   |
+| Avg Request Size  | [X] bytes | Payload size                  |
+| Avg Response Size | [X] bytes | Response payload size         |
 
 ### Data Transfer
 
-| Metric | Value |
-|--------|-------|
-| Data Sent | [X] MB |
-| Data Received | [X] MB |
+| Metric              | Value  |
+| ------------------- | ------ |
+| Data Sent           | [X] MB |
+| Data Received       | [X] MB |
 | Total Data Transfer | [X] MB |
 
 ### Connection Metrics
 
-| Metric | Value | Notes |
-|--------|-------|---------|
-| Active Connections | [X] | Peak concurrent connections |
-| Connection Errors | [X] | Failed connection attempts |
-| TLS Handshakes | [X] | SSL/TLS negotiations |
-| DNS Lookups | [X] | DNS resolution time |
+| Metric             | Value | Notes                       |
+| ------------------ | ----- | --------------------------- |
+| Active Connections | [X]   | Peak concurrent connections |
+| Connection Errors  | [X]   | Failed connection attempts  |
+| TLS Handshakes     | [X]   | SSL/TLS negotiations        |
+| DNS Lookups        | [X]   | DNS resolution time         |
 
 ---
 
 ## Performance by State
 
-| State | Avg Latency | p95 | Requests | Error % | Status |
-|-------|-------------|-----|----------|---------|--------|
-| IL | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| CA | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| NY | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| TX | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| FL | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
+| State | Avg Latency | p95    | Requests | Error % | Status |
+| ----- | ----------- | ------ | -------- | ------- | ------ |
+| IL    | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| CA    | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| NY    | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| TX    | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| FL    | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
 
 ---
 
 ## Performance by Household Size
 
-| Household Size | Avg Latency | p95 | Requests | Error % | Status |
-|-------------|-------------|-----|----------|---------|--------|
-| 1 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 2 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 3 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 4 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 5 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 6 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 7 | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
-| 8+ | [X] ms | [X] ms | [X] | [X]% | ✓/✗ |
+| Household Size | Avg Latency | p95    | Requests | Error % | Status |
+| -------------- | ----------- | ------ | -------- | ------- | ------ |
+| 1              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 2              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 3              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 4              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 5              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 6              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 7              | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
+| 8+             | [X] ms      | [X] ms | [X]      | [X]%    | ✓/✗    |
 
 ---
 
@@ -153,6 +158,7 @@ Total Request Duration: [X] ms (100%)
 ```
 
 **Server Processing Time Analysis**:
+
 - Database Query Time: [X] ms
 - Rule Evaluation Time: [X] ms
 - FPL Calculation Time: [X] ms
@@ -161,25 +167,27 @@ Total Request Duration: [X] ms (100%)
 
 ### Cache Performance
 
-| Cache Type | Hit Rate | Avg Hit Time | Avg Miss Time | Impact |
-|------------|----------|--------------|---------------|--------|
-| Rules Cache | [X]% | [X] ms | [X] ms | [Significant/Moderate/Minor] |
-| FPL Cache | [X]% | [X] ms | [X] ms | [Significant/Moderate/Minor] |
-| Session Cache | [X]% | [X] ms | [X] ms | [Significant/Moderate/Minor] |
+| Cache Type    | Hit Rate | Avg Hit Time | Avg Miss Time | Impact                       |
+| ------------- | -------- | ------------ | ------------- | ---------------------------- |
+| Rules Cache   | [X]%     | [X] ms       | [X] ms        | [Significant/Moderate/Minor] |
+| FPL Cache     | [X]%     | [X] ms       | [X] ms        | [Significant/Moderate/Minor] |
+| Session Cache | [X]%     | [X] ms       | [X] ms        | [Significant/Moderate/Minor] |
 
 **Cache Observations**:
+
 - [Key finding about cache efficiency]
 - [Recommendation for cache improvement]
 
 ### Database Query Performance
 
-| Query Type | Avg Time | Max Time | Count | Bottleneck |
-|------------|----------|----------|-------|------------|
-| Get Rules | [X] ms | [X] ms | [X] | Yes/No |
-| Get Programs | [X] ms | [X] ms | [X] | Yes/No |
-| Get FPL | [X] ms | [X] ms | [X] | Yes/No |
+| Query Type   | Avg Time | Max Time | Count | Bottleneck |
+| ------------ | -------- | -------- | ----- | ---------- |
+| Get Rules    | [X] ms   | [X] ms   | [X]   | Yes/No     |
+| Get Programs | [X] ms   | [X] ms   | [X]   | Yes/No     |
+| Get FPL      | [X] ms   | [X] ms   | [X]   | Yes/No     |
 
 **Database Observations**:
+
 - [Key finding about database performance]
 - [Missing index or slow query identified]
 
@@ -189,22 +197,22 @@ Total Request Duration: [X] ms (100%)
 
 ### Server Resources (from system monitoring)
 
-| Metric | Average | Peak | Status |
-|--------|---------|------|--------|
-| CPU Usage | [X]% | [X]% | ✓/⚠️/✗ |
-| Memory Usage | [X]% | [X]% | ✓/⚠️/✗ |
-| Disk I/O | [X] MB/s | [X] MB/s | ✓/⚠️/✗ |
-| Network I/O | [X] Mbps | [X] Mbps | ✓/⚠️/✗ |
-| Thread Count | [X] | [X] | ✓/⚠️/✗ |
+| Metric       | Average  | Peak     | Status |
+| ------------ | -------- | -------- | ------ |
+| CPU Usage    | [X]%     | [X]%     | ✓/⚠️/✗ |
+| Memory Usage | [X]%     | [X]%     | ✓/⚠️/✗ |
+| Disk I/O     | [X] MB/s | [X] MB/s | ✓/⚠️/✗ |
+| Network I/O  | [X] Mbps | [X] Mbps | ✓/⚠️/✗ |
+| Thread Count | [X]      | [X]      | ✓/⚠️/✗ |
 
 ### Application Diagnostics
 
-| Metric | Value | Status | Notes |
-|--------|-------|--------|-------|
-| Memory Leaks | None detected | ✓ | [Details if applicable] |
-| GC Pauses | < [X] ms | ✓/✗ | Garbage collection impact |
-| Connection Pool | [X]% utilized | ✓/⚠️ | Pool size adequate |
-| Thread Pool | [X] threads active | ✓/⚠️ | Thread starvation risk |
+| Metric          | Value              | Status | Notes                     |
+| --------------- | ------------------ | ------ | ------------------------- |
+| Memory Leaks    | None detected      | ✓      | [Details if applicable]   |
+| GC Pauses       | < [X] ms           | ✓/✗    | Garbage collection impact |
+| Connection Pool | [X]% utilized      | ✓/⚠️   | Pool size adequate        |
+| Thread Pool     | [X] threads active | ✓/⚠️   | Thread starvation risk    |
 
 ---
 
@@ -212,13 +220,13 @@ Total Request Duration: [X] ms (100%)
 
 ### Error Types
 
-| Error Type | Count | Percentage | Resolution |
-|------------|-------|-----------|------------|
-| 400 Bad Request | [X] | [X]% | Invalid input validation |
-| 404 Not Found | [X] | [X]% | Resource not found |
-| 500 Server Error | [X] | [X]% | Application error |
-| Timeout | [X] | [X]% | Request exceeds timeout |
-| Network Error | [X] | [X]% | Connection issue |
+| Error Type       | Count | Percentage | Resolution               |
+| ---------------- | ----- | ---------- | ------------------------ |
+| 400 Bad Request  | [X]   | [X]%       | Invalid input validation |
+| 404 Not Found    | [X]   | [X]%       | Resource not found       |
+| 500 Server Error | [X]   | [X]%       | Application error        |
+| Timeout          | [X]   | [X]%       | Request exceeds timeout  |
+| Network Error    | [X]   | [X]%       | Connection issue         |
 
 ### Error Timeline
 
@@ -239,14 +247,14 @@ Error Pattern Over Test Duration:
 
 ## Comparison to Baseline
 
-*(If baseline exists from previous run)*
+_(If baseline exists from previous run)_
 
-| Metric | Baseline | Current | Change | Trend |
-|--------|----------|---------|--------|-------|
-| p95 Latency | [X] ms | [X] ms | [+/-X]% | ↑/↓/→ |
-| Error Rate | [X]% | [X]% | [+/-X]% | ↑/↓/→ |
-| Throughput | [X] req/s | [X] req/s | [+/-X]% | ↑/↓/→ |
-| Memory Usage | [X]% | [X]% | [+/-X]% | ↑/↓/→ |
+| Metric       | Baseline  | Current   | Change  | Trend |
+| ------------ | --------- | --------- | ------- | ----- |
+| p95 Latency  | [X] ms    | [X] ms    | [+/-X]% | ↑/↓/→ |
+| Error Rate   | [X]%      | [X]%      | [+/-X]% | ↑/↓/→ |
+| Throughput   | [X] req/s | [X] req/s | [+/-X]% | ↑/↓/→ |
+| Memory Usage | [X]%      | [X]%      | [+/-X]% | ↑/↓/→ |
 
 **Analysis**: [Improvement/Regression from previous version]
 
@@ -287,16 +295,19 @@ Error Pattern Over Test Duration:
 ### Justification
 
 ✅ **PASS**:
+
 - All SLOs met or exceeded
 - Error rate at 0%
 - System stable throughout test
 - Ready for production deployment
 
 ⚠️ **GO with Caveats**:
+
 - Minor SLO violations in specific scenarios
 - Specific optimization recommended before peak load
 
 ❌ **NO-GO**:
+
 - Critical SLO violations (p95 latency > 2s)
 - Error rate > 0%
 - Resource constraints detected
@@ -330,4 +341,3 @@ Error Pattern Over Test Duration:
 **Report Generated**: [DATE_TIME]  
 **Approver**: [NAME/TITLE]  
 **Status**: Ready for Review
-

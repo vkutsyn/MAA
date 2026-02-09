@@ -195,6 +195,8 @@
 ### Asset Evaluation Logic (CRITICAL FOR FR-016, SC-006)
 
 - [x] T031a [P] Create src/MAA.Domain/Rules/AssetEvaluator.cs pure function: EvaluateAssets(assets: decimal, pathway: EligibilityPathway, state: string, currentYear: int) → (isEligible: bool, reason: string) for non-MAGI Aged/Disabled asset limits per state
+  - **Reference**: State-specific asset limits documented in phase-0-deliverables/R1-pilot-state-rules-2026.md (asset test matrix for IL, CA, NY, TX, FL)
+  - **Pathways Affected**: Non-MAGI Aged, Non-MAGI Disabled (MAGI Adult has no asset test)
 
 ### Multi-Program Matching Logic
 
@@ -490,6 +492,7 @@
   - Create rule v2.0 effective 2026-06-01, evaluate on 2026-05-15 → still uses v1.0
   - Query rule versioning metadata: GET /api/rules?state=IL&program=MAGI_ADULT returns all versions with dates
   - **BLOCKED**: Requires Docker/Testcontainers infrastructure
+  - **FALLBACK**: If Docker unavailable, use WebApplicationFactory with in-memory SQLite database + mock RuleRepository for integration testing without full Docker setup
 
 ### Contract Tests for Versioning
 
@@ -497,6 +500,7 @@
   - rule_version_used field populated in EligibilityResultDto
   - EligibilityRule response includes version, effective_date, end_date fields
   - **BLOCKED**: Requires Docker/Testcontainers infrastructure
+  - **FALLBACK**: Use Swagger-generated validation against hardcoded OpenAPI spec if Testcontainers.PostgreSQL unavailable
 
 **Phase 9 Status**: ✅ CORE COMPLETE (T072) - Unit tests passing (20/20)  
 **Phase 9 Blockers**: Integration/contract tests blocked on Docker infrastructure (T073-T074 ready after)  
@@ -527,6 +531,7 @@
   - Link to: SC-010, CONST-IV (Performance requirement) ✓
 
 **Phase 10 Status**: ✅ CORE COMPLETE (T075)
+
 - Implementation: Ready for execution
 - Execution: User must run `k6 run rules-load-test.js` per LOAD_TEST_GUIDE.md
 - Results: Generate and complete PHASE-10-PERFORMANCE-REPORT-TEMPLATE.md

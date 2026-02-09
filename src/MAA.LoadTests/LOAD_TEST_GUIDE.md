@@ -27,21 +27,25 @@ This guide provides instructions for running load tests against the Rules Engine
 k6 must be installed on your system:
 
 **Windows (using Chocolatey)**:
+
 ```powershell
 choco install k6
 ```
 
 **Windows (using scoop)**:
+
 ```powershell
 scoop install k6
 ```
 
 **macOS (using Homebrew)**:
+
 ```bash
 brew install k6
 ```
 
 **Linux (Debian/Ubuntu)**:
+
 ```bash
 sudo apt-get install k6
 ```
@@ -49,6 +53,7 @@ sudo apt-get install k6
 **Or download from**: https://k6.io/docs/getting-started/installation/
 
 **Verify installation**:
+
 ```bash
 k6 version
 # Should output: k6 v0.x.x
@@ -64,6 +69,7 @@ dotnet run --project MAA.API/MAA.API.csproj
 ```
 
 **Expected output**:
+
 ```
 info: Microsoft.Hosting.Lifetime[0]
       Now listening on: https://localhost:7000
@@ -73,12 +79,14 @@ info: Microsoft.Hosting.Lifetime[0]
 ### 3. Database Seeded
 
 Ensure the database has:
+
 - ✅ All 5 pilot states (IL, CA, NY, TX, FL) populated
 - ✅ At least 100 test scenarios for diverse inputs
 - ✅ FPL tables loaded for 2026
 - ✅ Rules for MAGI, Aged, Disabled, SSI, Pregnancy pathways
 
 **Seed status check**:
+
 ```bash
 # Connect to database and verify
 psql -h localhost -U maa_user -d maa_rules_db -c "SELECT COUNT(*) FROM medicaid_programs;"
@@ -128,6 +136,7 @@ k6 run rules-load-test.js --out html=report.html
 For testing different scenarios, modify the `options.stages` array in `rules-load-test.js`:
 
 **Light load** (500 users, 3 min):
+
 ```javascript
 stages: [
   { duration: '30s', target: 500 },
@@ -137,6 +146,7 @@ stages: [
 ```
 
 **Heavy load** (2,000 users, 10 min):
+
 ```javascript
 stages: [
   { duration: '1m', target: 2000 },
@@ -152,11 +162,13 @@ stages: [
 ### Key Metrics
 
 **Latency (Response Time)**
+
 - **p50**: Median latency (50th percentile)
 - **p95**: 95th percentile latency (SLO target: ≤ 2 seconds)
 - **p99**: 99th percentile latency (target: < 3 seconds)
 
 **Example output**:
+
 ```
      data_received...................: 3.2 MB   10 kB/s
      data_sent........................: 1.6 MB   5 kB/s
@@ -187,6 +199,7 @@ The test automatically validates against defined SLOs:
 ```
 
 **Passing Test**:
+
 ```
  execution: local
    script: rules-load-test.js
@@ -207,6 +220,7 @@ PASSED ✓  - All SLOs met, system ready for production.
 ```
 
 **Failing Test**:
+
 ```
  ✗ request_duration{method:post,name:EvaluateEligibility}: avg=2500ms, p(95)=3200ms <= 2000ms ✗
  ✗ errors: rate 5% > 0% ✗
@@ -312,44 +326,52 @@ After running tests, **[create a report](./PHASE-10-PERFORMANCE-REPORT.md)** wit
 ## Troubleshooting
 
 ### Issue: Connection refused
+
 ```
 Error: connection refused: ECONNREFUSED 127.0.0.1:5000
 ```
 
 **Solution**: Ensure API is running:
+
 ```bash
 # In separate terminal
 cd src && dotnet run --project MAA.API/MAA.API.csproj
 ```
 
 ### Issue: Database errors during test
+
 ```
 Error: 400: Database connection timeout
 ```
 
 **Solution**: Check database is seeded and reachable:
+
 ```bash
 # Verify database
 psql -h localhost -U maa_user -d maa_rules_db -c "SELECT COUNT(*) FROM medicaid_programs;"
 ```
 
 ### Issue: p95 latency exceeds target (> 2 seconds)
+
 ```
 ✗ request_duration: p(95)=2.5s > 2000ms
 ```
 
 **Solution**:
+
 1. Check if database queries are slow: Enable query logging in appsettings.Development.json
 2. Check cache hit rates: Look for cache misses in logs
 3. Reduce test load temporarily: Find bottleneck with k6 profiling
 4. Profile application: Use dotnet dump/trace tools
 
 ### Issue: High error rates
+
 ```
 errors: 5% of requests failed
 ```
 
 **Solution**:
+
 1. Check API logs for error details
 2. Verify database schema migrations ran
 3. Check resource limits (memory, CPU)
@@ -362,21 +384,25 @@ errors: 5% of requests failed
 If SLOs are not met:
 
 ### 1. Caching Improvements
+
 - Increase cache TTL for rules and FPL tables
 - Add distributed cache (Redis) for high-traffic scenarios
 - Implement cache warming on application startup
 
 ### 2. Database Query Optimization
+
 - Add indexes on frequently queried columns (state_code, program_id, effective_date)
 - Use connection pooling to reduce connection overhead
 - Consider query result caching
 
 ### 3. Application Performance
+
 - Profile hot paths using dotnet profiler
 - Consider async/parallelization opportunities
 - Review LINQ queries for N+1 patterns
 
-### 4. Infrastructure Scaling  
+### 4. Infrastructure Scaling
+
 - Increase application server resources (CPU, memory)
 - Implement load balancing across multiple instances
 - Use container orchestration (Kubernetes) for auto-scaling
@@ -407,6 +433,7 @@ If SLOs are not met:
 ## Support
 
 For issues or questions:
+
 1. Check troubleshooting section above
 2. Review k6 logs for detailed error messages
 3. Consult project documentation: `specs/002-rules-engine/`
