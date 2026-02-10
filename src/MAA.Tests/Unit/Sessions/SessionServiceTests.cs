@@ -18,7 +18,7 @@ public class SessionServiceTests
 {
     // CONST-III: Exact error message for session expiration
     private const string SessionExpiredMessage = "Your session expired after 30 minutes. Start a new eligibility check.";
-    
+
     // Session timeout settings
     private const int AnonymousSessionTimeoutMinutes = 30;
     private const int InactivityTimeoutMinutes = 15;
@@ -33,7 +33,7 @@ public class SessionServiceTests
         _mockSessionRepository = new Mock<ISessionRepository>();
         _mockEncryptionService = new Mock<IEncryptionService>();
         _mockLogger = new Mock<ILogger<SessionService>>();
-        
+
         // Initialize SessionService with mocked dependencies
         _sessionService = new SessionService(
             _mockSessionRepository.Object,
@@ -92,7 +92,7 @@ public class SessionServiceTests
         result.SessionType.Should().Be("anonymous", "Session should be marked as anonymous");
         result.EncryptionKeyVersion.Should().Be(1, "Session should have encryption key version");
         result.IsRevoked.Should().BeFalse("New session should not be revoked");
-        
+
         // Verify timeout is approximately 30 minutes from now (allow 1 second variance)
         result.ExpiresAt.Should()
             .BeCloseTo(createdSession.ExpiresAt, TimeSpan.FromSeconds(1),

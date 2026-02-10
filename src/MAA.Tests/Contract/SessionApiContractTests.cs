@@ -86,7 +86,7 @@ public class SessionApiContractTests : IAsyncLifetime
         content.UserAgent.Should().Contain("Windows", "SessionDto.UserAgent should match request");
         content.SessionType.Should().Be("anonymous", "SessionDto.SessionType should be 'anonymous'");
         content.EncryptionKeyVersion.Should().BeGreaterThan(0, "EncryptionKeyVersion should be positive");
-        
+
         // Validate timeout calculations
         content.ExpiresAt.Should().BeAfter(DateTime.UtcNow.AddMinutes(25),
             "ExpiresAt should be approximately 30 minutes from now");
@@ -213,7 +213,7 @@ public class SessionApiContractTests : IAsyncLifetime
         // Arrange
         // Create a session manually with expired timestamp
         var expiredSessionId = Guid.NewGuid();
-        
+
         // Note: In integration tests, we'll actually expire a session.
         // In contract tests, we mock/simulate an expired session scenario.
         // For now, we verify the error response structure by calling with invalid scenarios.
@@ -308,7 +308,7 @@ public class SessionApiContractTests : IAsyncLifetime
 
         // Act - Create session
         var createResponse = await _httpClient!.PostAsJsonAsync("/api/sessions", createRequest);
-        
+
         // Assert
         createResponse.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
 
@@ -317,7 +317,7 @@ public class SessionApiContractTests : IAsyncLifetime
         {
             var createdSession = await createResponse.Content.ReadAsAsync<SessionDto>();
             var getResponse = await _httpClient.GetAsync($"/api/sessions/{createdSession!.Id}");
-            
+
             // Assert
             getResponse.Content.Headers.ContentType?.MediaType.Should().Be("application/json",
                 "GET endpoint should also return application/json");
@@ -370,7 +370,7 @@ public class SessionApiContractTests : IAsyncLifetime
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.Should().NotBeEmpty("404 response should include error details");
     }
@@ -426,7 +426,7 @@ internal static class HttpContentExtensions
     public static async Task<T?> ReadAsAsync<T>(this HttpContent content)
     {
         var json = await content.ReadAsStringAsync();
-        return System.Text.Json.JsonSerializer.Deserialize<T>(json, 
+        return System.Text.Json.JsonSerializer.Deserialize<T>(json,
             new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
     }
 }

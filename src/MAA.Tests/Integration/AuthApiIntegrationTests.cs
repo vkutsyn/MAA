@@ -41,10 +41,10 @@ public class AuthApiIntegrationTests : IAsyncLifetime
     {
         _factory = TestWebApplicationFactory.CreateWithDatabase(_databaseFixture);
         _httpClient = _factory.CreateClient();
-        
+
         // Clear database between tests
         await _databaseFixture.ClearAllDataAsync();
-        
+
         await Task.CompletedTask;
     }
 
@@ -56,7 +56,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         _httpClient?.Dispose();
         if (_factory != null)
             await _factory.DisposeAsync();
-        
+
         await Task.CompletedTask;
     }
 
@@ -193,7 +193,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         // Verify session created in database
         using (var context = _databaseFixture.CreateContext())
         {
-            var session = await context.Sessions.FirstOrDefaultAsync(s => 
+            var session = await context.Sessions.FirstOrDefaultAsync(s =>
                 s.SessionType == "authenticated" && !s.IsRevoked);
             session.Should().NotBeNull("Login should create authenticated session");
         }
@@ -410,7 +410,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         var sessionIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == "sessionId")?.Value;
 
         // Act - Revoke first session
-        _httpClient!.DefaultRequestHeaders.Authorization = 
+        _httpClient!.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", firstSessionToken);
         var revokeResponse = await _httpClient.DeleteAsync($"/api/auth/sessions/{sessionIdClaim}");
 
@@ -421,7 +421,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         // Verify session marked as revoked in database
         using (var context = _databaseFixture.CreateContext())
         {
-            var session = await context.Sessions.FirstOrDefaultAsync(s => 
+            var session = await context.Sessions.FirstOrDefaultAsync(s =>
                 s.Id.ToString() == sessionIdClaim);
             session?.IsRevoked.Should().BeTrue("Session should be marked as revoked");
         }
@@ -474,7 +474,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         var accessToken = loginResult!.AccessToken;
 
         // Act - Logout
-        _httpClient.DefaultRequestHeaders.Authorization = 
+        _httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
         var logoutResponse = await _httpClient.PostAsync("/api/auth/logout", null);
 

@@ -266,7 +266,7 @@ public class ExplanationGeneratorTests
     public void GenerateProgramExplanation_WithNullProgram_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             _generator.GenerateProgramExplanation(null!, 2000, 2500));
     }
 

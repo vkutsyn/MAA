@@ -50,7 +50,7 @@ public class FPLCalculator
         ValidateInputs(fplAnnualIncomeCents, percentageOfFpl, householdSize);
 
         // Calculate adjusted FPL for household size if needed
-        var adjustedFplCents = householdSize > 8 
+        var adjustedFplCents = householdSize > 8
             ? CalculateFplForLargeHousehold(fplAnnualIncomeCents, householdSize)
             : fplAnnualIncomeCents;
 
@@ -70,7 +70,7 @@ public class FPLCalculator
     public long CalculateThresholdMonthlyInCents(long fplAnnualIncomeCents, int percentageOfFpl, int householdSize)
     {
         var annualThreshold = CalculateThresholdAnnualInCents(fplAnnualIncomeCents, percentageOfFpl, householdSize);
-        
+
         // Convert annual to monthly: divide by 12
         // Using 1200 = 100 (cents) * 12 (months)
         return annualThreshold / 12;

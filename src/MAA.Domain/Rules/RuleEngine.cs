@@ -45,7 +45,7 @@ public class RuleEngine
         {
             // Parse and evaluate JSONLogic from the rule
             var ruleLogic = ParseRuleLogic(rule.RuleLogic);
-            
+
             // Build evaluation context with user input
             var evaluationContext = BuildEvaluationContext(input);
 
@@ -53,7 +53,7 @@ public class RuleEngine
             var ruleResult = EvaluateJsonLogic(ruleLogic, evaluationContext);
 
             // Determine eligibility status and factors
-            var (status, confidence, matchingFactors, disqualifyingFactors) = 
+            var (status, confidence, matchingFactors, disqualifyingFactors) =
                 DetermineEligibilityFromResult(ruleResult, input);
 
             return new EligibilityRuleEvaluationResult
@@ -71,7 +71,7 @@ public class RuleEngine
         catch (Exception ex)
         {
             throw new EligibilityEvaluationException(
-                $"Failed to evaluate rule '{rule.RuleName}' version {rule.Version}: {ex.Message}", 
+                $"Failed to evaluate rule '{rule.RuleName}' version {rule.Version}: {ex.Message}",
                 ex);
         }
     }
@@ -93,7 +93,7 @@ public class RuleEngine
         catch (Exception ex)
         {
             throw new EligibilityEvaluationException(
-                $"Failed to parse rule logic JSON: {ex.Message}. Rule JSON: {ruleLogicJson}", 
+                $"Failed to parse rule logic JSON: {ex.Message}. Rule JSON: {ruleLogicJson}",
                 ex);
         }
     }
@@ -135,20 +135,20 @@ public class RuleEngine
         {
             // Evaluate the rule logic recursively
             var result = EvaluateRule(ruleLogic, context);
-            
+
             // Convert result to boolean
             bool passed = IsTruthy(result);
-            
-            string explanation = passed 
-                ? "Rule logic evaluated to true/passed" 
+
+            string explanation = passed
+                ? "Rule logic evaluated to true/passed"
                 : "Rule logic evaluated to false/did not pass";
-            
+
             return (passed, explanation);
         }
         catch (Exception ex)
         {
             throw new EligibilityEvaluationException(
-                $"Failed to apply rule logic: {ex.Message}", 
+                $"Failed to apply rule logic: {ex.Message}",
                 ex);
         }
     }
@@ -276,7 +276,7 @@ public class RuleEngine
             return null;
 
         var condition = EvaluateRule(operandArray[0], context);
-        
+
         if (IsTruthy(condition))
         {
             // Condition is true, return then value
@@ -373,7 +373,7 @@ public class RuleEngine
     /// <summary>
     /// Determines eligibility status based on rule evaluation result
     /// </summary>
-    private (EligibilityStatus status, int confidence, List<string> matching, List<string> disqualifying) 
+    private (EligibilityStatus status, int confidence, List<string> matching, List<string> disqualifying)
         DetermineEligibilityFromResult(
             (bool passed, string explanation) ruleResult,
             UserEligibilityInput input)

@@ -47,7 +47,7 @@ public class PathwayEvaluationService
     {
         if (input == null)
             throw new ArgumentNullException(nameof(input));
-        
+
         if (allPrograms == null || !allPrograms.Any())
             throw new ArgumentException("Programs list cannot be null or empty", nameof(allPrograms));
 

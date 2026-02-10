@@ -54,12 +54,12 @@ public class FplRepository : IFplRepository
     {
         if (year < 2000 || year > 2100)
             throw new ArgumentException("Year must be between 2000-2100", nameof(year));
-        
+
         if (householdSize < 1 || householdSize > 8)
             throw new ArgumentException("Household size must be 1-8", nameof(householdSize));
 
         return await _context.FederalPovertyLevels
-            .FirstOrDefaultAsync(f => f.Year == year 
+            .FirstOrDefaultAsync(f => f.Year == year
                                      && f.HouseholdSize == householdSize
                                      && f.StateCode == null)  // Baseline has null state code
             .ConfigureAwait(false);
@@ -74,7 +74,7 @@ public class FplRepository : IFplRepository
     {
         if (year < 2000 || year > 2100)
             throw new ArgumentException("Year must be between 2000-2100", nameof(year));
-        
+
         if (householdSize < 1 || householdSize > 8)
             throw new ArgumentException("Household size must be 1-8", nameof(householdSize));
 
@@ -82,7 +82,7 @@ public class FplRepository : IFplRepository
 
         // First try state-specific adjustment
         var stateFpl = await _context.FederalPovertyLevels
-            .FirstOrDefaultAsync(f => f.Year == year 
+            .FirstOrDefaultAsync(f => f.Year == year
                                      && f.HouseholdSize == householdSize
                                      && f.StateCode == stateCode)
             .ConfigureAwait(false);

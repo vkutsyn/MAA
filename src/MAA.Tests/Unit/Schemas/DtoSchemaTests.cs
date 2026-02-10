@@ -126,7 +126,7 @@ public class DtoSchemaTests
         // - code (string) 
         // - message (string)
         // - errors (array of ValidationError with field/message)
-        
+
         // Note: This test will pass as-is; implementation in T025 will create ValidationResultDto
         // in the application layer if it doesn't exist yet.
     }

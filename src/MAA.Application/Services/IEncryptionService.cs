@@ -15,8 +15,8 @@ public interface IEncryptionService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Base64-encoded ciphertext</returns>
     Task<string> EncryptAsync(
-        string plaintext, 
-        int keyVersion, 
+        string plaintext,
+        int keyVersion,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -27,8 +27,8 @@ public interface IEncryptionService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Decrypted plaintext</returns>
     Task<string> DecryptAsync(
-        string ciphertext, 
-        int keyVersion, 
+        string ciphertext,
+        int keyVersion,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -41,8 +41,8 @@ public interface IEncryptionService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Hex-encoded hash</returns>
     Task<string> HashAsync(
-        string plaintext, 
-        int keyVersion, 
+        string plaintext,
+        int keyVersion,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -54,9 +54,9 @@ public interface IEncryptionService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if hash matches</returns>
     Task<bool> ValidateHashAsync(
-        string plaintext, 
-        string hash, 
-        int keyVersion, 
+        string plaintext,
+        string hash,
+        int keyVersion,
         CancellationToken cancellationToken = default);
 
     /// <summary>

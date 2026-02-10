@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,12 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { StateSelector } from "./StateSelector";
-import { useStartWizard } from "./useStartWizard";
 
 /**
  * Landing page for the Medicaid eligibility wizard.
- * Displays information, state selection, and Start button.
+ * Displays information and Start button to begin the eligibility check.
  * Meets WCAG 2.1 AA and mobile-first design requirements.
  *
  * Accessibility features:
@@ -23,21 +21,11 @@ import { useStartWizard } from "./useStartWizard";
  * - Clear, descriptive labels for form inputs
  */
 export function LandingPage() {
-  const [selectedState, setSelectedState] = useState<{
-    code: string;
-    name: string;
-  } | null>(null);
-
-  const { startWizard, isStarting, error } = useStartWizard();
-
-  const handleStateSelected = (stateCode: string, stateName: string) => {
-    setSelectedState({ code: stateCode, name: stateName });
-  };
+  const navigate = useNavigate();
 
   const handleStart = () => {
-    if (selectedState) {
-      startWizard(selectedState.code, selectedState.name);
-    }
+    // Navigate to state context step where user will enter ZIP code
+    navigate("/state-context");
   };
 
   return (
@@ -61,63 +49,24 @@ export function LandingPage() {
             <h2>Get Started</h2>
           </CardTitle>
           <CardDescription>
-            Select your state to begin the eligibility check. We'll ask you
-            questions specific to your state's Medicaid program.
+            Click the button below to begin your eligibility check. We'll ask
+            for your ZIP code to determine which state's Medicaid program
+            applies to you.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* State Selection Form */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleStart();
-            }}
-            aria-label="Eligibility wizard startup form"
-          >
-            {/* State Selection */}
-            <StateSelector
-              onStateSelected={handleStateSelected}
-              disabled={isStarting}
-            />
-
-            {/* Error Message */}
-            {error && (
-              <div
-                role="alert"
-                aria-live="assertive"
-                aria-label="Startup error"
-                className="my-6 rounded-md border border-destructive bg-destructive/10 p-4"
-              >
-                <p className="text-sm text-destructive font-medium">{error}</p>
-              </div>
-            )}
-
-            {/* Start Button */}
-            <div className="mt-6 flex justify-end">
-              <Button
-                type="submit"
-                disabled={!selectedState || isStarting}
-                size="lg"
-                className="w-full sm:w-auto"
-                aria-label={
-                  selectedState
-                    ? `Start eligibility check for ${selectedState.name}`
-                    : "Select a state above then click to start"
-                }
-              >
-                {isStarting ? (
-                  <>
-                    <span aria-hidden="true">Starting...</span>
-                    <span className="sr-only">
-                      Starting your eligibility check
-                    </span>
-                  </>
-                ) : (
-                  "Start Eligibility Check"
-                )}
-              </Button>
-            </div>
-          </form>
+          {/* Start Button */}
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              onClick={handleStart}
+              size="lg"
+              className="w-full sm:w-auto"
+              aria-label="Start eligibility check"
+            >
+              Start Eligibility Check
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

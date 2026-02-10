@@ -21,11 +21,11 @@ public class EncryptionServiceTests
     public EncryptionServiceTests()
     {
         _keyVaultClientMock = new Mock<IKeyVaultClient>();
-        
+
         // Setup mock to return test encryption key (base64-encoded 256-bit key)
         var keyBytes = new byte[32]; // 256-bit key for AES-256
         var keyBase64 = Convert.ToBase64String(keyBytes);
-        
+
         _keyVaultClientMock
             .Setup(x => x.GetKeyAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(keyBase64);
@@ -72,7 +72,7 @@ public class EncryptionServiceTests
         // Assert
         ciphertext.Should().NotContain(plaintext,
             "ciphertext should not contain plaintext value");
-        
+
         // Should be Base64 encoded
         var isBase64 = IsBase64String(ciphertext);
         isBase64.Should().BeTrue("ciphertext should be Base64 encoded");
@@ -172,7 +172,7 @@ public class EncryptionServiceTests
         // Setup different key for version 2 (base64-encoded)
         var differentKeyBytes = new byte[32] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 };
         var differentKeyBase64 = Convert.ToBase64String(differentKeyBytes);
-        
+
         _keyVaultClientMock
             .Setup(x => x.GetKeyAsync(keyVersion2, It.IsAny<CancellationToken>()))
             .ReturnsAsync(differentKeyBase64);

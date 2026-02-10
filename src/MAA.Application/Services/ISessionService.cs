@@ -16,8 +16,8 @@ public interface ISessionService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created session</returns>
     Task<Session> CreateSessionAsync(
-        string ipAddress, 
-        string userAgent, 
+        string ipAddress,
+        string userAgent,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -45,8 +45,8 @@ public interface ISessionService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated session</returns>
     Task<Session> TransitionStateAsync(
-        Guid sessionId, 
-        SessionState newState, 
+        Guid sessionId,
+        SessionState newState,
         CancellationToken cancellationToken = default);
 
     /// <summary>

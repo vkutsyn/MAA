@@ -24,8 +24,8 @@ public class OpenApiSchemaTests
         // Arrange: Get all controller types from API assembly
         var apiAssembly = typeof(Program).Assembly;
         var controllerTypes = apiAssembly.GetTypes()
-            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && 
-                       !t.IsAbstract && 
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) &&
+                       !t.IsAbstract &&
                        t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -35,13 +35,13 @@ public class OpenApiSchemaTests
         // Verify specific expected controllers exist
         var controllerNames = controllerTypes.Select(t => t.Name).ToList();
         controllerNames.Should().Contain("SessionsController", "Sessions endpoints should exist");
-        
+
         // Verify each controller has public HTTP action methods
         foreach (var controller in controllerTypes)
         {
             var httpMethods = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Where(m => m.DeclaringType == controller && 
-                           m.IsPublic && 
+                .Where(m => m.DeclaringType == controller &&
+                           m.IsPublic &&
                            !m.IsGenericMethodDefinition &&
                            !m.IsSpecialName)
                 .ToList();
@@ -92,8 +92,8 @@ public class OpenApiSchemaTests
         // Arrange: Get all controller types from API assembly
         var apiAssembly = typeof(Program).Assembly;
         var controllerTypes = apiAssembly.GetTypes()
-            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && 
-                       !t.IsAbstract && 
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) &&
+                       !t.IsAbstract &&
                        t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -102,17 +102,17 @@ public class OpenApiSchemaTests
         foreach (var controller in controllerTypes)
         {
             var actionMethods = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Where(m => m.DeclaringType == controller && 
-                           m.IsPublic && 
+                .Where(m => m.DeclaringType == controller &&
+                           m.IsPublic &&
                            !m.IsGenericMethodDefinition &&
                            !m.IsSpecialName)
                 .ToList();
-            
+
             totalEndpointCount += actionMethods.Count;
         }
 
         // Assert: Verify endpoints exist (schema would auto-generate for all)
-        totalEndpointCount.Should().BeGreaterThan(0, 
+        totalEndpointCount.Should().BeGreaterThan(0,
             "API should have endpoints that would be auto-documented");
 
         // Verification: Any new controller method added to the codebase
@@ -132,7 +132,7 @@ public class OpenApiSchemaTests
     {
         // Arrange: Get API assembly
         var apiAssembly = typeof(Program).Assembly;
-        
+
         // Act: Check that XML documentation file would be generated
         // This is controlled by project settings GenerateDocumentationFile=true
         var assemblyLocation = apiAssembly.Location;
@@ -148,7 +148,7 @@ public class OpenApiSchemaTests
         if (File.Exists(xmlDocPath))
         {
             var xmlContent = File.ReadAllText(xmlDocPath);
-            xmlContent.Should().Contain("Controller", 
+            xmlContent.Should().Contain("Controller",
                 "XML documentation should include controller documentation");
         }
     }
@@ -166,8 +166,8 @@ public class OpenApiSchemaTests
         // Arrange: Get all controller types
         var apiAssembly = typeof(Program).Assembly;
         var controllerTypes = apiAssembly.GetTypes()
-            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && 
-                       !t.IsAbstract && 
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) &&
+                       !t.IsAbstract &&
                        t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
             .ToList();
 

@@ -37,8 +37,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     /// <param name="databaseFixture">DatabaseFixture providing PostgreSQL connection</param>
     public static TestWebApplicationFactory CreateWithDatabase(DatabaseFixture databaseFixture)
     {
-        return new TestWebApplicationFactory 
-        { 
+        return new TestWebApplicationFactory
+        {
             _databaseFixture = databaseFixture ?? throw new ArgumentNullException(nameof(databaseFixture))
         };
     }
@@ -59,7 +59,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             var testConfig = new Dictionary<string, string>
             {
                 ["Azure:KeyVault:Uri"] = "https://test-keyvault.vault.azure.net/",
-                ["ConnectionStrings:DefaultConnection"] = _databaseFixture?.GetConnectionString() 
+                ["ConnectionStrings:DefaultConnection"] = _databaseFixture?.GetConnectionString()
                     ?? "Host=127.0.0.1;Port=5432;Database=maa_test;Username=postgres;Password=postgres"
             };
             config.AddInMemoryCollection(testConfig);
@@ -78,7 +78,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
             // Find and remove any DbContextOptions registrations to get a clean slate
             var allDbContextOptions = services.Where(
-                d => d.ServiceType.IsGenericType && 
+                d => d.ServiceType.IsGenericType &&
                      d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>) &&
                      d.ServiceType.GetGenericArguments()[0] == typeof(SessionContext)
             ).ToList();
@@ -127,7 +127,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             mockKeyVaultClient
                 .Setup(x => x.GetCurrentKeyVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1); // Return version 1 (seeded by migration)
-            
+
             services.AddScoped(_ => mockKeyVaultClient.Object);
 
             if (_databaseFixture == null)

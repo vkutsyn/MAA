@@ -424,9 +424,9 @@ public class EncryptionKeyTests
         // Act
         key.Deactivate();
         var firstRotatedAt = key.RotatedAt;
-        
+
         System.Threading.Thread.Sleep(10); // Ensure time difference
-        
+
         key.IsActive = true; // Reactivate
         key.Deactivate(); // Deactivate again
         var secondRotatedAt = key.RotatedAt;

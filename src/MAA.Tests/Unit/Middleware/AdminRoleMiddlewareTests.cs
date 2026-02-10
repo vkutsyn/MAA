@@ -45,7 +45,7 @@ public class AdminRoleMiddlewareTests
         // Assert
         context.Response.StatusCode.Should().Be(StatusCodes.Status403Forbidden,
             "requests without authorization should be forbidden");
-        
+
         _nextMock.Verify(next => next(It.IsAny<HttpContext>()), Times.Never,
             "next middleware should not be invoked for unauthorized requests");
     }
@@ -117,7 +117,7 @@ public class AdminRoleMiddlewareTests
         // Assert
         _nextMock.Verify(next => next(context), Times.Once,
             "Admin role should allow access to admin endpoints");
-        
+
         // Status code should not be set by middleware (controller sets it)
         context.Response.StatusCode.Should().Be(200, "default status code when middleware passes through");
     }

@@ -65,7 +65,7 @@ public class PathwayIdentifierTests
             isPregnant: true,
             isFemale: true
         );
-        
+
         pathways.Should().HaveCount(2);
         pathways.Should().Contain(EligibilityPathway.MAGI);
         pathways.Should().Contain(EligibilityPathway.Pregnancy);

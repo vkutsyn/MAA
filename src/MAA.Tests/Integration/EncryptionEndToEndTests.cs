@@ -364,7 +364,7 @@ public class EncryptionEndToEndTests : IAsyncLifetime
     {
         // Arrange
         var ssnHash = "deterministic_hash_of_ssn_12345"; // Same hash for same SSN
-        
+
         var session1 = new Session
         {
             Id = Guid.NewGuid(),

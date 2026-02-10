@@ -61,7 +61,7 @@ public class RuleRepository : IRuleRepository
         var now = DateTime.UtcNow;
 
         return await _context.EligibilityRules
-            .Where(r => r.ProgramId == programId 
+            .Where(r => r.ProgramId == programId
                      && r.StateCode == stateCode
                      && r.EffectiveDate <= now
                      && (r.EndDate == null || r.EndDate >= now))

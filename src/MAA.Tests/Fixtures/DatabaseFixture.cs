@@ -16,7 +16,7 @@ public class DatabaseFixture : IAsyncLifetime
     /// <summary>
     /// Gets the connection string for the test database.
     /// </summary>
-    public string ConnectionString => _connectionString 
+    public string ConnectionString => _connectionString
         ?? throw new InvalidOperationException("Database fixture not initialized. Call InitializeAsync first.");
 
     /// <summary>

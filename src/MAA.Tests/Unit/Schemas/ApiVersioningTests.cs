@@ -21,7 +21,7 @@ public class ApiVersioningTests
     {
         // Arrange: Get API assembly to verify configuration
         var apiAssembly = typeof(Program).Assembly;
-        
+
         // Act: Verify Program.cs exists (where Swagger is configured)
         var programType = apiAssembly.GetType("Program");
 
@@ -70,7 +70,7 @@ public class ApiVersioningTests
         var versionParts = version.Split('.');
 
         // Act & Assert: Verify semantic versioning format (MAJOR.MINOR.PATCH)
-        versionParts.Should().HaveCount(3, 
+        versionParts.Should().HaveCount(3,
             "Version should follow semantic versioning: MAJOR.MINOR.PATCH");
 
         foreach (var part in versionParts)
@@ -112,13 +112,13 @@ public class ApiVersioningTests
         if (appsettingsExists)
         {
             var appsettingsContent = File.ReadAllText(apiProjectPath);
-            
+
             // Verify Swagger section exists with Version field
             appsettingsContent.Should().Contain("\"Swagger\"",
                 "appsettings.json should contain Swagger configuration section");
             appsettingsContent.Should().Contain("\"Version\"",
                 "Swagger configuration should include Version field");
-            
+
             // Verify version follows semantic versioning pattern
             appsettingsContent.Should().MatchRegex(@"""Version""\s*:\s*""\d+\.\d+\.\d+""",
                 "Version should follow semantic versioning format (e.g., \"1.0.0\")");
@@ -137,9 +137,9 @@ public class ApiVersioningTests
         var expectedDocumentName = "v1";
 
         // Act & Assert: Document name should include version identifier
-        expectedDocumentName.Should().StartWith("v", 
+        expectedDocumentName.Should().StartWith("v",
             "Swagger document name should start with 'v' prefix");
-        expectedDocumentName.Should().HaveLength(2, 
+        expectedDocumentName.Should().HaveLength(2,
             "Swagger document name should be in format 'v1', 'v2', etc.");
 
         // This is configured in Program.cs:

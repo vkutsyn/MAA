@@ -37,7 +37,7 @@ try
 
     // Add services to the container
     // Note: We're using Swashbuckle/Swagger instead of the built-in OpenApi
-    
+
     // Configure Entity Framework Core with PostgreSQL
     builder.Services.AddDbContext<SessionContext>(options =>
         options.UseNpgsql(
@@ -49,6 +49,28 @@ try
     // Register repositories
     builder.Services.AddScoped<ISessionRepository, SessionRepository>();
     builder.Services.AddScoped<ISessionAnswerRepository, SessionAnswerRepository>();
+
+    // Register State Context services (Feature 006: State Context Initialization)
+    builder.Services.AddSingleton<MAA.Infrastructure.StateContext.ZipCodeMappingService>();
+    builder.Services.AddScoped<MAA.Infrastructure.StateContext.StateConfigurationSeeder>();
+    builder.Services.AddScoped<MAA.Domain.StateContext.StateResolver>(sp =>
+    {
+        var zipMappingService = sp.GetRequiredService<MAA.Infrastructure.StateContext.ZipCodeMappingService>();
+        return new MAA.Domain.StateContext.StateResolver(zipMappingService.Mappings);
+    });
+
+    // Register State Context repositories
+    builder.Services.AddScoped<MAA.Application.StateContext.IStateContextRepository, MAA.Infrastructure.StateContext.StateContextRepository>();
+    builder.Services.AddScoped<MAA.Application.StateContext.IStateConfigurationRepository, MAA.Infrastructure.StateContext.StateConfigurationRepository>();
+
+    // Register State Context handlers
+    builder.Services.AddScoped<MAA.Application.StateContext.Commands.InitializeStateContextHandler>();
+    builder.Services.AddScoped<MAA.Application.StateContext.Commands.UpdateStateContextHandler>();
+    builder.Services.AddScoped<MAA.Application.StateContext.Queries.GetStateContextHandler>();
+
+    // Register State Context validators
+    builder.Services.AddScoped<MAA.Application.StateContext.Validators.InitializeStateContextRequestValidator>();
+    builder.Services.AddScoped<MAA.Application.StateContext.Validators.UpdateStateContextRequestValidator>();
 
     // Add AutoMapper
     builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -86,7 +108,7 @@ try
     var jwtSettings = new MAA.Infrastructure.Security.JwtSettings();
     builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
     builder.Services.AddSingleton(jwtSettings);
-    builder.Services.AddScoped<ITokenProvider>(sp => 
+    builder.Services.AddScoped<ITokenProvider>(sp =>
         new MAA.Infrastructure.Security.JwtTokenProvider(
             jwtSettings,
             sp.GetRequiredService<ILogger<MAA.Infrastructure.Security.JwtTokenProvider>>()
@@ -117,18 +139,18 @@ try
     // Register command/query handlers (US2: Session Data Persistence)
     builder.Services.AddScoped<MAA.Application.Sessions.Commands.SaveAnswerCommandHandler>();
     builder.Services.AddScoped<MAA.Application.Sessions.Queries.GetAnswersQueryHandler>();
-    
+
     // Register validators
     builder.Services.AddScoped<MAA.Application.Sessions.Validators.SaveAnswerCommandValidator>();
-    
+
     // Register Rules domain services (Phase 3-5: E2 Feature)
     builder.Services.AddTransient<RuleEngine>();
     builder.Services.AddTransient<FPLCalculator>();
-    
+
     // Register Rules application layer services
     builder.Services.AddScoped<IEvaluateEligibilityHandler, EvaluateEligibilityHandler>();
     builder.Services.AddScoped<EligibilityInputValidator>();
-    
+
     // Register Rules infrastructure services
     builder.Services.AddScoped<IRuleRepository, RuleRepository>();
     builder.Services.AddScoped<IFplRepository, FplRepository>();

@@ -144,8 +144,8 @@ public class Session
     public bool IsValid()
     {
         var now = DateTime.UtcNow;
-        return !IsRevoked 
-            && ExpiresAt > now 
+        return !IsRevoked
+            && ExpiresAt > now
             && InactivityTimeoutAt > now
             && State != SessionState.Abandoned;
     }
@@ -163,10 +163,10 @@ public class Session
             (SessionState.InProgress, SessionState.Submitted) => true,
             (SessionState.Submitted, SessionState.Completed) => true,
             (_, SessionState.Abandoned) => true, // Can abandon from any state
-            
+
             // No-op (same state)
             var (current, next) when current == next => true,
-            
+
             // All other transitions invalid
             _ => false
         };

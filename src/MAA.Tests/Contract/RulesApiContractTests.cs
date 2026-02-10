@@ -131,7 +131,7 @@ public class RulesApiContractTests : IAsyncLifetime
         {
             program.TryGetProperty("disqualifying_factors", out var disqualifyingFactors)
                 .Should().BeTrue("Each program match should have disqualifying_factors field");
-            
+
             disqualifyingFactors.ValueKind.Should().Be(JsonValueKind.Array);
         }
     }
@@ -174,7 +174,7 @@ public class RulesApiContractTests : IAsyncLifetime
                 confidenceScore.ValueKind.Should().Be(JsonValueKind.Number, "confidence_score must be integer");
                 var scoreValue = confidenceScore.GetInt32();
                 scoreValue.Should().BeGreaterThanOrEqualTo(0).And.BeLessThanOrEqualTo(100);
-                
+
                 matchingFactors.ValueKind.Should().Be(JsonValueKind.Array);
                 disqualifyingFactors.ValueKind.Should().Be(JsonValueKind.Array);
             }
@@ -487,16 +487,16 @@ public class RulesApiContractTests : IAsyncLifetime
         var root = document.RootElement;
 
         var explanation = root.GetProperty("explanation").GetString();
-        
+
         // Must be non-null
         explanation.Should().NotBeNull("Explanation should not be null");
-        
+
         // Must be non-empty
         explanation.Should().NotBeEmpty("Explanation should not be empty string");
-        
+
         // Must not be only whitespace
         explanation!.Trim().Should().NotBeEmpty("Explanation should contain meaningful content, not just whitespace");
-        
+
         // Should have reasonable length (at least 20 characters for any useful explanation)
         explanation.Length.Should().BeGreaterThan(20,
             "Explanation should provide substantive content (>20 chars)");

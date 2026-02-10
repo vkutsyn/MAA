@@ -29,6 +29,8 @@ public class SessionMiddleware
         "/api/rules",  // Rules API uses JWT authentication
         "/api/states", // Public wizard endpoints (anonymous or authenticated)
         "/api/questions", // Public wizard endpoints (anonymous or authenticated)
+        "/api/sessions", // Session creation and management (anonymous)
+        "/api/state-context", // State context initialization (anonymous)
         "/api-docs",
         "/swagger"
     };
@@ -64,7 +66,8 @@ public class SessionMiddleware
             }
         }
 
-        // Skip GET /api/sessions/* (session creation is public)
+        // This check is now redundant since /api/sessions is in BypassPaths
+        // Keeping for backward compatibility
         if (context.Request.Method == HttpMethods.Post && context.Request.Path.StartsWithSegments("/api/sessions"))
         {
             await _next(context);

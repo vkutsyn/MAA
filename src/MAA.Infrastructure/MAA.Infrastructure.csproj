@@ -25,4 +25,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="Data\*.csv" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Data\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

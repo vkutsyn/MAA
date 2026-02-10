@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly SessionContext _dbContext;
     private readonly IWebHostEnvironment _environment;
-    
+
     private const int MaxConcurrentSessions = 3;
     private const string RefreshTokenCookieName = "refreshToken";
 
@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
 
         try
         {
-            _logger.LogInformation("User registration request for email {Email}", 
+            _logger.LogInformation("User registration request for email {Email}",
                 request.Email);
 
             var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
@@ -252,7 +252,7 @@ public class AuthController : ControllerBase
         try
         {
             // Get refresh token from cookie (preferred) or body
-            var refreshToken = request?.RefreshToken ?? 
+            var refreshToken = request?.RefreshToken ??
                                HttpContext.Request.Cookies[RefreshTokenCookieName];
 
             if (string.IsNullOrWhiteSpace(refreshToken))

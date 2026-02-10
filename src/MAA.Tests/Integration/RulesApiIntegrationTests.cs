@@ -33,11 +33,11 @@ public class RulesApiIntegrationTests : IAsyncLifetime
         _httpClient = _factory.CreateClient();
 
         await _databaseFixture.ClearAllDataAsync();
-        
+
         // Setup authentication for all tests
         await AuthenticateAsync();
     }
-    
+
     /// <summary>
     /// Helper method to register a test user and authenticate for API calls.
     /// Sets the Authorization header on the HttpClient for all subsequent requests.
@@ -69,7 +69,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
         var accessToken = loginResult.GetProperty("accessToken").GetString();
 
         // Set authorization header for all subsequent requests
-        _httpClient.DefaultRequestHeaders.Authorization = 
+        _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", accessToken);
     }
 
@@ -235,7 +235,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
         var response = await _httpClient!.PostAsJsonAsync("/api/rules/evaluate", payload);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        
+
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
@@ -314,9 +314,9 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
         var matchedPrograms = root.GetProperty("matched_programs");
         var programCount = matchedPrograms.GetArrayLength();
-        
+
         // Should have multiple program matches (MAGI + Pregnancy)
-        programCount.Should().BeGreaterThanOrEqualTo(2, 
+        programCount.Should().BeGreaterThanOrEqualTo(2,
             "Pregnant user should match multiple programs (MAGI + Pregnancy-Related)");
     }
 
@@ -415,7 +415,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
         sw.Stop();
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        sw.ElapsedMilliseconds.Should().BeLessThan(2000, 
+        sw.ElapsedMilliseconds.Should().BeLessThan(2000,
             "Evaluation should complete within 2 seconds (p95 SLA)");
     }
 
@@ -530,7 +530,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
         // Verify state code is maintained throughout evaluation
         root.GetProperty("state_code").GetString().Should().Be("IL");
-        
+
         // IL should return results for IL-specific programs
         var matchedPrograms = root.GetProperty("matched_programs");
         matchedPrograms.GetArrayLength().Should().BeGreaterThanOrEqualTo(1,
@@ -556,7 +556,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
         // Verify state code is maintained
         root.GetProperty("state_code").GetString().Should().Be("CA");
-        
+
         // CA should return results for CA-specific programs
         var matchedPrograms = root.GetProperty("matched_programs");
         matchedPrograms.GetArrayLength().Should().BeGreaterThanOrEqualTo(1,
@@ -697,7 +697,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
         var explanation = root.GetProperty("explanation").GetString();
         explanation.Should().NotBeNullOrEmpty();
-        
+
         // Explanation should reference concrete income values
         explanation!.ToLowerInvariant().Should().Contain("income",
             "Explanation should reference income metric");
@@ -735,7 +735,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
         var explanation = root.GetProperty("explanation").GetString();
         explanation.Should().NotBeNullOrEmpty();
-        
+
         // Should mention pregnancy or pregnancy-related pathway
         explanation!.ToLowerInvariant().Should().Contain("pregnant",
             "Explanation should reference pregnancy when user reports pregnancy");
@@ -771,7 +771,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
         var explanation = root.GetProperty("explanation").GetString();
         explanation.Should().NotBeNullOrEmpty();
-        
+
         // Should explain SSI-based categorical eligibility
         var lowerExplanation = explanation!.ToLowerInvariant();
         (lowerExplanation.Contains("ssi") || lowerExplanation.Contains("social security income"))

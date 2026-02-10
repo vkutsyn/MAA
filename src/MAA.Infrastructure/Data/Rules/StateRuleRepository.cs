@@ -95,7 +95,7 @@ public class StateRuleRepository
             .SelectMany(p => p.Rules
                 .Where(r =>
                     // Rule must be active on the effective date
-                    r.EffectiveDate <= effectiveDate.Date && 
+                    r.EffectiveDate <= effectiveDate.Date &&
                     (r.EndDate == null || r.EndDate >= effectiveDate.Date))
                 .Select(r => new { program = p, rule = r }))
             .ToListAsync();
@@ -164,7 +164,7 @@ public class StateRuleRepository
             .AsNoTracking()
             .Where(p => p.StateCode == stateCode)
             .SelectMany(p => p.Rules)
-            .Where(r => 
+            .Where(r =>
                 r.EffectiveDate <= DateTime.UtcNow.Date &&
                 (r.EndDate == null || r.EndDate >= DateTime.UtcNow.Date))
             .AnyAsync();

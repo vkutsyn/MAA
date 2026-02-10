@@ -1,0 +1,576 @@
+openapi: 3.0.3
+info:
+  title: MAA State Context API
+  description: |
+    API endpoints for initializing and managing Medicaid application state context.
+    This feature establishes jurisdiction context before eligibility evaluation.
+  version: 1.0.0
+  contact:
+    name: MAA Development Team
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+  - url: https://api-maa.example.com/api
+    description: Production server
+
+tags:
+  - name: StateContext
+    description: State context initialization and management
+
+paths:
+  /state-context:
+    post:
+      tags:
+        - StateContext
+      summary: Initialize state context from ZIP code
+      description: |
+        Creates a new StateContext for the user's session by resolving their state from a ZIP code.
+        The state is auto-detected from the ZIP code unless a manual override is provided.
+
+        **Key behaviors:**
+        - Validates ZIP code format (5 digits)
+        - Resolves state from ZIP-to-state mapping
+        - Allows manual state override (e.g., for multi-state scenarios)
+        - Persists StateContext in the user's session
+        - Loads state-specific configuration
+
+        **Performance SLO:** <1000ms (p95) from submission to response
+      operationId: initializeStateContext
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitializeStateContextRequest"
+            examples:
+              autoDetect:
+                summary: Auto-detect state from ZIP code
+                value:
+                  sessionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  zipCode: "90210"
+              manualOverride:
+                summary: Manual state override
+                value:
+                  sessionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  zipCode: "10001"
+                  stateCodeOverride: "NJ"
+      responses:
+        "201":
+          description: State context successfully initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StateContextResponse"
+              examples:
+                success:
+                  value:
+                    stateContext:
+                      id: "7c85f64-5717-4562-b3fc-2c963f66a123"
+                      sessionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                      stateCode: "CA"
+                      stateName: "California"
+                      zipCode: "90210"
+                      isManualOverride: false
+                      effectiveDate: "2026-02-10T08:30:00Z"
+                      createdAt: "2026-02-10T08:30:00Z"
+                      updatedAt: null
+                    stateConfiguration:
+                      stateCode: "CA"
+                      stateName: "California"
+                      medicaidProgramName: "Medi-Cal"
+                      contactInfo:
+                        phone: "1-800-952-5253"
+                        website: "https://www.dhcs.ca.gov/"
+                        applicationUrl: "https://benefitscal.com/"
+                      eligibilityThresholds:
+                        fplPercentages:
+                          adults: 138
+                          children: 266
+                          pregnant: 213
+                        assetLimits:
+                          individual: 2000
+                          couple: 3000
+                      requiredDocuments:
+                        - "Proof of identity"
+                        - "Proof of California residency"
+                        - "Income verification (pay stubs, tax returns)"
+                      additionalNotes: "Medi-Cal uses MAGI for most eligibility categories."
+        "400":
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                invalidZipFormat:
+                  summary: Invalid ZIP code format
+                  value:
+                    error: "ValidationError"
+                    message: "ZIP code must be exactly 5 digits"
+                    details:
+                      - field: "zipCode"
+                        message: "ZIP code must be exactly 5 digits"
+                zipNotFound:
+                  summary: ZIP code not found
+                  value:
+                    error: "ValidationError"
+                    message: "ZIP code not found. Please verify your ZIP code"
+                    details:
+                      - field: "zipCode"
+                        message: "ZIP code not found in our database"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                sessionNotFound:
+                  value:
+                    error: "NotFoundError"
+                    message: "Session not found"
+                    details: []
+        "409":
+          description: State context already exists for this session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                alreadyExists:
+                  value:
+                    error: "ConflictError"
+                    message: "State context already exists for this session. Use PUT to update."
+                    details: []
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                serverError:
+                  value:
+                    error: "InternalServerError"
+                    message: "An unexpected error occurred. Please try again later."
+                    details: []
+
+    get:
+      tags:
+        - StateContext
+      summary: Retrieve state context for session
+      description: |
+        Retrieves the StateContext and StateConfiguration for a given session.
+        Used when resuming a session or navigating back to the state context step.
+      operationId: getStateContext
+      parameters:
+        - name: sessionId
+          in: query
+          required: true
+          description: UUID of the session
+          schema:
+            type: string
+            format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+      responses:
+        "200":
+          description: State context retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StateContextResponse"
+        "404":
+          description: State context not found for this session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  value:
+                    error: "NotFoundError"
+                    message: "State context not found for this session"
+                    details: []
+
+    put:
+      tags:
+        - StateContext
+      summary: Update state context (manual override)
+      description: |
+        Updates the StateContext for a session, typically when a user manually overrides
+        the auto-detected state. This does not re-validate the ZIP code against the new state.
+      operationId: updateStateContext
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStateContextRequest"
+            examples:
+              manualOverride:
+                value:
+                  sessionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  stateCode: "NJ"
+      responses:
+        "200":
+          description: State context updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StateContextResponse"
+        "400":
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: State context not found for this session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /state-context/validate-zip:
+    post:
+      tags:
+        - StateContext
+      summary: Validate ZIP code format
+      description: |
+        Client-side helper endpoint to validate ZIP code format without initializing state context.
+        Useful for real-time validation feedback as the user types.
+
+        **Performance SLO:** <100ms (p95)
+      operationId: validateZipCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - zipCode
+              properties:
+                zipCode:
+                  type: string
+                  pattern: '^\d{5}$'
+                  example: "90210"
+      responses:
+        "200":
+          description: ZIP code validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isValid:
+                    type: boolean
+                  stateCode:
+                    type: string
+                    nullable: true
+                    description: Resolved state code (null if ZIP not found)
+                  stateName:
+                    type: string
+                    nullable: true
+                    description: Full state name (null if ZIP not found)
+                  errorMessage:
+                    type: string
+                    nullable: true
+                    description: Error message if validation failed
+              examples:
+                valid:
+                  summary: Valid ZIP code
+                  value:
+                    isValid: true
+                    stateCode: "CA"
+                    stateName: "California"
+                    errorMessage: null
+                invalidFormat:
+                  summary: Invalid format
+                  value:
+                    isValid: false
+                    stateCode: null
+                    stateName: null
+                    errorMessage: "ZIP code must be exactly 5 digits"
+                notFound:
+                  summary: ZIP code not found
+                  value:
+                    isValid: false
+                    stateCode: null
+                    stateName: null
+                    errorMessage: "ZIP code not found"
+
+  /state-configurations/{stateCode}:
+    get:
+      tags:
+        - StateContext
+      summary: Get state configuration by state code
+      description: |
+        Retrieves the active state-specific configuration for a given state code.
+        Used to display state information and requirements to the user.
+      operationId: getStateConfiguration
+      parameters:
+        - name: stateCode
+          in: path
+          required: true
+          description: 2-letter state abbreviation
+          schema:
+            type: string
+            pattern: "^[A-Z]{2}$"
+          example: "CA"
+      responses:
+        "200":
+          description: State configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StateConfigurationDto"
+        "404":
+          description: State configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    InitializeStateContextRequest:
+      type: object
+      required:
+        - sessionId
+        - zipCode
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: UUID of the user's session
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        zipCode:
+          type: string
+          pattern: '^\d{5}$'
+          description: 5-digit ZIP code
+          example: "90210"
+        stateCodeOverride:
+          type: string
+          pattern: "^[A-Z]{2}$"
+          description: Optional 2-letter state code for manual override
+          nullable: true
+          example: "NJ"
+
+    UpdateStateContextRequest:
+      type: object
+      required:
+        - sessionId
+        - stateCode
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: UUID of the user's session
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        stateCode:
+          type: string
+          pattern: "^[A-Z]{2}$"
+          description: 2-letter state code
+          example: "NJ"
+
+    StateContextDto:
+      type: object
+      required:
+        - id
+        - sessionId
+        - stateCode
+        - stateName
+        - zipCode
+        - isManualOverride
+        - effectiveDate
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the state context
+        sessionId:
+          type: string
+          format: uuid
+          description: UUID of the associated session
+        stateCode:
+          type: string
+          pattern: "^[A-Z]{2}$"
+          description: 2-letter state abbreviation
+          example: "CA"
+        stateName:
+          type: string
+          description: Full state name
+          example: "California"
+        zipCode:
+          type: string
+          pattern: '^\d{5}$'
+          description: User-entered ZIP code
+          example: "90210"
+        isManualOverride:
+          type: boolean
+          description: True if user manually selected state (not auto-detected)
+        effectiveDate:
+          type: string
+          format: date-time
+          description: UTC timestamp when context was established
+        createdAt:
+          type: string
+          format: date-time
+          description: UTC timestamp when record was created
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: UTC timestamp when record was last updated
+
+    StateConfigurationDto:
+      type: object
+      required:
+        - stateCode
+        - stateName
+        - medicaidProgramName
+        - contactInfo
+        - eligibilityThresholds
+        - requiredDocuments
+        - additionalNotes
+      properties:
+        stateCode:
+          type: string
+          pattern: "^[A-Z]{2}$"
+          example: "CA"
+        stateName:
+          type: string
+          example: "California"
+        medicaidProgramName:
+          type: string
+          example: "Medi-Cal"
+        contactInfo:
+          $ref: "#/components/schemas/ContactInfoDto"
+        eligibilityThresholds:
+          $ref: "#/components/schemas/EligibilityThresholdsDto"
+        requiredDocuments:
+          type: array
+          items:
+            type: string
+          example:
+            - "Proof of identity"
+            - "Proof of California residency"
+            - "Income verification"
+        additionalNotes:
+          type: string
+          example: "Medi-Cal uses MAGI for most eligibility categories."
+
+    ContactInfoDto:
+      type: object
+      required:
+        - phone
+        - website
+        - applicationUrl
+      properties:
+        phone:
+          type: string
+          example: "1-800-952-5253"
+        website:
+          type: string
+          format: uri
+          example: "https://www.dhcs.ca.gov/"
+        applicationUrl:
+          type: string
+          format: uri
+          example: "https://benefitscal.com/"
+
+    EligibilityThresholdsDto:
+      type: object
+      required:
+        - fplPercentages
+        - assetLimits
+      properties:
+        fplPercentages:
+          $ref: "#/components/schemas/FplPercentagesDto"
+        assetLimits:
+          $ref: "#/components/schemas/AssetLimitsDto"
+
+    FplPercentagesDto:
+      type: object
+      required:
+        - adults
+        - children
+        - pregnant
+      properties:
+        adults:
+          type: integer
+          description: FPL percentage for adults
+          example: 138
+        children:
+          type: integer
+          description: FPL percentage for children
+          example: 266
+        pregnant:
+          type: integer
+          description: FPL percentage for pregnant individuals
+          example: 213
+
+    AssetLimitsDto:
+      type: object
+      required:
+        - individual
+        - couple
+      properties:
+        individual:
+          type: integer
+          description: Asset limit for individuals (USD)
+          example: 2000
+        couple:
+          type: integer
+          description: Asset limit for couples (USD)
+          example: 3000
+
+    StateContextResponse:
+      type: object
+      required:
+        - stateContext
+        - stateConfiguration
+      properties:
+        stateContext:
+          $ref: "#/components/schemas/StateContextDto"
+        stateConfiguration:
+          $ref: "#/components/schemas/StateConfigurationDto"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - details
+      properties:
+        error:
+          type: string
+          description: Error type/code
+          example: "ValidationError"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "ZIP code must be exactly 5 digits"
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+          description: Detailed error information (e.g., field-specific errors)
+
+    ErrorDetail:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          description: Name of the field with an error
+          example: "zipCode"
+        message:
+          type: string
+          description: Specific error message for this field
+          example: "ZIP code must be exactly 5 digits"
