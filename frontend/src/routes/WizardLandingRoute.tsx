@@ -1,17 +1,17 @@
 import { LandingPage } from '../features/wizard/LandingPage'
-import { useSessionBootstrap } from '../features/wizard/useSession'
+import { useResumeWizard } from '../features/wizard/useResumeWizard'
 
 /**
  * Route wrapper for the landing page.
- * Handles session bootstrap on initial load.
+ * Handles session resume on initial load.
  */
 export function WizardLandingRoute() {
-  const { isBootstrapped, error } = useSessionBootstrap()
+  const { isResuming, error } = useResumeWizard()
 
-  if (!isBootstrapped) {
+  if (isResuming) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Checking for previous session...</p>
       </div>
     )
   }

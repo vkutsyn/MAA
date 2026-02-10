@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { apiClient } from '@/lib/api'
 import { useWizardStore } from './store'
 import { fetchQuestions } from './questionApi'
+import { saveWizardState } from './useResumeWizard'
 import { CreateSessionDto, SessionDto } from './types'
 
 /**
@@ -49,7 +50,10 @@ export function useStartWizard() {
       setQuestions(questionSet.questions)
       setSelectedState(stateCode, stateName)
 
-      // Step 4: Navigate to the wizard
+      // Step 4: Save wizard state to localStorage for resume capability
+      saveWizardState(stateCode, stateName, 0)
+
+      // Step 5: Navigate to the wizard
       navigate('/wizard')
     } catch (err: any) {
       console.error('Failed to start wizard:', err)

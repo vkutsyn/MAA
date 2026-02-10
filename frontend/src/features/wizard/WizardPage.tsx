@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useWizardStore } from './store'
 import { WizardProgress } from './WizardProgress'
 import { WizardStep } from './WizardStep'
-import { saveAnswer } from './answerApi'
+import { useWizardNavigator } from './useWizardNavigator'
+import { saveWizardState, clearWizardState } from './useResumeWizard'
 import { Answer } from './types'
 
 /**
@@ -13,15 +14,9 @@ import { Answer } from './types'
  */
 export function WizardPage() {
   const navigate = useNavigate()
-  const {
-    session,
-    questions,
-    currentStep,
-    selectedState,
-    setAnswer,
-    goToNextStep,
-    goToPreviousStep,
-  } = useWizardStore()
+  const { session, questions, currentStep, selectedState } = useWizardStore()
+  
+  const navigator = useWizardNavigator()
 
   // Redirect to landing if no session or questions
   useEffect(() => {
@@ -30,38 +25,28 @@ export function WizardPage() {
     }
   }, [session, questions, navigate])
 
+  // Save wizard state to localStorage whenever step changes
+  useEffect(() => {
+    if (session && selectedState) {
+      saveWizardState(selectedState.code, selectedState.name, currentStep)
+    }
+  }, [session, selectedState, currentStep])
+
   // Handle answer submission and move to next step
   const handleNext = async (answer: Answer) => {
-    // Save answer to store
-    setAnswer(answer.fieldKey, answer)
+    const canContinue = await navigator.goNext(answer)
 
-    try {
-      // Persist answer to backend
-      await saveAnswer({
-        fieldKey: answer.fieldKey,
-        fieldType: answer.fieldType,
-        answerValue: answer.answerValue,
-        isPii: answer.isPii,
-      })
-
-      // Move to next step
-      goToNextStep()
-
-      // If we've completed all questions, navigate to results (placeholder)
-      if (currentStep >= questions.length - 1) {
-        // TODO: Navigate to results page in future phase
-        alert('Wizard complete! Results page coming in next phase.')
-        navigate('/')
-      }
-    } catch (error) {
-      console.error('Failed to save answer:', error)
-      alert('Failed to save your answer. Please try again.')
+    if (!canContinue) {
+      // Reached the end of the wizard
+      clearWizardState()
+      alert('Wizard complete! Results page coming in next phase.')
+      navigate('/')
     }
   }
 
   // Handle back navigation
   const handleBack = () => {
-    goToPreviousStep()
+    navigator.goBack()
   }
 
   // Guard: Show loading if not ready
@@ -73,7 +58,20 @@ export function WizardPage() {
     )
   }
 
-  const currentQuestion = questions[currentStep]
+  const currentQuestion = navigator.currentQuestion
+
+  // Show error if navigation failed
+  if (!currentQuestion) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div role="alert" className="max-w-md rounded-md border border-destructive bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">
+            Unable to load question. Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -96,10 +94,17 @@ export function WizardPage() {
           <CardTitle className="text-lg">Question {currentStep + 1}</CardTitle>
         </CardHeader>
         <CardContent>
+          {navigator.saveError && (
+            <div role="alert" className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3">
+              <p className="text-sm text-destructive">{navigator.saveError}</p>
+            </div>
+          )}
           <WizardStep
             question={currentQuestion}
             onNext={handleNext}
             onBack={handleBack}
+            canGoBack={navigator.canGoBack}
+            isSaving={navigator.isSaving}
           />
         </CardContent>
       </Card>

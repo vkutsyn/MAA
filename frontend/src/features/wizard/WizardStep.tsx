@@ -16,15 +16,24 @@ interface WizardStepProps {
   question: QuestionDto
   onNext: (answer: Answer) => void
   onBack: () => void
+  canGoBack?: boolean
+  isSaving?: boolean
 }
 
 /**
  * Renders a single wizard question with appropriate input control.
  * Supports various field types and includes validation and accessibility.
  */
-export function WizardStep({ question, onNext, onBack }: WizardStepProps) {
-  const { getAnswer, canGoBack } = useWizardStore()
+export function WizardStep({ 
+  question, 
+  onNext, 
+  onBack, 
+  canGoBack: canGoBackProp, 
+  isSaving = false 
+}: WizardStepProps) {
+  const { getAnswer } = useWizardStore()
   const existingAnswer = getAnswer(question.key)
+  const canGoBack = canGoBackProp !== undefined ? canGoBackProp : false
 
   const [value, setValue] = useState<string>(existingAnswer?.answerValue || '')
   const [error, setError] = useState<string | null>(null)
@@ -248,12 +257,12 @@ export function WizardStep({ question, onNext, onBack }: WizardStepProps) {
           type="button"
           variant="outline"
           onClick={onBack}
-          disabled={!canGoBack()}
+          disabled={!canGoBack || isSaving}
         >
           Back
         </Button>
-        <Button type="submit">
-          Next
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Next'}
         </Button>
       </div>
     </form>

@@ -79,10 +79,10 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Implement next/back navigation in frontend/src/features/wizard/WizardNavigator.tsx
-- [ ] T022 [US2] Persist answers on step advance in frontend/src/features/wizard/answerApi.ts
-- [ ] T023 [US2] Restore answers and last step on refresh in frontend/src/features/wizard/useResumeWizard.ts
-- [ ] T024 [US2] Implement conditional flow evaluation in frontend/src/features/wizard/flow.ts
+- [X] T021 [US2] Implement next/back navigation in frontend/src/features/wizard/WizardNavigator.tsx
+- [X] T022 [US2] Persist answers on step advance in frontend/src/features/wizard/answerApi.ts
+- [X] T023 [US2] Restore answers and last step on refresh in frontend/src/features/wizard/useResumeWizard.ts
+- [X] T024 [US2] Implement conditional flow evaluation in frontend/src/features/wizard/flow.ts
 
 **Checkpoint**: User Stories 1 and 2 should both work independently
 
