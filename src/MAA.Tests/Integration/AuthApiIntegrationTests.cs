@@ -39,7 +39,7 @@ public class AuthApiIntegrationTests : IAsyncLifetime
     /// </summary>
     public async Task InitializeAsync()
     {
-        _factory = new TestWebApplicationFactory(_databaseFixture);
+        _factory = TestWebApplicationFactory.CreateWithDatabase(_databaseFixture);
         _httpClient = _factory.CreateClient();
         
         // Clear database between tests

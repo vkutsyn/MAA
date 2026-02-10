@@ -29,7 +29,7 @@ public class RulesApiIntegrationTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _factory = new TestWebApplicationFactory(_databaseFixture);
+        _factory = TestWebApplicationFactory.CreateWithDatabase(_databaseFixture);
         _httpClient = _factory.CreateClient();
 
         await _databaseFixture.ClearAllDataAsync();

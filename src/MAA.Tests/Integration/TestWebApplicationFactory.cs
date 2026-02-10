@@ -19,7 +19,7 @@ namespace MAA.Tests.Integration;
 /// </summary>
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly DatabaseFixture? _databaseFixture;
+    private DatabaseFixture? _databaseFixture;
 
     /// <summary>
     /// Constructor for contract tests (no persistent database).
@@ -31,13 +31,16 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     }
 
     /// <summary>
-    /// Constructor for integration tests with persistent database.
+    /// Factory method for integration tests with persistent database.
     /// Uses real PostgreSQL via Testcontainers through DatabaseFixture.
     /// </summary>
     /// <param name="databaseFixture">DatabaseFixture providing PostgreSQL connection</param>
-    public TestWebApplicationFactory(DatabaseFixture databaseFixture)
+    public static TestWebApplicationFactory CreateWithDatabase(DatabaseFixture databaseFixture)
     {
-        _databaseFixture = databaseFixture ?? throw new ArgumentNullException(nameof(databaseFixture));
+        return new TestWebApplicationFactory 
+        { 
+            _databaseFixture = databaseFixture ?? throw new ArgumentNullException(nameof(databaseFixture))
+        };
     }
 
     /// <summary>
