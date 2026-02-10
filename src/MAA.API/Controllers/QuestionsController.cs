@@ -60,7 +60,7 @@ public class QuestionsController : ControllerBase
                 return NotFound(new { error = $"No question set available for state {state}" });
             }
 
-            _logger.LogInformation("Returning {Count} questions for state: {State}", 
+            _logger.LogInformation("Returning {Count} questions for state: {State}",
                 questionSet.Questions.Count, state);
             return Ok(questionSet);
         }

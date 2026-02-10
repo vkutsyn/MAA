@@ -19,11 +19,11 @@ public class JwtTokenProviderTests
 {
     private readonly Mock<ILogger<JwtTokenProvider>> _mockLogger;
     private readonly JwtTokenProvider _tokenProvider;
-    
+
     // Token expiration settings
     private const int AccessTokenExpirationMinutes = 60;
     private const int RefreshTokenExpirationDays = 7;
-    
+
     // Test data
     private readonly Guid _testUserId = Guid.NewGuid();
     private readonly List<string> _testRoles = new() { UserRole.User.ToString(), UserRole.Analyst.ToString() };
@@ -31,7 +31,7 @@ public class JwtTokenProviderTests
     public JwtTokenProviderTests()
     {
         _mockLogger = new Mock<ILogger<JwtTokenProvider>>();
-        
+
         // Initialize JwtTokenProvider with test configuration
         // In real implementation, this would use IOptions<JwtSettings> from config
         _tokenProvider = new JwtTokenProvider(_mockLogger.Object);
@@ -51,17 +51,17 @@ public class JwtTokenProviderTests
 
         // Assert
         token.Should().NotBeNullOrEmpty("Access token should be generated");
-        
+
         // Parse token (without validation, for unit test)
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
-        
+
         // Verify claims
         jwtToken.Claims.Should().Contain(c => c.Type == "sub" && c.Value == _testUserId.ToString(),
             "Token should contain user ID (sub) claim");
         jwtToken.Claims.Should().Contain(c => c.Type == "role",
             "Token should contain role claim");
-        
+
         // Verify expiration is approximately 1 hour from now
         var expirationTime = jwtToken.ValidTo;
         expirationTime.Should().BeCloseTo(DateTime.UtcNow.AddMinutes(AccessTokenExpirationMinutes),
@@ -84,7 +84,7 @@ public class JwtTokenProviderTests
         // Assert
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
-        
+
         var roleClaims = jwtToken.Claims.Where(c => c.Type == "role").ToList();
         roleClaims.Should().HaveCount(roles.Length, "Token should contain all role claims");
         roleClaims.Should().OnlyContain(c => roles.Contains(c.Value),
@@ -106,10 +106,10 @@ public class JwtTokenProviderTests
 
         // Assert
         token.Should().NotBeNullOrEmpty("Token should be generated even with no roles");
-        
+
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
-        
+
         var roleClaims = jwtToken.Claims.Where(c => c.Type == "role").ToList();
         roleClaims.Should().BeEmpty("Token should have no role claims when roles list is empty");
     }
@@ -130,15 +130,15 @@ public class JwtTokenProviderTests
 
         // Assert
         token.Should().NotBeNullOrEmpty("Refresh token should be generated");
-        
+
         // Parse token
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
-        
+
         // Verify user ID claim
         jwtToken.Claims.Should().Contain(c => c.Type == "sub" && c.Value == _testUserId.ToString(),
             "Refresh token should contain user ID (sub) claim");
-        
+
         // Verify expiration is approximately 7 days from now
         var expirationTime = jwtToken.ValidTo;
         expirationTime.Should().BeCloseTo(DateTime.UtcNow.AddDays(RefreshTokenExpirationDays),
@@ -299,10 +299,10 @@ public class JwtTokenProviderTests
 
         // Assert
         newToken.Should().NotBe(initialToken, "New token should be different from initial");
-        
+
         var handler = new JwtSecurityTokenHandler();
         var newJwt = handler.ReadJwtToken(newToken);
-        
+
         var newRoles = newJwt.Claims.Where(c => c.Type == "role").Select(c => c.Value).ToList();
         newRoles.Should().HaveCount(2, "New token should have updated roles");
         newRoles.Should().Contain(UserRole.Analyst.ToString(), "New token should include Analyst role");
@@ -320,11 +320,11 @@ public class JwtTokenProviderTests
     public async Task GenerateAccessTokenAsync_WithManyRoles_GeneratesValidToken()
     {
         // Arrange
-        var manyRoles = new[] { 
-            UserRole.User.ToString(), 
-            UserRole.Analyst.ToString(), 
-            UserRole.Reviewer.ToString(), 
-            UserRole.Admin.ToString() 
+        var manyRoles = new[] {
+            UserRole.User.ToString(),
+            UserRole.Analyst.ToString(),
+            UserRole.Reviewer.ToString(),
+            UserRole.Admin.ToString()
         };
 
         // Act
@@ -332,10 +332,10 @@ public class JwtTokenProviderTests
 
         // Assert
         token.Should().NotBeNullOrEmpty("Token should be generated with many roles");
-        
+
         var handler = new JwtSecurityTokenHandler();
         var jwtToken = handler.ReadJwtToken(token);
-        
+
         var roleClaims = jwtToken.Claims.Where(c => c.Type == "role").ToList();
         roleClaims.Should().HaveCount(manyRoles.Length);
     }

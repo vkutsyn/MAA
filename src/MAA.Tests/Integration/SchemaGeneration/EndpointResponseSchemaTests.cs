@@ -119,7 +119,7 @@ public class EndpointResponseSchemaTests : IClassFixture<WebApplicationFactory<P
         // - 500 Internal Server Error
 
         var statusCode = response.StatusCode;
-        var successCodes = new[] { 
+        var successCodes = new[] {
             System.Net.HttpStatusCode.OK,
             System.Net.HttpStatusCode.Created,
             System.Net.HttpStatusCode.BadRequest,

@@ -34,7 +34,7 @@ public class ProgramMatcherTests
         var user = CreateUserInput(monthlyIncomeCents: 200_000, age: 35);  // $2,000/month
         var program = CreateProgram("MAGI Adult", EligibilityPathway.MAGI);
         var rule = CreateRule(program.ProgramId, ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]}");
-        
+
         var results = matcher.FindMatchingPrograms(user, new[] { (program, rule) });
 
         results.Should().HaveCount(1);
@@ -55,10 +55,10 @@ public class ProgramMatcherTests
         // Create multiple programs with matching rules
         var magiAdultProgram = CreateProgram("MAGI Adult", EligibilityPathway.MAGI);
         var magiRule = CreateRule(magiAdultProgram.ProgramId, ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]}");
-        
+
         var pregnancyProgram = CreateProgram("Pregnancy-Related", EligibilityPathway.Pregnancy);
         var pregnancyRule = CreateRule(pregnancyProgram.ProgramId, ruleLogic: "{\"var\":\"is_pregnant\"}");
-        
+
         var programsWithRules = new[]
         {
             (magiAdultProgram, magiRule),
@@ -79,7 +79,7 @@ public class ProgramMatcherTests
         var user = CreateUserInput(monthlyIncomeCents: 500_000, age: 45);  // High income
         var program = CreateProgram("MAGI Adult", EligibilityPathway.MAGI);
         var rule = CreateRule(program.ProgramId, ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]}");
-        
+
         var results = matcher.FindMatchingPrograms(user, new[] { (program, rule) });
 
         results.Should().BeEmpty("User income exceeds threshold for all programs");
@@ -97,9 +97,9 @@ public class ProgramMatcherTests
 
         // Program 1: Will have high confidence (income matches + pregnancy)
         var program1 = CreateProgram("MAGI Adult + Pregnancy", EligibilityPathway.MAGI);
-        var rule1 = CreateRule(program1.ProgramId, 
+        var rule1 = CreateRule(program1.ProgramId,
             ruleLogic: "{\"and\":[{\"<=\":[{\"var\":\"monthly_income_cents\"},300000]},{\"var\":\"is_pregnant\"}]}");
-        
+
         // Program 2: Will have lower confidence (income only)
         var program2 = CreateProgram("MAGI Adult", EligibilityPathway.MAGI);
         var rule2 = CreateRule(program2.ProgramId, ruleLogic: "{\"<=\":[{\"var\":\"monthly_income_cents\"},250000]}");
@@ -120,7 +120,7 @@ public class ProgramMatcherTests
         var user = CreateUserInput(monthlyIncomeCents: 150_000, age: 70);
 
         var agedProgram = CreateProgram("Aged Medicaid", EligibilityPathway.NonMAGI_Aged);
-        var agedRule = CreateRule(agedProgram.ProgramId, 
+        var agedRule = CreateRule(agedProgram.ProgramId,
             ruleLogic: "{\"and\":[{\">=\":[{\"var\":\"age\"},65]},{\"<=\":[{\"var\":\"monthly_income_cents\"},200000]}]}");
 
         var results = matcher.FindMatchingPrograms(user, new[] { (agedProgram, agedRule) });
@@ -238,12 +238,12 @@ public class ProgramMatcherTests
 
         var programs = new List<(MedicaidProgram, EligibilityRule)>
         {
-            (CreateProgram("MAGI Adult", EligibilityPathway.MAGI), 
+            (CreateProgram("MAGI Adult", EligibilityPathway.MAGI),
              CreateRule(Guid.NewGuid(), "{\"<=\":[{\"var\":\"monthly_income_cents\"},200000]}")),
-            
+
             (CreateProgram("Aged Medicaid", EligibilityPathway.NonMAGI_Aged),
              CreateRule(Guid.NewGuid(), "{\">=\":[{\"var\":\"age\"},65]}")),
-            
+
             (CreateProgram("Disabled Medicaid", EligibilityPathway.NonMAGI_Disabled),
              CreateRule(Guid.NewGuid(), "{\"var\":\"has_disability\"}"))
         };

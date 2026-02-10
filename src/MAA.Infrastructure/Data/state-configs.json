@@ -1,0 +1,312 @@
+[
+  {
+    "stateCode": "CA",
+    "stateName": "California",
+    "medicaidProgramName": "Medi-Cal",
+    "contactInfo": {
+      "phone": "1-800-952-5253",
+      "website": "https://www.dhcs.ca.gov/",
+      "applicationUrl": "https://benefitscal.com/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 266,
+        "pregnant": 213
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity (driver's license, passport, or birth certificate)",
+      "Proof of California residency (utility bill, lease agreement)",
+      "Income verification (pay stubs, tax returns, W-2 forms)",
+      "Social Security numbers for all household members"
+    ],
+    "additionalNotes": "Medi-Cal uses Modified Adjusted Gross Income (MAGI) for most eligibility categories. California has expanded Medicaid under the Affordable Care Act.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "NY",
+    "stateName": "New York",
+    "medicaidProgramName": "New York Medicaid",
+    "contactInfo": {
+      "phone": "1-800-541-2831",
+      "website": "https://www.health.ny.gov/health_care/medicaid/",
+      "applicationUrl": "https://nystateofhealth.ny.gov/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 223,
+        "pregnant": 223
+      },
+      "assetLimits": {
+        "individual": 16800,
+        "couple": 24600
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity and age",
+      "Proof of New York State residency",
+      "Income documentation (pay stubs, tax returns)",
+      "Social Security numbers or proof of application"
+    ],
+    "additionalNotes": "New York has expanded Medicaid eligibility. Asset limits are higher than federal minimums for certain categories.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "TX",
+    "stateName": "Texas",
+    "medicaidProgramName": "Texas Medicaid",
+    "contactInfo": {
+      "phone": "1-800-252-8263",
+      "website": "https://www.hhs.texas.gov/services/health/medicaid-chip",
+      "applicationUrl": "https://yourtexasbenefits.com/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 0,
+        "children": 201,
+        "pregnant": 203
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of Texas residency",
+      "Income verification",
+      "Social Security numbers"
+    ],
+    "additionalNotes": "Texas has not expanded Medicaid under the ACA. Adult coverage is very limited (primarily disabled, pregnant, or parents with dependent children).",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "FL",
+    "stateName": "Florida",
+    "medicaidProgramName": "Florida Medicaid",
+    "contactInfo": {
+      "phone": "1-888-419-3456",
+      "website": "https://www.myflfamilies.com/service-programs/access/medicaid/",
+      "applicationUrl": "https://www.myflorida.com/accessflorida/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 0,
+        "children": 210,
+        "pregnant": 191
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of Florida residency",
+      "Income documentation",
+      "Social Security numbers or proof of application"
+    ],
+    "additionalNotes": "Florida has not expanded Medicaid. Eligibility for adults without disabilities is limited.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "MA",
+    "stateName": "Massachusetts",
+    "medicaidProgramName": "MassHealth",
+    "contactInfo": {
+      "phone": "1-800-841-2900",
+      "website": "https://www.mass.gov/orgs/masshealth",
+      "applicationUrl": "https://www.mahealthconnector.org/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 300,
+        "pregnant": 200
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity and age",
+      "Proof of Massachusetts residency",
+      "Income verification",
+      "Social Security numbers"
+    ],
+    "additionalNotes": "Massachusetts has comprehensive Medicaid coverage with expanded eligibility. The state has a strong commitment to universal healthcare access.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "IL",
+    "stateName": "Illinois",
+    "medicaidProgramName": "Illinois Medicaid",
+    "contactInfo": {
+      "phone": "1-800-843-6154",
+      "website": "https://www.illinois.gov/hfs/MedicalPrograms/Pages/default.aspx",
+      "applicationUrl": "https://abe.illinois.gov/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 311,
+        "pregnant": 213
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of Illinois residency",
+      "Income documentation",
+      "Social Security numbers"
+    ],
+    "additionalNotes": "Illinois has expanded Medicaid coverage under the ACA.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "WA",
+    "stateName": "Washington",
+    "medicaidProgramName": "Washington Apple Health",
+    "contactInfo": {
+      "phone": "1-800-562-3022",
+      "website": "https://www.hca.wa.gov/health-care-services-supports/apple-health-medicaid-coverage",
+      "applicationUrl": "https://www.wahealthplanfinder.org/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 312,
+        "pregnant": 193
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of Washington State residency",
+      "Income verification",
+      "Social Security numbers or immigration documents"
+    ],
+    "additionalNotes": "Washington has expanded Medicaid and offers comprehensive coverage through Apple Health.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "DC",
+    "stateName": "District of Columbia",
+    "medicaidProgramName": "DC Medicaid",
+    "contactInfo": {
+      "phone": "1-202-727-5355",
+      "website": "https://dhcf.dc.gov/",
+      "applicationUrl": "https://dhs.dc.gov/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 210,
+        "children": 319,
+        "pregnant": 319
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of DC residency",
+      "Income documentation",
+      "Social Security numbers"
+    ],
+    "additionalNotes": "DC has among the most generous Medicaid eligibility thresholds in the nation.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "GA",
+    "stateName": "Georgia",
+    "medicaidProgramName": "Georgia Medicaid",
+    "contactInfo": {
+      "phone": "1-877-423-4746",
+      "website": "https://medicaid.georgia.gov/",
+      "applicationUrl": "https://gateway.ga.gov/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 0,
+        "children": 211,
+        "pregnant": 220
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of Georgia residency",
+      "Income verification",
+      "Social Security numbers"
+    ],
+    "additionalNotes": "Georgia has not expanded Medicaid. Adult coverage is limited to specific categories.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  },
+  {
+    "stateCode": "PA",
+    "stateName": "Pennsylvania",
+    "medicaidProgramName": "Pennsylvania Medical Assistance",
+    "contactInfo": {
+      "phone": "1-800-692-7462",
+      "website": "https://www.dhs.pa.gov/Services/Assistance/Pages/Medical-Assistance.aspx",
+      "applicationUrl": "https://www.compass.state.pa.us/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 318,
+        "pregnant": 215
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity",
+      "Proof of Pennsylvania residency",
+      "Income documentation",
+      "Social Security numbers"
+    ],
+    "additionalNotes": "Pennsylvania has expanded Medicaid coverage under the ACA.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
+  }
+]

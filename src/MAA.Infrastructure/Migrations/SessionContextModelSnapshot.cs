@@ -424,6 +424,128 @@ namespace MAA.Infrastructure.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("MAA.Domain.StateContext.StateConfiguration", b =>
+                {
+                    b.Property<string>("StateCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("state_code");
+
+                    b.Property<string>("ConfigData")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("config_data");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("EffectiveDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("effective_date");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("MedicaidProgramName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("medicaid_program_name");
+
+                    b.Property<string>("StateName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("state_name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("StateCode");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_StateConfigurations_IsActive")
+                        .HasFilter("is_active = true");
+
+                    b.HasIndex("StateCode", "Version")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StateConfigurations_StateCode_Version");
+
+                    b.ToTable("state_configurations", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.StateContext.StateContext", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("EffectiveDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("effective_date");
+
+                    b.Property<bool>("IsManualOverride")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_manual_override");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("StateCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("state_code");
+
+                    b.Property<string>("StateName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("state_name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StateContexts_SessionId");
+
+                    b.HasIndex("StateCode")
+                        .HasDatabaseName("IX_StateContexts_StateCode");
+
+                    b.ToTable("state_contexts", (string)null);
+                });
+
             modelBuilder.Entity("MAA.Domain.Rules.EligibilityRule", b =>
                 {
                     b.HasOne("MAA.Domain.Rules.MedicaidProgram", "Program")
@@ -466,9 +588,33 @@ namespace MAA.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("MAA.Domain.StateContext.StateContext", b =>
+                {
+                    b.HasOne("MAA.Domain.Sessions.Session", "Session")
+                        .WithOne()
+                        .HasForeignKey("MAA.Domain.StateContext.StateContext", "SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MAA.Domain.StateContext.StateConfiguration", "StateConfiguration")
+                        .WithMany("StateContexts")
+                        .HasForeignKey("StateCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+
+                    b.Navigation("StateConfiguration");
+                });
+
             modelBuilder.Entity("MAA.Domain.Rules.MedicaidProgram", b =>
                 {
                     b.Navigation("Rules");
+                });
+
+            modelBuilder.Entity("MAA.Domain.StateContext.StateConfiguration", b =>
+                {
+                    b.Navigation("StateContexts");
                 });
 #pragma warning restore 612, 618
         }

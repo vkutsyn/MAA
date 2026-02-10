@@ -53,7 +53,7 @@ public class JwtRefreshMiddleware
         {
             // Extract access token from Authorization header
             var authHeader = context.Request.Headers[AuthorizationHeader].ToString();
-            
+
             if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith(BearerScheme))
             {
                 // No access token, proceed normally (could be anonymous session or public endpoint)
@@ -120,7 +120,7 @@ public class JwtRefreshMiddleware
                     await _next(context);
 
                     // Add new access token to response header
-                    if (context.Items.ContainsKey("AccessTokenRefreshed") && 
+                    if (context.Items.ContainsKey("AccessTokenRefreshed") &&
                         context.Items["AccessTokenRefreshed"] is true)
                     {
                         context.Response.Headers["X-New-Access-Token"] = newAccessToken;
@@ -153,7 +153,7 @@ public class JwtRefreshMiddleware
     /// </summary>
     private bool ShouldBypassRefresh(PathString path)
     {
-        return BypassPaths.Any(bypassPath => 
+        return BypassPaths.Any(bypassPath =>
             path.StartsWithSegments(bypassPath, StringComparison.OrdinalIgnoreCase));
     }
 }

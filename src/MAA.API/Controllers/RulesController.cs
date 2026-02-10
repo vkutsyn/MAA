@@ -55,12 +55,14 @@ public class RulesController : ControllerBase
             var validationResult = await _validator.ValidateAsync(input);
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Invalid eligibility input: {Errors}", 
+                _logger.LogWarning("Invalid eligibility input: {Errors}",
                     string.Join(",", validationResult.Errors.Select(e => e.ErrorMessage)));
-                return BadRequest(new { 
-                    errors = validationResult.Errors.Select(e => new { 
-                        field = e.PropertyName, 
-                        message = e.ErrorMessage 
+                return BadRequest(new
+                {
+                    errors = validationResult.Errors.Select(e => new
+                    {
+                        field = e.PropertyName,
+                        message = e.ErrorMessage
                     })
                 });
             }
@@ -68,7 +70,7 @@ public class RulesController : ControllerBase
             // Perform eligibility evaluation
             var result = await _evaluateHandler.EvaluateAsync(input);
 
-            _logger.LogInformation("Eligibility evaluation completed for state {State}, status: {Status}", 
+            _logger.LogInformation("Eligibility evaluation completed for state {State}, status: {Status}",
                 input.StateCode, result.OverallStatus);
 
             return Ok(result);
@@ -81,7 +83,7 @@ public class RulesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error evaluating eligibility");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { error = "An error occurred during eligibility evaluation" });
         }
     }
@@ -95,9 +97,10 @@ public class RulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult HealthCheck()
     {
-        return Ok(new { 
-            status = "healthy", 
-            timestamp = DateTime.UtcNow, 
+        return Ok(new
+        {
+            status = "healthy",
+            timestamp = DateTime.UtcNow,
             service = "Rules Engine"
         });
     }

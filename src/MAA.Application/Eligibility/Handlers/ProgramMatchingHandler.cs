@@ -257,7 +257,7 @@ public class ProgramMatchingHandler : IProgramMatchingHandler
                     // Add asset disqualification reason
                     match.DisqualifyingFactors.Add(assetReason);
                     match.Status = EligibilityStatus.UnlikelyEligible;
-                    
+
                     // Lower confidence score due to asset failure
                     var newScore = Math.Max(0, match.ConfidenceScore.Value - 25);
                     match.ConfidenceScore = new Domain.Rules.ValueObjects.ConfidenceScore(newScore);

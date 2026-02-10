@@ -15,7 +15,7 @@ public interface ITokenProvider
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>JWT access token</returns>
     Task<string> GenerateAccessTokenAsync(
-        Guid userId, 
+        Guid userId,
         IEnumerable<string> roles,
         Guid? sessionId = null,
         CancellationToken cancellationToken = default);
@@ -27,7 +27,7 @@ public interface ITokenProvider
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>JWT refresh token</returns>
     Task<string> GenerateRefreshTokenAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default);
 
     /// <summary>

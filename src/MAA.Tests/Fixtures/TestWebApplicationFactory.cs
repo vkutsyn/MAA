@@ -58,7 +58,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             // Ensure database is created
             using var scope = services.BuildServiceProvider().CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<SessionContext>();
-            
+
             if (_connectionString == null)
             {
                 // For in-memory database, ensure created

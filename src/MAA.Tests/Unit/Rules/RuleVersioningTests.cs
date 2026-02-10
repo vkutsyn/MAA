@@ -165,10 +165,10 @@ public class RuleVersioningTests
 
         // v1 should be inactive (ended yesterday)
         v1.IsActive.Should().BeFalse();
-        
+
         // v2 should be active (started yesterday, no end date)
         v2.IsActive.Should().BeTrue();
-        
+
         // Versions should be different
         v1.Version.Should().NotBe(v2.Version);
         v1.Version.Should().Be(1.0m);

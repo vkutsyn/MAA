@@ -36,13 +36,13 @@ public class AdminRoleMiddleware
         // Phase 1: Extract role from X-User-Role header (stub for JWT claims)
         // TODO Phase 5 (T038-T042): Replace with JWT token validation
         var roleHeader = context.Request.Headers["X-User-Role"].ToString();
-        
+
         if (string.IsNullOrWhiteSpace(roleHeader))
         {
             // US3 Acceptance Scenario 1: No authorization → 403 Forbidden
             _logger.LogWarning("Admin endpoint access denied: No authorization header. Path: {Path}",
                 context.Request.Path);
-            
+
             await WriteForbiddenResponse(context, "Missing authorization. Admin access required.");
             return;
         }
@@ -56,7 +56,7 @@ public class AdminRoleMiddleware
             // US3 Acceptance Scenario 2: Insufficient role → 403 Forbidden
             _logger.LogWarning("Admin endpoint access denied: Insufficient permissions. Role: {Role}, Path: {Path}",
                 role, context.Request.Path);
-            
+
             await WriteForbiddenResponse(context, "Insufficient permissions. Admin, Reviewer, or Analyst role required.");
             return;
         }

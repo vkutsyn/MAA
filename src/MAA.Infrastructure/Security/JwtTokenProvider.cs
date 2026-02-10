@@ -34,7 +34,7 @@ public class JwtTokenProvider : ITokenProvider
         _settings = settings;
         _logger = logger;
         _tokenHandler = new JwtSecurityTokenHandler();
-        
+
         _settings.Validate();
     }
 

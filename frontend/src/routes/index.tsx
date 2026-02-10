@@ -4,6 +4,7 @@ import { LoginRoute } from "./LoginRoute";
 import { RegisterRoute } from "./RegisterRoute";
 import { WizardLandingRoute } from "./WizardLandingRoute";
 import { WizardRoute } from "./WizardRoute";
+import { StateContextStep } from "./StateContextStep";
 
 // Define routes
 const routes: RouteObject[] = [
@@ -22,6 +23,10 @@ const routes: RouteObject[] = [
       {
         path: "register",
         element: <RegisterRoute />,
+      },
+      {
+        path: "state-context",
+        element: <StateContextStep />,
       },
       {
         path: "wizard",

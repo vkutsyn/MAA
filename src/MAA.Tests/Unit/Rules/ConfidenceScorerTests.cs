@@ -112,7 +112,7 @@ public class ConfidenceScorerTests
     public void ScoreConfidence_CategoricalKeywordVariations_AllDetected()
     {
         var scorer = new ConfidenceScorer();
-        
+
         var testCases = new List<string>
         {
             "Supplemental Security Income (SSI)",
@@ -129,7 +129,7 @@ public class ConfidenceScorerTests
 
             var result = scorer.ScoreConfidence(matchingFactors, disqualifyingFactors);
 
-            result.Value.Should().BeGreaterThanOrEqualTo(95, 
+            result.Value.Should().BeGreaterThanOrEqualTo(95,
                 $"Should detect categorical eligibility in: '{keyword}'");
         }
     }
@@ -201,16 +201,16 @@ public class ConfidenceScorerTests
     public void ScoreConfidence_ResturnsCorrectConfidenceLevel(int expectedScore, string expectedCategory)
     {
         var scorer = new ConfidenceScorer();
-        
+
         // Build factors to achieve target score
         int baseScore = 50;
         int targetFactors = (expectedScore - baseScore) / 10;
-        
+
         var matchingFactors = Enumerable
             .Range(0, Math.Max(0, targetFactors))
             .Select(i => $"Factor {i}")
             .ToList();
-        
+
         var disqualifyingFactors = targetFactors < 0
             ? Enumerable
                 .Range(0, Math.Abs(targetFactors))

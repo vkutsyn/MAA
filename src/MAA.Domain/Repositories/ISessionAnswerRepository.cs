@@ -14,7 +14,7 @@ public interface ISessionAnswerRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created answers with generated IDs</returns>
     Task<IEnumerable<SessionAnswer>> CreateBatchAsync(
-        IEnumerable<SessionAnswer> answers, 
+        IEnumerable<SessionAnswer> answers,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -24,7 +24,7 @@ public interface ISessionAnswerRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>All answers for the session</returns>
     Task<IEnumerable<SessionAnswer>> GetBySessionAsync(
-        Guid sessionId, 
+        Guid sessionId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -66,8 +66,8 @@ public interface ISessionAnswerRepository
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Answer if found, null otherwise</returns>
     Task<SessionAnswer?> FindBySessionAndFieldAsync(
-        Guid sessionId, 
-        string fieldKey, 
+        Guid sessionId,
+        string fieldKey,
         CancellationToken cancellationToken = default);
 
     /// <summary>

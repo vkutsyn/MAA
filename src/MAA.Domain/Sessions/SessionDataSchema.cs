@@ -27,7 +27,7 @@ public static class SessionDataSchema
         try
         {
             var data = JsonSerializer.Deserialize<SessionData>(json);
-            
+
             if (data == null)
             {
                 result.AddError("Failed to parse session data as valid JSON");

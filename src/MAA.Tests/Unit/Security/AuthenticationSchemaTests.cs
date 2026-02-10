@@ -26,8 +26,8 @@ public class AuthenticationSchemaTests
         // Arrange: Get all controller types from API assembly
         var apiAssembly = typeof(Program).Assembly;
         var controllerTypes = apiAssembly.GetTypes()
-            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && 
-                       !t.IsAbstract && 
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) &&
+                       !t.IsAbstract &&
                        t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -73,7 +73,7 @@ public class AuthenticationSchemaTests
 
                 // Either no authorize AND no class-level authorize, OR has AllowAnonymous
                 var isPublic = !hasAuthorizeOnMethod || hasAllowAnonymous;
-                
+
                 // Note: This is informational - login endpoints are typically public
                 // If test fails, verify login endpoint accessibility
             }
@@ -90,8 +90,8 @@ public class AuthenticationSchemaTests
         // Arrange: Get all controller types
         var apiAssembly = typeof(Program).Assembly;
         var controllerTypes = apiAssembly.GetTypes()
-            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && 
-                       !t.IsAbstract && 
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) &&
+                       !t.IsAbstract &&
                        t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -104,11 +104,11 @@ public class AuthenticationSchemaTests
         foreach (var controller in authorizedControllers)
         {
             var xmlDocPath = Path.ChangeExtension(apiAssembly.Location, ".xml");
-            
+
             if (File.Exists(xmlDocPath))
             {
                 var xmlContent = File.ReadAllText(xmlDocPath);
-                
+
                 // Verify controller name appears in XML documentation
                 xmlContent.Should().Contain(controller.Name,
                     $"Authorized controller {controller.Name} should be documented in XML file");
@@ -170,8 +170,8 @@ public class AuthenticationSchemaTests
         // Arrange: Get all controller types
         var apiAssembly = typeof(Program).Assembly;
         var controllerTypes = apiAssembly.GetTypes()
-            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) && 
-                       !t.IsAbstract && 
+            .Where(t => typeof(ControllerBase).IsAssignableFrom(t) &&
+                       !t.IsAbstract &&
                        t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
@@ -183,7 +183,7 @@ public class AuthenticationSchemaTests
         {
             var classHasAuthorize = controller.GetCustomAttributes<AuthorizeAttribute>().Any();
             var methods = controller.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Where(m => m.DeclaringType == controller && 
+                .Where(m => m.DeclaringType == controller &&
                            !m.IsGenericMethodDefinition &&
                            !m.IsSpecialName)
                 .ToList();
@@ -212,7 +212,7 @@ public class AuthenticationSchemaTests
         // (Balanced API design has some public endpoints like login, health)
         authorizedEndpointCount.Should().BeGreaterThan(0,
             "API should have at least some protected endpoints");
-        
+
         publicEndpointCount.Should().BeGreaterThan(0,
             "API should have at least some public endpoints (e.g., /auth/login, /health)");
     }

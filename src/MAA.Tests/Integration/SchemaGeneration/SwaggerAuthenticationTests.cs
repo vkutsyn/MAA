@@ -36,7 +36,7 @@ public class SwaggerAuthenticationTests : IClassFixture<TestWebApplicationFactor
     {
         // Arrange: Create test client without authentication
         var client = _factory.CreateClient();
-        
+
         // Create a test session ID (doesn't matter if it exists, we should get 401 first)
         var testSessionId = Guid.NewGuid();
 
@@ -65,7 +65,7 @@ public class SwaggerAuthenticationTests : IClassFixture<TestWebApplicationFactor
     {
         // Arrange: Create authenticated client
         var client = _factory.CreateClient();
-        
+
         // Step 1: Register a test user
         var registerRequest = new
         {
@@ -91,7 +91,7 @@ public class SwaggerAuthenticationTests : IClassFixture<TestWebApplicationFactor
 
         var loginResult = await loginResponse.Content.ReadFromJsonAsync<dynamic>();
         string? token = loginResult?.GetProperty("token").GetString();
-        
+
         token.Should().NotBeNullOrEmpty("Login should return a JWT token");
 
         // Step 3: Create a session for this user (authenticated request)
@@ -118,7 +118,7 @@ public class SwaggerAuthenticationTests : IClassFixture<TestWebApplicationFactor
 
             var sessionJson = await getSessionResponse.Content.ReadAsStringAsync();
             sessionJson.Should().NotBeNullOrEmpty("Response should contain session data");
-            
+
             // Parse and verify session has valid ID
             using var jsonDoc = JsonDocument.Parse(sessionJson);
             var sessionId = jsonDoc.RootElement.GetProperty("sessionId").GetString();
@@ -305,7 +305,7 @@ public class SwaggerAuthenticationTests : IClassFixture<TestWebApplicationFactor
             try
             {
                 var response = await client.GetAsync(endpoint);
-                
+
                 // Protected endpoints should return 401 (or 404 if endpoint doesn't exist)
                 // Either way, they should NOT return 200 OK without authentication
                 if (response.StatusCode == HttpStatusCode.Unauthorized)

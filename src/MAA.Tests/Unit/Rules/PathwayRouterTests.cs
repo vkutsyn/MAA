@@ -27,7 +27,7 @@ public class PathwayRouterTests
     {
         var programs = CreateSamplePrograms();
         var pathways = new List<EligibilityPathway> { EligibilityPathway.MAGI };
-        
+
         var routed = _router.RouteToProgramsForPathways(pathways, programs);
 
         routed.Should().ContainSingle();
@@ -38,12 +38,12 @@ public class PathwayRouterTests
     public void RouteToProgramsForPathways_MultiplePathways_ReturnsAllMatching()
     {
         var programs = CreateSamplePrograms();
-        var pathways = new List<EligibilityPathway> 
-        { 
+        var pathways = new List<EligibilityPathway>
+        {
             EligibilityPathway.NonMAGI_Aged,
-            EligibilityPathway.NonMAGI_Disabled 
+            EligibilityPathway.NonMAGI_Disabled
         };
-        
+
         var routed = _router.RouteToProgramsForPathways(pathways, programs);
 
         routed.Should().HaveCount(2);
@@ -56,7 +56,7 @@ public class PathwayRouterTests
     {
         var programs = CreateSamplePrograms();
         var pathways = new List<EligibilityPathway>();
-        
+
         var routed = _router.RouteToProgramsForPathways(pathways, programs);
         routed.Should().BeEmpty();
     }
@@ -75,7 +75,7 @@ public class PathwayRouterTests
     {
         var programs = CreateSamplePrograms();
         var pathways = new List<EligibilityPathway> { EligibilityPathway.MAGI };
-        
+
         var count = _router.CountAvailableProgramsForPathways(pathways, programs);
         count.Should().Be(1);
     }
@@ -85,7 +85,7 @@ public class PathwayRouterTests
     {
         var programs = CreateSamplePrograms();
         var pathways = new List<EligibilityPathway> { EligibilityPathway.Pregnancy };
-        
+
         var hasPrograms = _router.HasAvailableProgramsForPathways(pathways, programs);
         hasPrograms.Should().BeTrue();
     }
@@ -95,7 +95,7 @@ public class PathwayRouterTests
     {
         var programs = new List<MedicaidProgram>();
         var pathways = new List<EligibilityPathway> { EligibilityPathway.MAGI };
-        
+
         var hasPrograms = _router.HasAvailableProgramsForPathways(pathways, programs);
         hasPrograms.Should().BeFalse();
     }

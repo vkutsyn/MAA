@@ -39,10 +39,10 @@ public class SessionApiIntegrationTests : IAsyncLifetime
     {
         _factory = TestWebApplicationFactory.CreateWithDatabase(_databaseFixture);
         _httpClient = _factory.CreateClient();
-        
+
         // Clear database between tests
         await _databaseFixture.ClearAllDataAsync();
-        
+
         await Task.CompletedTask;
     }
 
@@ -55,7 +55,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         _httpClient?.Dispose();
         if (_factory != null)
             await _factory.DisposeAsync();
-        
+
         await Task.CompletedTask;
     }
 
@@ -162,7 +162,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
             .ToListAsync();
 
         dbSessions.Count().Should().Be(3, "All three sessions should be in database");
-        
+
         var ipsInDb = dbSessions.Select(s => s.IpAddress).ToList();
         ipsInDb.Should().Contain("192.168.1.100");
         ipsInDb.Should().Contain("192.168.1.200");
@@ -200,17 +200,17 @@ public class SessionApiIntegrationTests : IAsyncLifetime
 
         // Assert
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Should retrieve existing session");
-        
+
         retrievedSession.Should().NotBeNull();
         retrievedSession!.Id.Should().Be(sessionId);
         retrievedSession.IpAddress.Should().Be("10.20.30.40");
         retrievedSession.UserAgent.Should().Be("Mobile Safari/603.1.30");
         retrievedSession.IsValid.Should().BeTrue("Newly created session should be valid");
-        
+
         // Verify database and DTO match
         using var context = _databaseFixture.CreateContext();
         var dbSession = await context.Sessions.FirstAsync(s => s.Id == sessionId);
-        
+
         retrievedSession.ExpiresAt.Should().Be(dbSession.ExpiresAt,
             "DTO timeout should match database");
         retrievedSession.InactivityTimeoutAt.Should().Be(dbSession.InactivityTimeoutAt,
@@ -255,7 +255,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         // Arrange - Create expired session directly in database
         var expiredSessionId = Guid.NewGuid();
         var now = DateTime.UtcNow;
-        
+
         var expiredSession = new Session
         {
             Id = expiredSessionId,
@@ -454,7 +454,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         var now = DateTime.UtcNow;
         var testCases = new[]
         {
-            new { Name = "Absolute Timeout", Session = new Session 
+            new { Name = "Absolute Timeout", Session = new Session
             {
                 Id = Guid.NewGuid(),
                 State = SessionState.InProgress,
@@ -603,10 +603,10 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         using (var context = _databaseFixture.CreateContext())
         {
             var dbSession = await context.Sessions.FirstAsync(s => s.Id == sessionId);
-            
+
             // Assert
             dbSession.Data.Should().Be("{}", "JSONB Data column should initialize as empty JSON");
-            
+
             // Verify it's stored as valid JSON (PostgreSQL JSONB validation)
             var parsed = System.Text.Json.JsonDocument.Parse(dbSession.Data);
             parsed.Should().NotBeNull("JSONB data should be valid JSON");
@@ -655,7 +655,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         saveResponse.StatusCode.Should().Be(HttpStatusCode.Created, "Saving answer should return 201");
 
         var savedAnswer = await saveResponse.Content.ReadAsAsync<SessionAnswerDto>();
-        
+
         // Assert - Response validation
         savedAnswer.Should().NotBeNull();
         savedAnswer!.FieldKey.Should().Be("income_annual_2025");
@@ -667,7 +667,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         using (var context = _databaseFixture.CreateContext())
         {
             var dbAnswer = await context.SessionAnswers.FirstAsync(a => a.SessionId == sessionId);
-            
+
             // Assert - PII encrypted in DB
             dbAnswer.AnswerEncrypted.Should().NotBeNullOrEmpty("PII should be encrypted");
             dbAnswer.AnswerPlain.Should().BeNull("PII should not be stored plain");
@@ -680,7 +680,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var answers = await getResponse.Content.ReadAsAsync<List<SessionAnswerDto>>();
-        
+
         // Assert - Retrieved answers match saved
         answers.Should().NotBeNull();
         answers!.Count.Should().Be(1);
@@ -727,7 +727,7 @@ public class SessionApiIntegrationTests : IAsyncLifetime
         using (var context = _databaseFixture.CreateContext())
         {
             var dbAnswer = await context.SessionAnswers.FirstAsync(a => a.SessionId == sessionId);
-            
+
             dbAnswer.AnswerPlain.Should().Be("4", "Non-PII should be stored as plain text");
             dbAnswer.AnswerEncrypted.Should().BeNull("Non-PII should not be encrypted");
             dbAnswer.IsPii.Should().BeFalse();

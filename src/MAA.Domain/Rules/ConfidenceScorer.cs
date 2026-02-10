@@ -95,7 +95,7 @@ public class ConfidenceScorer
 
         // Check for categorical eligibility indicators
         bool hasCategoricalEligibility = matching
-            .Any(f => f.Contains("SSI", StringComparison.OrdinalIgnoreCase) 
+            .Any(f => f.Contains("SSI", StringComparison.OrdinalIgnoreCase)
               || f.Contains("categorical", StringComparison.OrdinalIgnoreCase)
               || f.Contains("supplemental security income", StringComparison.OrdinalIgnoreCase));
 
@@ -135,13 +135,13 @@ public class ConfidenceScorer
         var disqualifying = disqualifyingFactors?.ToList() ?? new List<string>();
 
         bool hasCategoricalEligibility = matching
-            .Any(f => f.Contains("SSI", StringComparison.OrdinalIgnoreCase) 
+            .Any(f => f.Contains("SSI", StringComparison.OrdinalIgnoreCase)
               || f.Contains("categorical", StringComparison.OrdinalIgnoreCase)
               || f.Contains("supplemental security income", StringComparison.OrdinalIgnoreCase));
 
         int score = BASE_SCORE;
         int matchingPoints = hasCategoricalEligibility ? 0 : (matching.Count * POINTS_PER_MATCHING_FACTOR);
-        
+
         var details = new ConfidenceCalculationDetails
         {
             BaseScore = BASE_SCORE,

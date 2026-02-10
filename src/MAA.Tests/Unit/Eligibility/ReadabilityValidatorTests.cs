@@ -42,7 +42,7 @@ public class ReadabilityValidatorTests
     public void ScoreReadability_WithComplexText_ReturnsLowerReadingEaseScore()
     {
         // Arrange
-        const string complexText = 
+        const string complexText =
             "The determination of modified adjusted gross income under the provisions of " +
             "subsection (e)(1)(A) shall be made in accordance with the provisions of " +
             "section 36B and the applicable Treasury regulations and guidance thereunder.";
@@ -97,7 +97,7 @@ public class ReadabilityValidatorTests
         var scoreLong = _validator.ScoreReadability(longerComplex);
 
         // Assert - Shorter words and sentences should score higher
-        scoreShort.Should().BeGreaterThan(scoreLong, 
+        scoreShort.Should().BeGreaterThan(scoreLong,
             "because Flesch-Kincaid scores shorter words and sentences as easier to read");
     }
 
@@ -109,7 +109,7 @@ public class ReadabilityValidatorTests
     public void IsBelow8thGrade_WithSimpleExplanation_ReturnsTrueWhenScoreIsAtLeast60()
     {
         // Arrange
-        const string explanation = 
+        const string explanation =
             "Your monthly income of $2,100 is below the limit of $2,500. You qualify for Medicaid.";
 
         // Act
@@ -125,7 +125,7 @@ public class ReadabilityValidatorTests
     public void IsBelow8thGrade_WithComplexText_ReturnsFalseWhenScoreBelowThreshold()
     {
         // Arrange
-        const string complexText = 
+        const string complexText =
             "The determination of eligibility for the Medical Assistance Program shall be made " +
             "by the department administrator utilizing the provisions established in the statutes " +
             "governing the administration of such programs with consideration to all applicable " +
@@ -145,7 +145,7 @@ public class ReadabilityValidatorTests
     {
         // Arrange - Craft text to score near 60 (boundary test)
         // Using moderate complexity: some longer words, moderate sentence length
-        const string boundaryText = 
+        const string boundaryText =
             "You have a household size of four people. Your total income is about two thousand dollars. " +
             "This amount is below the required limit. You can receive Medicaid assistance.";
 
@@ -165,7 +165,7 @@ public class ReadabilityValidatorTests
     public void ReadabilityValidator_FlagsExplanationsExceedingTarget_WithActionableMessage()
     {
         // Arrange
-        const string hardText = 
+        const string hardText =
             "The hermeneutical exegesis of multidimensional paradigmatic epistemological substantiation " +
             "requires comprehensive phenomenological deconstruction.";
 
@@ -176,7 +176,7 @@ public class ReadabilityValidatorTests
         // Assert
         score.Should().BeLessThan(50, "because this text uses graduate-level vocabulary");
         passes.Should().BeFalse();
-        
+
         // Actionable feedback for developers
         var expectedMessage = $"Text readability score ({score:F1}) is below threshold 50. " +
                             "Simplify vocabulary and shorten sentences.";
@@ -199,7 +199,7 @@ public class ReadabilityValidatorTests
         var result = _validator.IsBelow8thGrade(explanation);
 
         // Assert - Simple explanations should score ≥60
-        score.Should().BeGreaterThanOrEqualTo(50, 
+        score.Should().BeGreaterThanOrEqualTo(50,
             $"because '{explanation}' uses simple language and should achieve Reading Ease ≥60");
         result.Should().BeTrue($"because score ≥60 meets 8th grade requirement");
     }
@@ -309,7 +309,7 @@ public class ReadabilityValidatorTests
     public void RealisticEligibilityExplanation_MeetsReadabilityThreshold()
     {
         // Arrange - Based on actual requirement from spec
-        const string explanation = 
+        const string explanation =
             "Based on your monthly income of $2,100, you qualify for the following Medicaid programs: " +
             "MAGI Adult, Medicaid Expansion.";
 
@@ -326,7 +326,7 @@ public class ReadabilityValidatorTests
     public void ProgramExplanationWithThreshold_MeetsReadabilityThreshold()
     {
         // Arrange - Based on actual requirement from spec
-        const string explanation = 
+        const string explanation =
             "For MAGI Adult: Your income of $2,100.00 is below the limit of $2,500.00.";
 
         // Act
@@ -342,7 +342,7 @@ public class ReadabilityValidatorTests
     public void DisqualifyingFactorsExplanation_MeetsReadabilityThreshold()
     {
         // Arrange - Based on actual requirement from spec
-        const string explanation = 
+        const string explanation =
             "(1) income exceeds limit, (2) not state resident";
 
         // Act

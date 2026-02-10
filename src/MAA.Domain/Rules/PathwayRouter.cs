@@ -25,7 +25,7 @@ public class PathwayRouter
     {
         if (applicablePathways == null)
             throw new ArgumentNullException(nameof(applicablePathways), "Applicable pathways cannot be null");
-        
+
         if (allPrograms == null)
             throw new ArgumentNullException(nameof(allPrograms), "All programs cannot be null");
 

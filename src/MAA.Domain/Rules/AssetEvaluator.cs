@@ -79,9 +79,9 @@ public class AssetEvaluator
         int currentYear)
     {
         // Pathways that are NOT subject to asset tests
-        if (pathway is EligibilityPathway.MAGI 
-            or EligibilityPathway.SSI_Linked 
-            or EligibilityPathway.Pregnancy 
+        if (pathway is EligibilityPathway.MAGI
+            or EligibilityPathway.SSI_Linked
+            or EligibilityPathway.Pregnancy
             or EligibilityPathway.Other)
         {
             return (true, GetNoAssetTestReason(pathway));
@@ -127,15 +127,15 @@ public class AssetEvaluator
     {
         return pathway switch
         {
-            EligibilityPathway.MAGI => 
+            EligibilityPathway.MAGI =>
                 "MAGI (Modified Adjusted Gross Income) pathway does not include an asset test.",
-            
-            EligibilityPathway.SSI_Linked => 
+
+            EligibilityPathway.SSI_Linked =>
                 "Supplemental Security Income (SSI) recipients are categorically eligible and do not face asset limits.",
-            
-            EligibilityPathway.Pregnancy => 
+
+            EligibilityPathway.Pregnancy =>
                 "Pregnancy-related Medicaid pathway does not include an asset test.",
-            
+
             _ => "No asset test applies to this eligibility pathway."
         };
     }
@@ -193,16 +193,16 @@ public class AssetEvaluator
     public static long? GetAssetLimitCents(string stateCode, EligibilityPathway pathway)
     {
         // No asset test for these pathways
-        if (pathway is EligibilityPathway.MAGI 
-            or EligibilityPathway.SSI_Linked 
+        if (pathway is EligibilityPathway.MAGI
+            or EligibilityPathway.SSI_Linked
             or EligibilityPathway.Pregnancy)
         {
             return null;
         }
 
         // Return the limit if state is recognized
-        return StateAssetLimitsCents.TryGetValue(stateCode, out var limit) 
-            ? limit 
+        return StateAssetLimitsCents.TryGetValue(stateCode, out var limit)
+            ? limit
             : null;
     }
 }

@@ -61,9 +61,14 @@ public class SessionsController : ControllerBase
 
         try
         {
-            // Get IP address from request if not provided
-            var ipAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
-            var userAgent = request.UserAgent ?? HttpContext.Request.Headers["User-Agent"].ToString() ?? "Unknown";
+            // Get IP address from request if not provided or empty
+            var ipAddress = string.IsNullOrWhiteSpace(request.IpAddress)
+                ? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0"
+                : request.IpAddress;
+
+            var userAgent = string.IsNullOrWhiteSpace(request.UserAgent)
+                ? HttpContext.Request.Headers["User-Agent"].ToString() ?? "Unknown"
+                : request.UserAgent;
 
             _logger.LogInformation(
                 "Creating session for IP {IpAddress}",
