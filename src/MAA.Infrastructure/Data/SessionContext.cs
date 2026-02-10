@@ -1,5 +1,6 @@
 using MAA.Domain.Rules;
 using MAA.Domain.Sessions;
+using MAA.Domain.Wizard;
 using Microsoft.EntityFrameworkCore;
 
 namespace MAA.Infrastructure.Data;
@@ -59,6 +60,21 @@ public class SessionContext : DbContext
     /// </summary>
     public DbSet<Domain.StateContext.StateConfiguration> StateConfigurations => Set<Domain.StateContext.StateConfiguration>();
 
+    /// <summary>
+    /// Wizard Sessions: per-session wizard state
+    /// </summary>
+    public DbSet<WizardSession> WizardSessions => Set<WizardSession>();
+
+    /// <summary>
+    /// Step Answers: per-step wizard answer data
+    /// </summary>
+    public DbSet<StepAnswer> StepAnswers => Set<StepAnswer>();
+
+    /// <summary>
+    /// Step Progress: per-step completion status
+    /// </summary>
+    public DbSet<StepProgress> StepProgress => Set<StepProgress>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -74,6 +90,9 @@ public class SessionContext : DbContext
         // Apply configuration from separate configuration classes
         modelBuilder.ApplyConfiguration(new Infrastructure.StateContext.StateContextConfiguration());
         modelBuilder.ApplyConfiguration(new Infrastructure.StateContext.StateConfigurationConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.WizardSessionConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.StepAnswerConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.StepProgressConfiguration());
     }
 
     private void ConfigureSessionEntity(ModelBuilder modelBuilder)

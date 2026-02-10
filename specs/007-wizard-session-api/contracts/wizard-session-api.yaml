@@ -1,0 +1,637 @@
+openapi: 3.0.3
+info:
+  title: MAA Eligibility Wizard Session API
+  description: |
+    API endpoints for saving wizard step answers, navigating between steps,
+    and restoring wizard session state with optimistic concurrency control.
+  version: 1.0.0
+  contact:
+    name: MAA Development Team
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+  - url: https://api-maa.example.com/api
+    description: Production server
+
+tags:
+  - name: WizardSession
+    description: Eligibility wizard session management
+
+paths:
+  /wizard-session/answers:
+    post:
+      tags:
+        - WizardSession
+      summary: Save or update a step answer
+      description: |
+        Persists the user's answers for a wizard step and updates step progress.
+        If downstream steps depend on this answer, they are invalidated.
+
+        **Performance SLO:** <200ms (p95)
+      operationId: saveStepAnswer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveStepAnswerRequest"
+            examples:
+              saveAnswer:
+                summary: Save step answer
+                value:
+                  sessionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  stepId: "household-size"
+                  schemaVersion: "v1"
+                  status: "submitted"
+                  answerData:
+                    householdSize: 3
+                  expectedAnswerVersion: 2
+                  expectedSessionVersion: 5
+      responses:
+        "200":
+          description: Step answer saved and session updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SaveStepAnswerResponse"
+        "400":
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Concurrency conflict (version mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConcurrencyErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /wizard-session/next-step:
+    post:
+      tags:
+        - WizardSession
+      summary: Get next step definition
+      description: |
+        Calculates the next step based on current answers and navigation rules.
+
+        **Performance SLO:** <150ms (p95)
+      operationId: getNextStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetNextStepRequest"
+            examples:
+              nextStep:
+                summary: Next step lookup
+                value:
+                  sessionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  currentStepId: "household-size"
+      responses:
+        "200":
+          description: Next step definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNextStepResponse"
+        "400":
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Step definition not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /wizard-session/{sessionId}:
+    get:
+      tags:
+        - WizardSession
+      summary: Restore wizard session state
+      description: |
+        Rehydrates wizard session state, including all step answers and progress.
+
+        **Performance SLO:** <500ms (p95)
+      operationId: getWizardSessionState
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: UUID of the session
+          schema:
+            type: string
+            format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+      responses:
+        "200":
+          description: Wizard session state retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WizardSessionStateResponse"
+        "401":
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Wizard session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /wizard-session/{sessionId}/steps/{stepId}:
+    get:
+      tags:
+        - WizardSession
+      summary: Get step definition and existing answer
+      description: |
+        Returns the step definition, progress status, and saved answer (if any).
+
+        **Performance SLO:** <100ms (p95)
+      operationId: getStepDetail
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Step detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StepDetailResponse"
+        "401":
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Step not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /wizard-session/{sessionId}/answers:
+    get:
+      tags:
+        - WizardSession
+      summary: Retrieve step answers
+      description: |
+        Returns all step answers for the session or a single step if `stepId` is provided.
+      operationId: getStepAnswers
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: stepId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Step answers retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StepAnswersResponse"
+        "401":
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Step answer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    SaveStepAnswerRequest:
+      type: object
+      required:
+        - sessionId
+        - stepId
+        - schemaVersion
+        - status
+        - answerData
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: UUID of the user's session
+        stepId:
+          type: string
+          description: Step identifier
+        schemaVersion:
+          type: string
+          description: Version of the step schema
+        status:
+          $ref: "#/components/schemas/AnswerStatus"
+        answerData:
+          type: object
+          additionalProperties: true
+          description: JSON payload containing step answers
+        expectedAnswerVersion:
+          type: integer
+          format: int32
+          nullable: true
+          description: Last known version of the step answer for optimistic concurrency
+        expectedSessionVersion:
+          type: integer
+          format: int32
+          nullable: true
+          description: Last known version of the wizard session for optimistic concurrency
+
+    SaveStepAnswerResponse:
+      type: object
+      required:
+        - wizardSession
+        - stepAnswer
+        - stepProgress
+      properties:
+        wizardSession:
+          $ref: "#/components/schemas/WizardSessionDto"
+        stepAnswer:
+          $ref: "#/components/schemas/StepAnswerDto"
+        stepProgress:
+          $ref: "#/components/schemas/StepProgressDto"
+        invalidatedSteps:
+          type: array
+          items:
+            type: string
+          description: Step IDs marked as requires_revalidation
+
+    GetNextStepRequest:
+      type: object
+      required:
+        - sessionId
+        - currentStepId
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        currentStepId:
+          type: string
+
+    GetNextStepResponse:
+      type: object
+      required:
+        - wizardSession
+        - stepDefinition
+        - stepProgress
+        - isFinal
+      properties:
+        wizardSession:
+          $ref: "#/components/schemas/WizardSessionDto"
+        stepDefinition:
+          $ref: "#/components/schemas/StepDefinitionDto"
+        stepProgress:
+          $ref: "#/components/schemas/StepProgressDto"
+        isFinal:
+          type: boolean
+          description: True when the returned step is the final review step
+
+    WizardSessionStateResponse:
+      type: object
+      required:
+        - wizardSession
+        - stepProgress
+        - stepAnswers
+      properties:
+        wizardSession:
+          $ref: "#/components/schemas/WizardSessionDto"
+        stepProgress:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepProgressDto"
+        stepAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepAnswerDto"
+
+    StepDetailResponse:
+      type: object
+      required:
+        - stepDefinition
+        - stepProgress
+      properties:
+        stepDefinition:
+          $ref: "#/components/schemas/StepDefinitionDto"
+        stepProgress:
+          $ref: "#/components/schemas/StepProgressDto"
+        stepAnswer:
+          $ref: "#/components/schemas/StepAnswerDto"
+
+    StepAnswersResponse:
+      type: object
+      required:
+        - stepAnswers
+      properties:
+        stepAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepAnswerDto"
+
+    WizardSessionDto:
+      type: object
+      required:
+        - sessionId
+        - currentStepId
+        - lastActivityAt
+        - version
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        currentStepId:
+          type: string
+        lastActivityAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int32
+
+    StepAnswerDto:
+      type: object
+      required:
+        - sessionId
+        - stepId
+        - schemaVersion
+        - status
+        - answerData
+        - submittedAt
+        - version
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        stepId:
+          type: string
+        schemaVersion:
+          type: string
+        status:
+          $ref: "#/components/schemas/AnswerStatus"
+        answerData:
+          type: object
+          additionalProperties: true
+        submittedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        version:
+          type: integer
+          format: int32
+
+    StepProgressDto:
+      type: object
+      required:
+        - stepId
+        - status
+        - lastUpdatedAt
+        - version
+      properties:
+        stepId:
+          type: string
+        status:
+          $ref: "#/components/schemas/StepStatus"
+        lastUpdatedAt:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int32
+
+    StepDefinitionDto:
+      type: object
+      required:
+        - stepId
+        - title
+        - fields
+      properties:
+        stepId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepFieldDto"
+        validationRules:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationRuleDto"
+        visibilityRule:
+          $ref: "#/components/schemas/JsonLogicRule"
+        nextStepRules:
+          type: array
+          items:
+            $ref: "#/components/schemas/NextStepRuleDto"
+        displayMeta:
+          type: object
+          additionalProperties: true
+
+    StepFieldDto:
+      type: object
+      required:
+        - fieldId
+        - label
+        - type
+      properties:
+        fieldId:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          description: Field input type (text, number, select, date, boolean)
+        required:
+          type: boolean
+        helpText:
+          type: string
+          nullable: true
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldOptionDto"
+        min:
+          type: number
+          nullable: true
+        max:
+          type: number
+          nullable: true
+        pattern:
+          type: string
+          nullable: true
+
+    FieldOptionDto:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+
+    ValidationRuleDto:
+      type: object
+      required:
+        - ruleId
+        - ruleType
+      properties:
+        ruleId:
+          type: string
+        ruleType:
+          type: string
+        parameters:
+          type: object
+          additionalProperties: true
+
+    NextStepRuleDto:
+      type: object
+      required:
+        - condition
+        - toStepId
+      properties:
+        condition:
+          $ref: "#/components/schemas/JsonLogicRule"
+        toStepId:
+          type: string
+
+    JsonLogicRule:
+      type: object
+      additionalProperties: true
+      description: JsonLogic expression evaluated against current answers
+
+    AnswerStatus:
+      type: string
+      enum:
+        - draft
+        - submitted
+
+    StepStatus:
+      type: string
+      enum:
+        - not_started
+        - in_progress
+        - completed
+        - requires_revalidation
+
+    ErrorDetail:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - details
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+
+    ConcurrencyErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - current
+      properties:
+        error:
+          type: string
+          example: "ConcurrencyConflict"
+        message:
+          type: string
+        current:
+          $ref: "#/components/schemas/WizardSessionStateResponse"

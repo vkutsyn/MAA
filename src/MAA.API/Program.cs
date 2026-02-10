@@ -6,8 +6,13 @@ using MAA.Application.Eligibility.Repositories;
 using MAA.Application.Eligibility.Caching;
 using MAA.Application.Eligibility.Services;
 using MAA.Application.Eligibility.Validators;
+using MAA.Application.Wizard.Repositories;
+using MAA.Application.Wizard.Commands;
+using MAA.Application.Wizard.Queries;
+using MAA.Application.Wizard.Validators;
 using MAA.Domain.Repositories;
 using MAA.Domain.Rules;
+using MAA.Domain.Wizard;
 using MAA.Infrastructure.Data;
 using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
@@ -27,6 +32,10 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     Log.Information("Starting MAA API application");
+
+    // Configure Npgsql to use UTC timestamps globally
+    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", false);
+    AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +72,13 @@ try
     builder.Services.AddScoped<MAA.Application.StateContext.IStateContextRepository, MAA.Infrastructure.StateContext.StateContextRepository>();
     builder.Services.AddScoped<MAA.Application.StateContext.IStateConfigurationRepository, MAA.Infrastructure.StateContext.StateConfigurationRepository>();
 
+    // Register Wizard Session repositories
+    builder.Services.AddScoped<IWizardSessionRepository, MAA.Infrastructure.Wizard.WizardSessionRepository>();
+    builder.Services.AddScoped<IStepAnswerRepository, MAA.Infrastructure.Wizard.StepAnswerRepository>();
+    builder.Services.AddSingleton<IStepDefinitionProvider, StepDefinitionProvider>();
+    builder.Services.AddSingleton<StepNavigationEngine>();
+    builder.Services.AddSingleton<StepInvalidationService>();
+
     // Register State Context handlers
     builder.Services.AddScoped<MAA.Application.StateContext.Commands.InitializeStateContextHandler>();
     builder.Services.AddScoped<MAA.Application.StateContext.Commands.UpdateStateContextHandler>();
@@ -71,6 +87,17 @@ try
     // Register State Context validators
     builder.Services.AddScoped<MAA.Application.StateContext.Validators.InitializeStateContextRequestValidator>();
     builder.Services.AddScoped<MAA.Application.StateContext.Validators.UpdateStateContextRequestValidator>();
+
+    // Register Wizard Session handlers
+    builder.Services.AddScoped<SaveStepAnswerHandler>();
+    builder.Services.AddScoped<GetWizardSessionStateHandler>();
+    builder.Services.AddScoped<GetStepAnswersHandler>();
+    builder.Services.AddScoped<GetNextStepHandler>();
+    builder.Services.AddScoped<GetStepDetailHandler>();
+
+    // Register Wizard Session validators
+    builder.Services.AddScoped<SaveStepAnswerRequestValidator>();
+    builder.Services.AddScoped<GetWizardSessionStateValidator>();
 
     // Add AutoMapper
     builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -251,6 +278,14 @@ try
 
     var app = builder.Build();
 
+    // Seed state configurations on startup
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<MAA.Infrastructure.StateContext.StateConfigurationSeeder>();
+        await seeder.SeedAsync();
+        Log.Information("State configurations seeded successfully");
+    }
+
     // Configure the HTTP request pipeline
     if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
     {
@@ -283,6 +318,9 @@ try
 
     // Global exception handler middleware
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // Concurrency exception handler middleware
+    app.UseMiddleware<ConcurrencyExceptionMiddleware>();
 
     // Enable CORS (must be after exception handling, before auth)
     app.UseCors("AllowFrontend");

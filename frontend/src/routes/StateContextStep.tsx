@@ -52,12 +52,20 @@ export function StateContextStep() {
 
   // Create session on component mount
   useEffect(() => {
-    const createSession = async () => {
+    const createSession = async (forceNew: boolean = false) => {
       // Check if session already exists in cookie or localStorage
       const existingSessionId = localStorage.getItem("sessionId");
-      if (existingSessionId) {
-        setSessionId(existingSessionId);
-        return;
+      if (existingSessionId && !forceNew) {
+        // Verify the session still exists by trying to fetch state context
+        try {
+          await apiClient.get(`/state-context?sessionId=${existingSessionId}`);
+          setSessionId(existingSessionId);
+          return;
+        } catch (err: any) {
+          // Session doesn't exist anymore, clear it and create new one
+          console.warn("Stored session no longer exists, creating new session");
+          localStorage.removeItem("sessionId");
+        }
       }
 
       setIsCreatingSession(true);

@@ -130,6 +130,7 @@ graph TD
 **Deliverables**:
 
 - [ ] Eligibility wizard (all question types, mobile-responsive, WCAG 2.1 AA)
+- [ ] Wizard session API (save/restore/next-step endpoints)
 - [ ] Eligibility results API + results page
 - [ ] Document upload + checklist generation
 - [ ] Alpha/Beta environment setup

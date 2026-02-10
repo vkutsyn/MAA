@@ -1,0 +1,79 @@
+[
+  {
+    "stepId": "household-size",
+    "title": "Household Size",
+    "description": "Determine the number of people in the household.",
+    "fields": [
+      {
+        "fieldId": "householdSize",
+        "label": "Household size",
+        "type": "number",
+        "required": true,
+        "min": 1,
+        "max": 12
+      }
+    ],
+    "validationRules": [
+      {
+        "ruleId": "household-size-min",
+        "ruleType": "min",
+        "parameters": { "min": 1 }
+      }
+    ],
+    "nextStepRules": [
+      {
+        "condition": { "==": [ { "var": "household-size.householdSize" }, 1 ] },
+        "toStepId": "household-income"
+      },
+      {
+        "condition": { ">": [ { "var": "household-size.householdSize" }, 1 ] },
+        "toStepId": "household-members"
+      }
+    ],
+    "displayMeta": {
+      "sequence": 1
+    }
+  },
+  {
+    "stepId": "household-members",
+    "title": "Household Members",
+    "description": "Collect details about household members.",
+    "fields": [
+      {
+        "fieldId": "memberCount",
+        "label": "Number of members",
+        "type": "number",
+        "required": true,
+        "min": 1
+      }
+    ],
+    "nextStepRules": [
+      {
+        "condition": { "==": [ 1, 1 ] },
+        "toStepId": "household-income"
+      }
+    ],
+    "displayMeta": {
+      "sequence": 2
+    }
+  },
+  {
+    "stepId": "household-income",
+    "title": "Household Income",
+    "description": "Capture household income information.",
+    "fields": [
+      {
+        "fieldId": "monthlyIncome",
+        "label": "Monthly income",
+        "type": "number",
+        "required": true,
+        "min": 0
+      }
+    ],
+    "nextStepRules": [],
+    "displayMeta": {
+      "sequence": 3,
+      "isFinal": true
+    }
+  }
+]

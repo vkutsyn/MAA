@@ -1,6 +1,7 @@
 using MAA.Application.StateContext.Commands;
 using MAA.Application.StateContext.DTOs;
 using MAA.Domain.Exceptions;
+using MAA.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace MAA.Application.StateContext.Commands;
@@ -12,17 +13,20 @@ public class InitializeStateContextHandler
 {
     private readonly IStateContextRepository _stateContextRepository;
     private readonly IStateConfigurationRepository _stateConfigRepository;
+    private readonly ISessionRepository _sessionRepository;
     private readonly Domain.StateContext.StateResolver _stateResolver;
     private readonly ILogger<InitializeStateContextHandler> _logger;
 
     public InitializeStateContextHandler(
         IStateContextRepository stateContextRepository,
         IStateConfigurationRepository stateConfigRepository,
+        ISessionRepository sessionRepository,
         Domain.StateContext.StateResolver stateResolver,
         ILogger<InitializeStateContextHandler> logger)
     {
         _stateContextRepository = stateContextRepository;
         _stateConfigRepository = stateConfigRepository;
+        _sessionRepository = sessionRepository;
         _stateResolver = stateResolver;
         _logger = logger;
     }
@@ -35,9 +39,17 @@ public class InitializeStateContextHandler
         _logger.LogInformation("Initializing state context for session {SessionId}, ZIP {ZipCode}",
             command.SessionId, command.ZipCode);
 
+        // Validate that the session exists
+        var session = await _sessionRepository.GetByIdAsync(command.SessionId);
+        if (session == null)
+        {
+            _logger.LogWarning("Session {SessionId} not found", command.SessionId);
+            throw new ValidationException($"Session {command.SessionId} does not exist. Please create a session first.");
+        }
+
         // Check if state context already exists
-        var existingContext = await _stateContextRepository.GetBySessionIdAsync(command.SessionId);
-        if (existingContext != null)
+        var contextExists = await _stateContextRepository.ExistsBySessionIdAsync(command.SessionId);
+        if (contextExists)
         {
             throw new ValidationException("State context already exists for this session");
         }
@@ -73,7 +85,7 @@ public class InitializeStateContextHandler
         if (stateConfig == null)
         {
             _logger.LogError("State configuration not found for state code: {StateCode}", stateCode);
-            throw new ValidationException($"State configuration not found for state: {stateCode}");
+            throw new ValidationException($"State configuration not found for state: {stateCode}. Please ensure state configurations are properly seeded.");
         }
 
         // Create state context
@@ -86,10 +98,17 @@ public class InitializeStateContextHandler
         );
 
         // Save state context
-        await _stateContextRepository.AddAsync(stateContext);
-
-        _logger.LogInformation("State context initialized successfully for session {SessionId}, state {StateCode}",
-            command.SessionId, stateCode);
+        try
+        {
+            await _stateContextRepository.AddAsync(stateContext);
+            _logger.LogInformation("State context initialized successfully for session {SessionId}, state {StateCode}",
+                command.SessionId, stateCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save state context for session {SessionId}", command.SessionId);
+            throw new ValidationException($"Failed to save state context: {ex.Message}");
+        }
 
         // Build response
         var stateContextDto = new StateContextDto

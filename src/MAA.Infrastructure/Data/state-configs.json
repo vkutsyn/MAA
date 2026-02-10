@@ -308,5 +308,36 @@
     "effectiveDate": "2026-01-01T00:00:00Z",
     "version": 1,
     "isActive": true
+  },
+  {
+    "stateCode": "OK",
+    "stateName": "Oklahoma",
+    "medicaidProgramName": "SoonerCare",
+    "contactInfo": {
+      "phone": "1-800-987-7767",
+      "website": "https://oklahoma.gov/ohca.html",
+      "applicationUrl": "https://www.okdhs.org/services/snap/"
+    },
+    "eligibilityThresholds": {
+      "fplPercentages": {
+        "adults": 138,
+        "children": 211,
+        "pregnant": 205
+      },
+      "assetLimits": {
+        "individual": 2000,
+        "couple": 3000
+      }
+    },
+    "requiredDocuments": [
+      "Proof of identity (driver's license, state ID, or birth certificate)",
+      "Proof of Oklahoma residency (utility bill, lease agreement)",
+      "Income verification (pay stubs, tax returns, W-2 forms)",
+      "Social Security numbers for all household members"
+    ],
+    "additionalNotes": "Oklahoma expanded Medicaid under Medicaid Expansion Ballot Initiative in 2020. SoonerCare provides coverage for low-income adults, children, pregnant women, and individuals with disabilities.",
+    "effectiveDate": "2026-01-01T00:00:00Z",
+    "version": 1,
+    "isActive": true
   }
 ]

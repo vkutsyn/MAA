@@ -67,12 +67,20 @@ public class StateConfigurationSeeder
             foreach (var dto in configDtos)
             {
                 var configData = JsonSerializer.Serialize(dto);
+                
+                // Parse date as UTC (PostgreSQL requires UTC)
+                var effectiveDate = DateTime.Parse(dto.EffectiveDate, null, System.Globalization.DateTimeStyles.RoundtripKind);
+                if (effectiveDate.Kind != DateTimeKind.Utc)
+                {
+                    effectiveDate = DateTime.SpecifyKind(effectiveDate, DateTimeKind.Utc);
+                }
+                
                 var configuration = Domain.StateContext.StateConfiguration.Create(
                     dto.StateCode,
                     dto.StateName,
                     dto.MedicaidProgramName,
                     configData,
-                    DateTime.Parse(dto.EffectiveDate),
+                    effectiveDate,
                     dto.Version,
                     dto.IsActive
                 );
