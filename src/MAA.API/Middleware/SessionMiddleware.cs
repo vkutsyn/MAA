@@ -25,6 +25,8 @@ public class SessionMiddleware
     {
         "/health",
         "/api/auth",
+        "/api/admin",
+        "/api/rules",  // Rules API uses JWT authentication
         "/api-docs",
         "/swagger"
     };

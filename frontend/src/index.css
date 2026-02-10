@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/**
+ * Accessibility and Mobile-First Responsive Styles
+ * 
+ * Touch targets: Minimum 44x44px (mobile), 40x40px (desktop)
+ * Font sizes: Responsive scaling for readability
+ * Spacing: Adapted for mobile-first design
+ * Focus visible: Enhanced keyboard navigation indicator
+ * No horizontal scroll: All content fits within viewport width
+ */
+
+@layer components {
+  /* Enhanced focus visible for keyboard navigation (WCAG 2.1 AA) */
+  @supports selector(:focus-visible) {
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [role="button"]:focus-visible,
+    [tabindex]:focus-visible {
+      @apply outline-2 outline-offset-2 outline-ring;
+    }
+  }
+
+  /* Touch target sizing for mobile - applies to small screens */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    @apply min-h-11 min-w-11 sm:min-h-10 sm:min-w-10;
+  }
+
+  /* Increase spacing around interactive elements on touch devices */
+  label {
+    @apply text-base;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply min-h-11 text-base sm:min-h-10 sm:text-sm;
+  }
+
+  /* Mobile-first padding and margins to prevent horizontal scroll */
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    /* Ensure no horizontal overflow on narrow viewports */
+    overflow-x: hidden;
+    width: 100vw;
+  }
+
+  /* Screen reader only content (sr-only pattern) */
+  .sr-only {
+    @apply absolute left-[-10000px] h-px w-px overflow-hidden;
+  }
+
+  /* Skip to main content link (keyboard focus visible) */
+  a[href="#main"] {
+    @apply absolute top-0 left-0 z-50;
+    @apply bg-primary text-primary-foreground;
+    @apply px-4 py-2;
+    @apply -translate-y-full focus:translate-y-0;
+    @apply transition-transform;
+  }
+
+  /* Focus visible indicator for all interactive elements */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  /* Enhanced text contrast for readability */
+  @media (prefers-contrast: more) {
+    body {
+      @apply text-foreground;
+    }
+    
+    button,
+    [role="button"] {
+      @apply font-semibold;
+    }
+  }
+
+  /* Reduced motion support for animations */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      @apply !transition-none !animate-none;
+    }
+  }
+
+  /* Dark mode text sizing for accessibility */
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply !text-foreground;
+    }
+  }
+}
+
+/* Ensure form elements have proper padding for touch/keyboard use */
+@layer utilities {
+  /* Touch-friendly form spacing */
+  .touch-friendly {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  /*Responsive form input sizing */
+  .input-responsive {
+    @apply text-base sm:text-sm;
+    @apply min-h-11 sm:min-h-10;
+  }
+
+  /* Mobile-safe container */
+  .mobile-safe {
+    @apply max-w-full px-4 sm:px-6 lg:px-8;
+  }
+}

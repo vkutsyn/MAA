@@ -67,6 +67,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             // For PostgreSQL, migrations are already applied in DatabaseFixture
         });
 
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment("Test");
     }
 }

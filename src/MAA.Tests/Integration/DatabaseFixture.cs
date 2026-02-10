@@ -1,6 +1,7 @@
 using DotNet.Testcontainers.Configurations;
 using MAA.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -97,7 +98,21 @@ public class DatabaseFixture : IAsyncLifetime
         await context.SessionAnswers.ExecuteDeleteAsync();
         await context.Sessions.ExecuteDeleteAsync();
         await context.Users.ExecuteDeleteAsync();
-        await context.EncryptionKeys.ExecuteDeleteAsync();
+
+        var hasEncryptionKey = await context.EncryptionKeys.AnyAsync();
+        if (!hasEncryptionKey)
+        {
+            context.EncryptionKeys.Add(new MAA.Domain.Sessions.EncryptionKey
+            {
+                Id = Guid.NewGuid(),
+                KeyVersion = 1,
+                KeyIdVault = "maa-key-v001",
+                Algorithm = "AES-256-GCM",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                Metadata = "{}"
+            });
+        }
 
         await context.SaveChangesAsync();
     }

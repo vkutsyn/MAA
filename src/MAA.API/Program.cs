@@ -12,7 +12,10 @@ using MAA.Infrastructure.Data;
 using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Writers;
 using Serilog;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Swagger;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -26,12 +29,14 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    builder.Configuration.AddJsonFile("appsettings.Swagger.json", optional: true, reloadOnChange: true);
+
     // Add Serilog
     builder.Host.UseSerilog();
 
     // Add services to the container
-    builder.Services.AddOpenApi();
-
+    // Note: We're using Swashbuckle/Swagger instead of the built-in OpenApi
+    
     // Configure Entity Framework Core with PostgreSQL
     builder.Services.AddDbContext<SessionContext>(options =>
         options.UseNpgsql(
@@ -76,6 +81,17 @@ try
     builder.Services.AddScoped<ISessionService, SessionService>();
     builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // US4: Production implementation with Azure Key Vault
 
+    // Register JWT token provider and settings (Phase 5: Auth feature)
+    var jwtSettings = new MAA.Infrastructure.Security.JwtSettings();
+    builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
+    builder.Services.AddSingleton(jwtSettings);
+    builder.Services.AddScoped<ITokenProvider>(sp => 
+        new MAA.Infrastructure.Security.JwtTokenProvider(
+            jwtSettings,
+            sp.GetRequiredService<ILogger<MAA.Infrastructure.Security.JwtTokenProvider>>()
+        )
+    );
+
     // Register command/query handlers (US2: Session Data Persistence)
     builder.Services.AddScoped<MAA.Application.Sessions.Commands.SaveAnswerCommandHandler>();
     builder.Services.AddScoped<MAA.Application.Sessions.Queries.GetAnswersQueryHandler>();
@@ -98,16 +114,112 @@ try
     builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
     builder.Services.AddScoped<IFPLCacheService, FPLCacheService>();
 
+    // Register UI wizard services (E4: Eligibility Wizard UI)
+    builder.Services.AddScoped<IStateMetadataService, StateMetadataService>();
+    builder.Services.AddScoped<IQuestionTaxonomyService, QuestionTaxonomyService>();
+
     // Add controllers
     builder.Services.AddControllers();
+
+    // Configure Swagger/OpenAPI documentation if enabled
+    var swaggerSettings = builder.Configuration.GetSection("Swagger");
+    var swaggerEnabled = swaggerSettings.GetValue<bool>("Enabled", false);
+    if (swaggerEnabled)
+    {
+        var swaggerTitle = swaggerSettings.GetValue<string>("Title", "API");
+        var swaggerVersion = swaggerSettings.GetValue<string>("Version", "1.0.0");
+        var swaggerDescription = swaggerSettings.GetValue<string>("Description", "");
+
+        // Add Swagger/OpenAPI
+        builder.Services.AddSwaggerGen(options =>
+        {
+            // API metadata
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = swaggerTitle,
+                Version = swaggerVersion,
+                Description = swaggerDescription,
+                Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                {
+                    Name = "MAA Development Team"
+                }
+            });
+
+            // Enable XML documentation comments
+            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath);
+
+                // Include Application layer XML comments for DTOs
+                var applicationXmlFile = "MAA.Application.xml";
+                var applicationXmlPath = Path.Combine(AppContext.BaseDirectory, applicationXmlFile);
+                if (File.Exists(applicationXmlPath))
+                {
+                    options.IncludeXmlComments(applicationXmlPath);
+                }
+            }
+
+            // Add JWT Bearer token authentication support
+            // This enables the "Authorize" button in Swagger UI
+            options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+            });
+
+            // Require Bearer token for all endpoints with [Authorize] attribute
+            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+        });
+    }
 
     var app = builder.Build();
 
     // Configure the HTTP request pipeline
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
     {
-        app.MapOpenApi();
         app.UseDeveloperExceptionPage();
+
+        // Enable Swagger UI in development and test environments
+        if (swaggerEnabled)
+        {
+            app.UseSwagger(options =>
+            {
+                options.RouteTemplate = "openapi/{documentName}.json";
+            });
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/openapi/v1.json", "MAA API v1");
+                options.RoutePrefix = "swagger";
+                options.DefaultModelsExpandDepth(2);
+            });
+
+            app.MapGet("/openapi/v1.yaml", (ISwaggerProvider swaggerProvider) =>
+            {
+                var document = swaggerProvider.GetSwagger("v1");
+                using var writer = new StringWriter();
+                var yamlWriter = new OpenApiYamlWriter(writer);
+                document.SerializeAsV3(yamlWriter);
+                return Results.Text(writer.ToString(), "application/yaml");
+            });
+        }
     }
 
     // Global exception handler middleware

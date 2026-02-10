@@ -11,11 +11,13 @@ public interface ITokenProvider
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <param name="roles">User roles</param>
+    /// <param name="sessionId">Session ID to include as claim (optional)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>JWT access token</returns>
     Task<string> GenerateAccessTokenAsync(
         Guid userId, 
-        IEnumerable<string> roles, 
+        IEnumerable<string> roles,
+        Guid? sessionId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
