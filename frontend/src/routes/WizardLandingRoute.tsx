@@ -1,3 +1,4 @@
+import { RequireAuth } from '@/features/auth/RequireAuth'
 import { LandingPage } from '../features/wizard/LandingPage'
 import { useResumeWizard } from '../features/wizard/useResumeWizard'
 
@@ -28,5 +29,9 @@ export function WizardLandingRoute() {
     )
   }
 
-  return <LandingPage />
+  return (
+    <RequireAuth>
+      <LandingPage />
+    </RequireAuth>
+  )
 }

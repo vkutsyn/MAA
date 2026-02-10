@@ -1,53 +1,56 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useWizardStore } from './store'
-import { WizardProgress } from './WizardProgress'
-import { WizardStep } from './WizardStep'
-import { useWizardNavigator } from './useWizardNavigator'
-import { saveWizardState, clearWizardState } from './useResumeWizard'
-import { Answer } from './types'
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useWizardStore } from "./store";
+import { WizardProgress } from "./WizardProgress";
+import { WizardStep } from "./WizardStep";
+import { useWizardNavigator } from "./useWizardNavigator";
+import { saveWizardState, clearWizardState } from "./useResumeWizard";
+import { Answer } from "./types";
 
 /**
  * Main wizard page that orchestrates the question flow.
  * Displays current question, handles navigation, and persists answers.
  */
 export function WizardPage() {
-  const navigate = useNavigate()
-  const { session, questions, currentStep, selectedState } = useWizardStore()
-  
-  const navigator = useWizardNavigator()
+  const navigate = useNavigate();
+  const session = useWizardStore((state) => state.session);
+  const questions = useWizardStore((state) => state.questions);
+  const currentStep = useWizardStore((state) => state.currentStep);
+  const selectedState = useWizardStore((state) => state.selectedState);
+
+  const navigator = useWizardNavigator();
 
   // Redirect to landing if no session or questions
   useEffect(() => {
     if (!session || questions.length === 0) {
-      navigate('/')
+      navigate("/");
     }
-  }, [session, questions, navigate])
+  }, [session, questions, navigate]);
 
   // Save wizard state to localStorage whenever step changes
   useEffect(() => {
     if (session && selectedState) {
-      saveWizardState(selectedState.code, selectedState.name, currentStep)
+      saveWizardState(selectedState.code, selectedState.name, currentStep);
     }
-  }, [session, selectedState, currentStep])
+  }, [session, selectedState, currentStep]);
 
   // Handle answer submission and move to next step
   const handleNext = async (answer: Answer) => {
-    const canContinue = await navigator.goNext(answer)
+    const canContinue = await navigator.goNext(answer);
 
     if (!canContinue) {
       // Reached the end of the wizard
-      clearWizardState()
-      alert('Wizard complete! Results page coming in next phase.')
-      navigate('/')
+      clearWizardState();
+      alert("Wizard complete! Results page coming in next phase.");
+      navigate("/");
     }
-  }
+  };
 
   // Handle back navigation
   const handleBack = () => {
-    navigator.goBack()
-  }
+    navigator.goBack();
+  };
 
   // Guard: Show loading if not ready
   if (!session || questions.length === 0) {
@@ -55,22 +58,25 @@ export function WizardPage() {
       <div className="flex min-h-[50vh] items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
       </div>
-    )
+    );
   }
 
-  const currentQuestion = navigator.currentQuestion
+  const currentQuestion = navigator.currentQuestion;
 
   // Show error if navigation failed
   if (!currentQuestion) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div role="alert" className="max-w-md rounded-md border border-destructive bg-destructive/10 p-4">
+        <div
+          role="alert"
+          className="max-w-md rounded-md border border-destructive bg-destructive/10 p-4"
+        >
           <p className="text-sm text-destructive">
             Unable to load question. Please try refreshing the page.
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -81,7 +87,8 @@ export function WizardPage() {
           {selectedState?.name} Medicaid Eligibility
         </h1>
         <p className="text-sm text-muted-foreground">
-          Answer each question to check your eligibility. Your progress is automatically saved.
+          Answer each question to check your eligibility. Your progress is
+          automatically saved.
         </p>
       </div>
 
@@ -95,7 +102,10 @@ export function WizardPage() {
         </CardHeader>
         <CardContent>
           {navigator.saveError && (
-            <div role="alert" className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3">
+            <div
+              role="alert"
+              className="mb-4 rounded-md border border-destructive bg-destructive/10 p-3"
+            >
               <p className="text-sm text-destructive">{navigator.saveError}</p>
             </div>
           )}
@@ -113,11 +123,12 @@ export function WizardPage() {
       <Card className="bg-muted/50">
         <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground">
-            <strong>Need help?</strong> Your answers are saved automatically. You can close this
-            page and return later - your session will remain active for 30 minutes of inactivity.
+            <strong>Need help?</strong> Your answers are saved automatically.
+            You can close this page and return later - your session will remain
+            active for 30 minutes of inactivity.
           </p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -11,6 +11,7 @@ using MAA.Domain.Rules;
 using MAA.Infrastructure.Data;
 using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
 using Serilog;
@@ -92,6 +93,27 @@ try
         )
     );
 
+    // Configure JWT authentication
+    builder.Services.AddAuthentication("Bearer")
+        .AddJwtBearer("Bearer", options =>
+        {
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                    System.Text.Encoding.UTF8.GetBytes(jwtSettings.SecretKey)
+                ),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+    builder.Services.AddAuthorization();
+
     // Register command/query handlers (US2: Session Data Persistence)
     builder.Services.AddScoped<MAA.Application.Sessions.Commands.SaveAnswerCommandHandler>();
     builder.Services.AddScoped<MAA.Application.Sessions.Queries.GetAnswersQueryHandler>();
@@ -117,6 +139,21 @@ try
     // Register UI wizard services (E4: Eligibility Wizard UI)
     builder.Services.AddScoped<IStateMetadataService, StateMetadataService>();
     builder.Services.AddScoped<IQuestionTaxonomyService, QuestionTaxonomyService>();
+
+    // Add CORS policy for frontend
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins(
+                    "http://localhost:3000",  // Vite dev server
+                    "http://localhost:5173"   // Vite alternative port
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();  // Required for cookies and auth
+        });
+    });
 
     // Add controllers
     builder.Services.AddControllers();
@@ -224,6 +261,13 @@ try
 
     // Global exception handler middleware
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // Enable CORS (must be after exception handling, before auth)
+    app.UseCors("AllowFrontend");
+
+    // Enable authentication and authorization
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     // Session validation middleware - validates session cookies and timeouts
     // Must be before routing to validate all requests except bypass paths

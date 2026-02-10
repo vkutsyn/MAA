@@ -1,14 +1,14 @@
-import { ReactNode } from 'react'
+import { ReactNode } from "react";
 
 interface WizardLayoutProps {
-  children: ReactNode
-  title?: string
-  subtitle?: string
+  children: ReactNode;
+  title?: string;
+  subtitle?: string;
 }
 
 /**
  * Layout wrapper for wizard pages.
- * 
+ *
  * Features:
  * - Mobile-first responsive design (375px to 1920px breakpoints)
  * - Touch-friendly spacing and touch targets (minimum 44x44px)
@@ -16,11 +16,7 @@ interface WizardLayoutProps {
  * - Flexible layout that prevents horizontal scrolling
  * - Optimized padding and margins for mobile/tablet/desktop
  */
-export function WizardLayout({ 
-  children, 
-  title, 
-  subtitle
-}: WizardLayoutProps) {
+export function WizardLayout({ children, title, subtitle }: WizardLayoutProps) {
   return (
     <div className="min-h-screen bg-background py-4 sm:py-8 lg:py-12">
       <div className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8">
@@ -41,10 +37,8 @@ export function WizardLayout({
         )}
 
         {/* Main content */}
-        <main className="space-y-6">
-          {children}
-        </main>
+        <main className="space-y-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

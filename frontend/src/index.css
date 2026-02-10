@@ -136,7 +136,7 @@
     body {
       @apply text-foreground;
     }
-    
+
     button,
     [role="button"] {
       @apply font-semibold;

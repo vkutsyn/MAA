@@ -24,6 +24,7 @@ public class AuthController : ControllerBase
     private readonly IMapper _mapper;
     private readonly ILogger<AuthController> _logger;
     private readonly SessionContext _dbContext;
+    private readonly IWebHostEnvironment _environment;
     
     private const int MaxConcurrentSessions = 3;
     private const string RefreshTokenCookieName = "refreshToken";
@@ -33,13 +34,15 @@ public class AuthController : ControllerBase
         ITokenProvider tokenProvider,
         IMapper mapper,
         SessionContext dbContext,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        IWebHostEnvironment environment)
     {
         _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
         _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
     }
 
     /// <summary>
@@ -204,7 +207,7 @@ public class AuthController : ControllerBase
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,  // HTTPS only
+                Secure = !_environment.IsDevelopment(),  // HTTPS only in production
                 SameSite = SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(7),
                 IsEssential = true

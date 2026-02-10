@@ -397,7 +397,17 @@ components:
           type: string
         type:
           type: string
-          enum: [currency, integer, string, boolean, date, text, select, multiselect]
+          enum:
+            [
+              currency,
+              integer,
+              string,
+              boolean,
+              date,
+              text,
+              select,
+              multiselect,
+            ]
         required:
           type: boolean
         helpText:
