@@ -114,6 +114,10 @@ try
     builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
     builder.Services.AddScoped<IFPLCacheService, FPLCacheService>();
 
+    // Register UI wizard services (E4: Eligibility Wizard UI)
+    builder.Services.AddScoped<IStateMetadataService, StateMetadataService>();
+    builder.Services.AddScoped<IQuestionTaxonomyService, QuestionTaxonomyService>();
+
     // Add controllers
     builder.Services.AddControllers();
 
