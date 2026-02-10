@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MAA.API.Controllers;
@@ -8,9 +9,15 @@ namespace MAA.API.Controllers;
 /// Phase 1 Implementation: Stub endpoints for RBAC testing.
 /// Full implementation in Phase 3 (E7-E8: Admin Portal & Rule Management).
 /// </summary>
+/// <remarks>
+/// Authentication: All admin endpoints require JWT bearer token with admin privileges.
+/// Unauthorized requests will receive 401 Unauthorized.
+/// Include token in Authorization header: Authorization: Bearer {token}
+/// </remarks>
 [ApiController]
 [Route("api/admin")]
 [Produces("application/json")]
+[Authorize]
 public class AdminController : ControllerBase
 {
     private readonly ILogger<AdminController> _logger;

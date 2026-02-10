@@ -121,7 +121,63 @@ try
         var swaggerDescription = swaggerSettings.GetValue<string>("Description", "");
 
         // Add Swagger/OpenAPI
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            // API metadata
+            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = swaggerTitle,
+                Version = swaggerVersion,
+                Description = swaggerDescription,
+                Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                {
+                    Name = "MAA Development Team"
+                }
+            });
+
+            // Enable XML documentation comments
+            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+            {
+                options.IncludeXmlComments(xmlPath);
+
+                // Include Application layer XML comments for DTOs
+                var applicationXmlFile = "MAA.Application.xml";
+                var applicationXmlPath = Path.Combine(AppContext.BaseDirectory, applicationXmlFile);
+                if (File.Exists(applicationXmlPath))
+                {
+                    options.IncludeXmlComments(applicationXmlPath);
+                }
+            }
+
+            // Add JWT Bearer token authentication support
+            // This enables the "Authorize" button in Swagger UI
+            options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+            });
+
+            // Require Bearer token for all endpoints with [Authorize] attribute
+            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
+        });
     }
 
     var app = builder.Build();

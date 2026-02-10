@@ -226,42 +226,42 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 ### Tests for US3 (Written FIRST)
 
-- [ ] T040 Unit test: Verify new controller method appears in schema after code change
+- [x] T040 Unit test: Verify new controller method appears in schema after code change
   - This is a design/process test rather than code unit test
   - Test method: `NewEndpoint_AutomaticallyAppearsInSchema()`
   - Add temporary test endpoint to a controller
   - Rebuild solution, regenerate schema
   - Assert new endpoint present in OpenAPI JSON
 
-- [ ] T041 Integration test: Verify XML comment updates are reflected automatically
+- [x] T041 Integration test: Verify XML comment updates are reflected automatically
   - Test method: `UpdatedXmlComments_ReflectedInSchema()`
   - Method: Extract schema from running API, verify description matches XML comment
   - Change XML comment, restart API, re-extract schema
   - Assertion: New description appears (not cached from old build)
 
-- [ ] T042 Unit test: Verify CI/CD schema validation would catch schema errors
+- [x] T042 Unit test: Verify CI/CD schema validation would catch schema errors
   - Test method: `SchemaValidation_CatchesInvalidOpenApi()`
   - Intentionally create invalid schema (missing required field)
   - Verify validation fails (process test)
 
 ### Implementation for US3
 
-- [ ] T043 Document in `README.md` or `CONTRIBUTING.md`:
+- [x] T043 Document in `README.md` or `CONTRIBUTING.md`:
   - "API documentation is auto-generated from code comments"
   - "When you modify a controller or DTO, documentation updates automatically on rebuild"
   - "No manual OpenAPI.json maintenance needed"
   - Reference `specs/003-add-swagger/quickstart.md`
 
-- [ ] T044 Create/update build documentation:
+- [x] T044 Create/update build documentation:
   - Document where swagger.json is generated (`bin/{Configuration}/swagger.json`)
   - Explain how to access schema locally
 
-- [ ] T045 Add schema validation to CI/CD pipeline (if using GitHub Actions):
+- [x] T045 Add schema validation to CI/CD pipeline (if using GitHub Actions):
   - Script: `swagger-validation.ps1` (created in T004)
   - On build: Validate generated swagger.json against OpenAPI 3.0 spec
   - Fail build if validation errors (prevents invalid schema from being deployed)
 
-- [ ] T046 Document in PR template or developer guidelines:
+- [x] T046 Document in PR template or developer guidelines:
   - "Modify XML comments in controllers/DTOs to update API documentation"
   - "Run full build to verify documentation generates without errors"
   - "No separate step to update OpenAPI.json needed"
@@ -287,48 +287,48 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 ### Tests for US4 (Written FIRST)
 
-- [ ] T047 Unit test: Verify [Authorize] attribute on protected endpoints
+- [x] T047 Unit test: Verify [Authorize] attribute on protected endpoints
   - Test method: `ProtectedEndpoints_HaveAuthorizeAttribute()`
   - Reflection: Enumerate all endpoints, verify `/api/admin/*` and user-specific endpoints have `[Authorize]`
   - Some endpoints (login, health) intentionally public
 
-- [ ] T048 Integration test: Verify unauthenticated request to protected endpoint fails with 401
+- [x] T048 Integration test: Verify unauthenticated request to protected endpoint fails with 401
   - Test method: `UnauthorizedRequest_Returns_401()`
   - GET /api/sessions without Authorization header → expect 401
 
-- [ ] T049 Integration test: Verify authenticated request succeeds (with valid token)
+- [x] T049 Integration test: Verify authenticated request succeeds (with valid token)
   - Test method: `AuthorizedRequest_WithValidToken_Succeeds()`
   - GET /api/sessions with bearer token → expect 200
 
-- [ ] T050 Unit test: Verify OpenAPI schema includes security scheme definition
+- [x] T050 Unit test: Verify OpenAPI schema includes security scheme definition
   - Test method: `OpenApiSchema_IncludesJwtSecurityScheme()`
   - Schema should contain: `"securitySchemes": { "Bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } }`
 
 ### Implementation for US4
 
-- [ ] T051 Add `[Authorize]` attribute to all protected endpoints in `SessionsController.cs`:
+- [x] T051 Add `[Authorize]` attribute to all protected endpoints in `SessionsController.cs`:
   - Class-level or method-level attributes
   - Example: `[Authorize]` before method or on SessionsController class
 
-- [ ] T052 [P] Add `[Authorize]` attribute to all protected endpoints in `RulesController.cs`
-- [ ] T053 [P] Add `[Authorize]` attribute to all protected endpoints in `AdminController.cs`
-- [ ] T054 [P] Verify `AuthController.cs` login endpoint does NOT have `[Authorize]` (public)
+- [x] T052 [P] Add `[Authorize]` attribute to all protected endpoints in `RulesController.cs`
+- [x] T053 [P] Add `[Authorize]` attribute to all protected endpoints in `AdminController.cs`
+- [x] T054 [P] Verify `AuthController.cs` login endpoint does NOT have `[Authorize]` (public)
 
-- [ ] T055 Update `Program.cs` OpenAPI security scheme definition:
+- [x] T055 Update `Program.cs` OpenAPI security scheme definition:
   - Add JWT Bearer security scheme: `"Bearer"` type with `"jwt"` format
   - Example from research.md shows configuration needed
 
-- [ ] T056 Add authentication documentation to `AuthController.cs` XML comments:
+- [x] T056 Add authentication documentation to `AuthController.cs` XML comments:
   - Document JWT token format and expiration
   - Document bearer token usage in Authorization header
   - Example: `/// <remarks>Include JWT token in Authorization header: Authorization: Bearer {token}</remarks>`
 
-- [ ] T057 Add Swagger authorize button configuration in `Program.cs`:
+- [x] T057 Add Swagger authorize button configuration in `Program.cs`:
   - Enable Swagger UI Authorize button
   - Set up bearer token input field with "Bearer" scheme
   - Developers can paste JWT and it's automatically used in subsequent tests
 
-- [ ] T058 Create `AUTHENTICATION.md` in docs folder:
+- [x] T058 Create `AUTHENTICATION.md` in docs folder:
   - Document JWT authentication flow
   - Show how to get token: POST /auth/login
   - Show how to use token in Swagger UI
@@ -355,32 +355,32 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 ### Tests for US5 (Written FIRST)
 
-- [ ] T059 Unit test: Verify Swagger info section includes API version
+- [x] T059 Unit test: Verify Swagger info section includes API version
   - Test method: `SwaggerInfo_IncludesApiVersion()`
   - Schema should contain: `"info": { "title": "MAA API", "version": "1.0.0" }`
 
-- [ ] T060 Integration test: Verify version appears in Swagger UI title
+- [x] T060 Integration test: Verify version appears in Swagger UI title
   - Test method: `SwaggerUI_DisplaysApiVersion()`
   - GET /swagger → HTML includes "MAA API" and "1.0.0" in title/header
 
 ### Implementation for US5
 
-- [ ] T061 Configure API version in `Program.cs` Swashbuckle setup:
+- [x] T061 Configure API version in `Program.cs` Swashbuckle setup:
   - Set title: "Medicaid Application Assistant API"
   - Set version: "1.0.0" (from appsettings.json value)
   - Set description: "API for handling Medicaid/CHIP applications"
 
-- [ ] T062 Add version to `appsettings.json`:
+- [x] T062 Add version to `appsettings.json`:
   - Ensure: `"Swagger": { "Version": "1.0.0" }`
   - Use this value in Program.cs configuration
 
-- [ ] T063 Document versioning strategy in `docs/API-VERSIONING.md`:
+- [x] T063 Document versioning strategy in `docs/API-VERSIONING.md`:
   - Current: Single API version (v1)
   - Future: Multi-version support via (v1/, v2/ routes or header-based)
   - Policy: Maintain backward compatibility for N minor versions before breaking change
   - Reference research.md for versioning decision rationale
 
-- [ ] T064 [P] Document deprecation process in API guidelines:
+- [x] T064 [P] Document deprecation process in API guidelines:
   - How to mark endpoints as deprecated (Swagger attribute)
   - Deprecation notice period (e.g., 6 months notice before removal)
   - Example: Can add `[Obsolete("Use v2 endpoint instead")]` to deprecated endpoints

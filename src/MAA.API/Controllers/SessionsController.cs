@@ -1,6 +1,7 @@
 using AutoMapper;
 using MAA.Application.Services;
 using MAA.Application.Sessions.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MAA.API.Controllers;
@@ -10,8 +11,13 @@ namespace MAA.API.Controllers;
 /// Handles session creation, retrieval, and validation.
 /// User Story 1: Anonymous User Session with 30-minute timeout.
 /// </summary>
+/// <remarks>
+/// Authentication: All endpoints require JWT bearer token authentication.
+/// Include token in Authorization header: Authorization: Bearer {token}
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class SessionsController : ControllerBase
 {
     private readonly ISessionService _sessionService;

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MAA.Application.Eligibility.Handlers;
 using MAA.Application.Eligibility.DTOs;
@@ -12,8 +13,13 @@ namespace MAA.API.Controllers;
 /// Endpoints for eligibility evaluation, rule management, and federal poverty level lookups
 /// Phase 3 Implementation: T021,T029,T030
 /// </summary>
+/// <remarks>
+/// Authentication: All endpoints require JWT bearer token authentication.
+/// Include token in Authorization header: Authorization: Bearer {token}
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RulesController : ControllerBase
 {
     private readonly ILogger<RulesController> _logger;
