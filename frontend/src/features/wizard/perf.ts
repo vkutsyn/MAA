@@ -290,6 +290,21 @@ export function meetsPerformanceRequirement(): boolean {
 }
 
 /**
+ * Check if question rendering meets FR-008 requirement.
+ * FR-008: Render up to 50 questions in under 1 second (P95).
+ */
+export function meetsQuestionRenderRequirement(): boolean {
+  const renderStats = getPerformanceStats("question_load");
+
+  if (renderStats.count === 0) {
+    // No data yet
+    return true;
+  }
+
+  return renderStats.p95 <= PERF_THRESHOLDS.FIRST_QUESTION_MS;
+}
+
+/**
  * React hook for tracking component render performance.
  *
  * @param componentName - Name of component for logging

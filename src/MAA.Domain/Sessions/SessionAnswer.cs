@@ -59,8 +59,9 @@ public class SessionAnswer
     /// <summary>
     /// Which encryption key version was used to encrypt/hash this answer.
     /// References EncryptionKey.KeyVersion for key rotation support.
+    /// Null for non-PII fields that don't require encryption.
     /// </summary>
-    public int KeyVersion { get; set; }
+    public int? KeyVersion { get; set; }
 
     /// <summary>
     /// Flag indicating if field contains PII requiring encryption.

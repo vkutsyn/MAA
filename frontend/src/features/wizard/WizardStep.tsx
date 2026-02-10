@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useWizardStore } from "./store";
+import { QuestionTooltip } from "./QuestionTooltip";
 import { QuestionDto, Answer } from "./types";
 
 interface WizardStepProps {
   question: QuestionDto;
+  answer: Answer | null;
+  onAnswer: (answer: Answer, rawValue: string | string[]) => void;
   onNext: (answer: Answer) => void;
   onBack: () => void;
   canGoBack?: boolean;
+  canGoNext?: boolean;
   isSaving?: boolean;
+  showNavigation?: boolean;
 }
 
 /**
@@ -32,47 +29,66 @@ interface WizardStepProps {
  */
 export function WizardStep({
   question,
+  answer,
+  onAnswer,
   onNext,
   onBack,
   canGoBack: canGoBackProp,
+  canGoNext: canGoNextProp,
   isSaving = false,
+  showNavigation = true,
 }: WizardStepProps) {
-  const getAnswer = useWizardStore((state) => state.getAnswer);
-  const existingAnswer = getAnswer(question.key);
   const canGoBack = canGoBackProp !== undefined ? canGoBackProp : false;
+  const canGoNext = canGoNextProp !== undefined ? canGoNextProp : true;
 
-  const [value, setValue] = useState<string>(existingAnswer?.answerValue || "");
+  const [value, setValue] = useState<string | string[]>(
+    normalizeAnswerValue(question.type, answer?.answerValue),
+  );
   const [error, setError] = useState<string | null>(null);
 
   // Update value when question changes (navigation)
   useEffect(() => {
-    const answer = getAnswer(question.key);
-    setValue(answer?.answerValue || "");
+    setValue(normalizeAnswerValue(question.type, answer?.answerValue));
     setError(null);
-  }, [question.key]);
+  }, [question.key, question.type, answer?.answerValue]);
 
   // Validate and submit answer
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!showNavigation) {
+      return;
+    }
+
+    const rawValue = Array.isArray(value) ? value : value;
+    const valueString = Array.isArray(value) ? value.join(",") : value;
+
     // Required field validation
-    if (question.required && !value.trim()) {
+    if (
+      question.required &&
+      ((Array.isArray(rawValue) && rawValue.length === 0) ||
+        (typeof rawValue === "string" && !rawValue.trim()))
+    ) {
       setError("This field is required");
       return;
     }
 
     // Type-specific validation
-    const validationError = validateByType(value, question.type);
+    const validationError = validateByType(valueString, question.type);
     if (validationError) {
       setError(validationError);
       return;
     }
 
+    // Map question type to storage field type
+    // select/multiselect are UI types that store values as strings
+    const storageFieldType = mapToStorageFieldType(question.type);
+
     // Create answer object
     const answer: Answer = {
       fieldKey: question.key,
-      answerValue: value,
-      fieldType: question.type as Answer["fieldType"],
+      answerValue: valueString,
+      fieldType: storageFieldType,
       isPii: isPiiField(question.key), // Heuristic: income, SSN, etc.
     };
 
@@ -80,59 +96,88 @@ export function WizardStep({
   };
 
   // Handle value change
-  const handleChange = (newValue: string) => {
+  const handleChange = (newValue: string | string[]) => {
     setValue(newValue);
     setError(null);
+
+    const answerValue = Array.isArray(newValue) ? newValue.join(",") : newValue;
+    const storageFieldType = mapToStorageFieldType(question.type);
+
+    onAnswer(
+      {
+        fieldKey: question.key,
+        answerValue,
+        fieldType: storageFieldType,
+        isPii: isPiiField(question.key),
+      },
+      newValue,
+    );
   };
 
   // Render input based on question type
   const renderInput = () => {
     const inputId = `question-${question.key}`;
-    const ariaDescribedBy = [
-      question.helpText ? `${inputId}-help` : null,
-      error ? `${inputId}-error` : null,
-    ]
+    const ariaDescribedBy = [error ? `${inputId}-error` : null]
       .filter(Boolean)
       .join(" ");
+
+    const inputAriaLabel = question.label;
 
     switch (question.type) {
       case "select":
         return (
-          <Select value={value} onValueChange={handleChange}>
-            <SelectTrigger
-              id={inputId}
-              aria-describedby={ariaDescribedBy || undefined}
-              aria-invalid={error ? "true" : "false"}
-              aria-required={question.required}
-            >
-              <SelectValue placeholder="Choose an option" />
-            </SelectTrigger>
-            <SelectContent>
-              {question.options?.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            id={inputId}
+            value={typeof value === "string" ? value : ""}
+            onChange={(e) => handleChange(e.target.value)}
+            aria-label={inputAriaLabel}
+            aria-describedby={ariaDescribedBy || undefined}
+            aria-invalid={error ? "true" : "false"}
+            aria-required={question.required}
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="" disabled>
+              Choose an option
+            </option>
+            {question.options?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         );
 
       case "boolean":
         return (
-          <Select value={value} onValueChange={handleChange}>
-            <SelectTrigger
-              id={inputId}
-              aria-describedby={ariaDescribedBy || undefined}
-              aria-invalid={error ? "true" : "false"}
-              aria-required={question.required}
-            >
-              <SelectValue placeholder="Select yes or no" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">Yes</SelectItem>
-              <SelectItem value="false">No</SelectItem>
-            </SelectContent>
-          </Select>
+          <div
+            role="radiogroup"
+            aria-label={inputAriaLabel}
+            aria-describedby={ariaDescribedBy || undefined}
+            className="flex gap-4"
+          >
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name={inputId}
+                value="true"
+                checked={value === "true"}
+                onChange={(e) => handleChange(e.target.value)}
+                aria-required={question.required}
+              />
+              <span>Yes</span>
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name={inputId}
+                value="false"
+                checked={value === "false"}
+                onChange={(e) => handleChange(e.target.value)}
+                aria-required={question.required}
+              />
+              <span>No</span>
+            </label>
+          </div>
         );
 
       case "date":
@@ -140,8 +185,9 @@ export function WizardStep({
           <Input
             id={inputId}
             type="date"
-            value={value}
+            value={typeof value === "string" ? value : ""}
             onChange={(e) => handleChange(e.target.value)}
+            aria-label={inputAriaLabel}
             aria-describedby={ariaDescribedBy || undefined}
             aria-invalid={error ? "true" : "false"}
             aria-required={question.required}
@@ -159,13 +205,14 @@ export function WizardStep({
               type="text"
               inputMode="decimal"
               placeholder="0.00"
-              value={value}
+              value={typeof value === "string" ? value : ""}
               onChange={(e) => {
                 // Allow only numbers, decimal, and comma
                 const cleaned = e.target.value.replace(/[^0-9.,]/g, "");
                 handleChange(cleaned);
               }}
-              className="pl-7"
+              className="currency-input pl-7"
+              aria-label={inputAriaLabel}
               aria-describedby={ariaDescribedBy || undefined}
               aria-invalid={error ? "true" : "false"}
               aria-required={question.required}
@@ -177,16 +224,12 @@ export function WizardStep({
         return (
           <Input
             id={inputId}
-            type="text"
+            type="number"
             inputMode="numeric"
-            pattern="[0-9]*"
             placeholder="Enter a number"
-            value={value}
-            onChange={(e) => {
-              // Allow only digits
-              const cleaned = e.target.value.replace(/\D/g, "");
-              handleChange(cleaned);
-            }}
+            value={typeof value === "string" ? value : ""}
+            onChange={(e) => handleChange(e.target.value)}
+            aria-label={inputAriaLabel}
             aria-describedby={ariaDescribedBy || undefined}
             aria-invalid={error ? "true" : "false"}
             aria-required={question.required}
@@ -198,14 +241,42 @@ export function WizardStep({
           <textarea
             id={inputId}
             rows={4}
-            value={value}
+            value={typeof value === "string" ? value : ""}
             onChange={(e) => handleChange(e.target.value)}
             className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            aria-label={inputAriaLabel}
             aria-describedby={ariaDescribedBy || undefined}
             aria-invalid={error ? "true" : "false"}
             aria-required={question.required}
           />
         );
+
+      case "multiselect": {
+        const selectedValues = Array.isArray(value) ? value : [];
+
+        return (
+          <div className="space-y-2" aria-label={inputAriaLabel}>
+            {question.options?.map((option) => (
+              <label key={option.value} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  value={option.value}
+                  checked={selectedValues.includes(option.value)}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    const nextValues = isChecked
+                      ? [...selectedValues, option.value]
+                      : selectedValues.filter((v) => v !== option.value);
+                    handleChange(nextValues);
+                  }}
+                  aria-describedby={ariaDescribedBy || undefined}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        );
+      }
 
       default:
         // string type
@@ -213,8 +284,9 @@ export function WizardStep({
           <Input
             id={inputId}
             type="text"
-            value={value}
+            value={typeof value === "string" ? value : ""}
             onChange={(e) => handleChange(e.target.value)}
+            aria-label={inputAriaLabel}
             aria-describedby={ariaDescribedBy || undefined}
             aria-invalid={error ? "true" : "false"}
             aria-required={question.required}
@@ -230,25 +302,29 @@ export function WizardStep({
       aria-label="Question response form"
     >
       {/* Question */}
-      <fieldset className="space-y-3 border-0 p-0">
-        <legend className="text-base font-medium">
-          {question.label}
-          {question.required && (
-            <span className="ml-1 text-destructive" aria-label="required">
-              *
-            </span>
-          )}
-        </legend>
-
-        {/* Help text */}
-        {question.helpText && (
-          <p
-            id={`question-${question.key}-help`}
-            className="text-sm text-muted-foreground"
+      <fieldset
+        className="space-y-3 border-0 p-0"
+        aria-labelledby={`question-${question.key}-label`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <h2
+            id={`question-${question.key}-label`}
+            className="text-base font-medium"
           >
-            {question.helpText}
-          </p>
-        )}
+            {question.label}
+            {question.required && (
+              <span className="ml-1 text-destructive" aria-label="required">
+                *
+              </span>
+            )}
+          </h2>
+          {question.helpText && (
+            <QuestionTooltip
+              helpText={question.helpText}
+              questionLabel={question.label}
+            />
+          )}
+        </div>
 
         {/* Input */}
         {renderInput()}
@@ -268,39 +344,70 @@ export function WizardStep({
       </fieldset>
 
       {/* Navigation buttons */}
-      <div className="flex gap-4 justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          disabled={!canGoBack || isSaving}
-          className="min-h-10 min-w-10"
-          aria-label="Go back to previous question"
-        >
-          Back
-        </Button>
-        <Button
-          type="submit"
-          disabled={isSaving}
-          className="min-h-10 min-w-10"
-          aria-label={
-            isSaving
-              ? "Saving your answer"
-              : "Save answer and continue to next question"
-          }
-        >
-          {isSaving ? (
-            <>
-              <span aria-hidden="true">Saving...</span>
-              <span className="sr-only">Saving your answer</span>
-            </>
-          ) : (
-            "Next"
-          )}
-        </Button>
-      </div>
+      {showNavigation && (
+        <div className="flex gap-4 justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onBack}
+            disabled={!canGoBack || isSaving}
+            className="min-h-10 min-w-10"
+            aria-label="Go back to previous question"
+          >
+            Back
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSaving || !canGoNext}
+            className="min-h-10 min-w-10"
+            aria-label={
+              isSaving
+                ? "Saving your answer"
+                : "Save answer and continue to next question"
+            }
+          >
+            {isSaving ? (
+              <>
+                <span aria-hidden="true">Saving...</span>
+                <span className="sr-only">Saving your answer</span>
+              </>
+            ) : (
+              "Next"
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
+}
+
+function normalizeAnswerValue(
+  questionType: QuestionDto["type"],
+  answerValue?: string | null,
+): string | string[] {
+  if (questionType === "multiselect") {
+    if (!answerValue) return [];
+    return answerValue
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  return answerValue ?? "";
+}
+
+// Helper: Map question type to storage field type
+// UI types like select/multiselect are stored as strings in the backend
+function mapToStorageFieldType(
+  questionType: QuestionDto["type"],
+): Answer["fieldType"] {
+  switch (questionType) {
+    case "select":
+    case "multiselect":
+      return "string";
+    default:
+      return questionType as Answer["fieldType"];
+  }
 }
 
 // Helper: Validate value by field type

@@ -81,7 +81,7 @@ export function useResumeWizard() {
         }
 
         // Fetch saved answers from backend
-        const savedAnswers = await fetchAnswers();
+        const savedAnswers = await fetchAnswers(session.id);
 
         // Fetch questions for the saved state
         const questionSet = await fetchQuestions(wizardState.stateCode);

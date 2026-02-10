@@ -93,15 +93,16 @@ public class SessionAnswerDto
 
     /// <summary>
     /// Encryption key version used for this answer (if encrypted).
+    /// Null for non-PII fields that don't require encryption.
     /// </summary>
     /// <remarks>
-    /// Format: Integer version number
-    /// Constraints: Non-negative integer, required
+    /// Format: Integer version number or null
+    /// Constraints: Non-negative integer when set
     /// Used for: Proper decryption when key version is rotated
     /// Example: 3
-    /// Important: PII fields always have a version; non-PII may have version 0
+    /// Important: PII fields always have a version; non-PII have null
     /// </remarks>
-    public int KeyVersion { get; set; }
+    public int? KeyVersion { get; set; }
 
     /// <summary>
     /// Validation errors in JSONB format if any.

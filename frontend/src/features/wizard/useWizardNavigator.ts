@@ -17,6 +17,7 @@ export function useWizardNavigator() {
   const questions = useWizardStore((state) => state.questions);
   const currentStep = useWizardStore((state) => state.currentStep);
   const answers = useWizardStore((state) => state.answers);
+  const session = useWizardStore((state) => state.session);
   const setAnswer = useWizardStore((state) => state.setAnswer);
   const setCurrentStep = useWizardStore((state) => state.setCurrentStep);
 
@@ -29,6 +30,11 @@ export function useWizardNavigator() {
    * @returns true if navigation succeeded, false if at the end
    */
   const goNext = async (answer: Answer): Promise<boolean> => {
+    if (!session) {
+      setSaveError("No active session. Please refresh the page.");
+      return false;
+    }
+
     setIsSaving(true);
     setSaveError(null);
 
@@ -37,7 +43,7 @@ export function useWizardNavigator() {
       setAnswer(answer.fieldKey, answer);
 
       // Persist answer to backend
-      await saveAnswer({
+      await saveAnswer(session.sessionId, {
         fieldKey: answer.fieldKey,
         fieldType: answer.fieldType,
         answerValue: answer.answerValue,

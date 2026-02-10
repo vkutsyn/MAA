@@ -119,6 +119,7 @@ public class SessionsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>SessionDto or error response</returns>
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]  // Allow anonymous access for UI wizard
     [ProducesResponseType(typeof(SessionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -199,6 +200,7 @@ public class SessionsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Status information</returns>
     [HttpGet("{id:guid}/status")]
+    [AllowAnonymous]  // Allow anonymous access for UI wizard
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -76,21 +76,38 @@ export const useAuthStore = create<AuthState>()(
     setStatus: (status) => set({ status }),
     setError: (message) => set({ lastError: message }),
     setInitialized: (value) => set({ initialized: value }),
-    setSessionCredential: (credential) =>
-      set({ sessionCredential: credential }),
-    clearAuth: () => set({ ...defaultState, initialized: get().initialized }),
+    setSessionCredential: (credential) => {
+      if (credential) {
+        // Persist tokens to localStorage
+        localStorage.setItem("sessionCredential", JSON.stringify(credential));
+      } else {
+        localStorage.removeItem("sessionCredential");
+      }
+      set({ sessionCredential: credential });
+    },
+    clearAuth: () => {
+      // Clear sessionId and auth tokens from localStorage when clearing auth state
+      localStorage.removeItem("sessionId");
+      localStorage.removeItem("sessionCredential");
+      set({ ...defaultState, initialized: get().initialized });
+    },
     login: async (email, password) => {
+      // Clear any existing sessionId to ensure fresh session for new user
+      localStorage.removeItem("sessionId");
       set({ status: "authenticating", lastError: null });
       try {
         const response = await loginUser({ email, password });
+        const credential = {
+          accessToken: response.accessToken,
+          tokenType: response.tokenType,
+          expiresInSeconds: response.expiresIn,
+          refreshToken: response.refreshToken,
+        };
+        // Persist tokens to localStorage
+        localStorage.setItem("sessionCredential", JSON.stringify(credential));
         set({
           status: "authenticated",
-          sessionCredential: {
-            accessToken: response.accessToken,
-            tokenType: response.tokenType,
-            expiresInSeconds: response.expiresIn,
-            refreshToken: response.refreshToken,
-          },
+          sessionCredential: credential,
         });
         return { ok: true };
       } catch (error) {
@@ -115,6 +132,9 @@ export const useAuthStore = create<AuthState>()(
       try {
         await logoutUser();
       } finally {
+        // Clear sessionId and auth tokens from localStorage on logout
+        localStorage.removeItem("sessionId");
+        localStorage.removeItem("sessionCredential");
         set({
           status: "unauthenticated",
           sessionCredential: null,

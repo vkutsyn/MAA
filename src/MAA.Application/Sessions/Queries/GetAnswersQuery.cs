@@ -61,12 +61,12 @@ public class GetAnswersQueryHandler
             string? answerValue;
 
             // Decrypt PII fields; use plain text for non-PII
-            if (answer.IsPii && !string.IsNullOrWhiteSpace(answer.AnswerEncrypted))
+            if (answer.IsPii && !string.IsNullOrWhiteSpace(answer.AnswerEncrypted) && answer.KeyVersion.HasValue)
             {
                 // US2 Acceptance Scenario 3: Decryption happens on application side, returns plain value
                 answerValue = await _encryptionService.DecryptAsync(
                     answer.AnswerEncrypted,
-                    answer.KeyVersion,
+                    answer.KeyVersion.Value,
                     cancellationToken);
             }
             else
