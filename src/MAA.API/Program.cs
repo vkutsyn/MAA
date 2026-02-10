@@ -30,8 +30,8 @@ try
     builder.Host.UseSerilog();
 
     // Add services to the container
-    builder.Services.AddOpenApi();
-
+    // Note: We're using Swashbuckle/Swagger instead of the built-in OpenApi
+    
     // Configure Entity Framework Core with PostgreSQL
     builder.Services.AddDbContext<SessionContext>(options =>
         options.UseNpgsql(
@@ -129,7 +129,6 @@ try
     // Configure the HTTP request pipeline
     if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
     {
-        app.MapOpenApi();
         app.UseDeveloperExceptionPage();
 
         // Enable Swagger UI in development and test environments
@@ -138,11 +137,9 @@ try
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/openapi/v1.json", "MAA API v1");
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "MAA API v1");
                 options.RoutePrefix = "swagger";
                 options.DefaultModelsExpandDepth(2);
-                options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
-                options.DisplayOperationId();
             });
         }
     }
