@@ -109,8 +109,8 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T029 [P] Add step transition timing helper in frontend/src/features/wizard/perf.ts
-- [ ] T030 [P] Update docs/FEATURE_CATALOG.md to link the E4 spec at specs/004-ui-implementation/spec.md
+- [X] T029 [P] Add step transition timing helper in frontend/src/features/wizard/perf.ts
+- [X] T030 [P] Update docs/FEATURE_CATALOG.md to link the E4 spec at specs/004-ui-implementation/spec.md
 
 ---
 
