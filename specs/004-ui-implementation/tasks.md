@@ -60,12 +60,12 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Build landing page layout in frontend/src/features/wizard/LandingPage.tsx
-- [ ] T016 [US1] Wire landing route in frontend/src/routes/WizardLandingRoute.tsx
-- [ ] T017 [US1] Implement state selector UI in frontend/src/features/wizard/StateSelector.tsx
-- [ ] T018 [US1] Connect state list/lookup APIs in frontend/src/features/wizard/stateApi.ts
-- [ ] T019 [US1] Implement Start action (create session + set state) in frontend/src/features/wizard/useStartWizard.ts
-- [ ] T020 [US1] Render first question and progress initialization in frontend/src/features/wizard/WizardStep.tsx and frontend/src/features/wizard/WizardProgress.tsx
+- [X] T015 [US1] Build landing page layout in frontend/src/features/wizard/LandingPage.tsx
+- [X] T016 [US1] Wire landing route in frontend/src/routes/WizardLandingRoute.tsx
+- [X] T017 [US1] Implement state selector UI in frontend/src/features/wizard/StateSelector.tsx
+- [X] T018 [US1] Connect state list/lookup APIs in frontend/src/features/wizard/stateApi.ts
+- [X] T019 [US1] Implement Start action (create session + set state) in frontend/src/features/wizard/useStartWizard.ts
+- [X] T020 [US1] Render first question and progress initialization in frontend/src/features/wizard/WizardStep.tsx and frontend/src/features/wizard/WizardProgress.tsx
 
 **Checkpoint**: User Story 1 should be functional and testable independently
 

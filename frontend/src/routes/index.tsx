@@ -1,5 +1,7 @@
 import { createBrowserRouter, RouteObject } from 'react-router-dom'
 import App from '../App'
+import { WizardLandingRoute } from './WizardLandingRoute'
+import { WizardRoute } from './WizardRoute'
 
 // Define routes
 const routes: RouteObject[] = [
@@ -9,17 +11,11 @@ const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        lazy: async () => {
-          // Placeholder for landing page - will be implemented in Phase 3
-          return { Component: () => <div>Landing Page - Coming Soon</div> }
-        },
+        element: <WizardLandingRoute />,
       },
       {
         path: 'wizard',
-        lazy: async () => {
-          // Placeholder for wizard - will be implemented in Phase 3+
-          return { Component: () => <div>Wizard - Coming Soon</div> }
-        },
+        element: <WizardRoute />,
       },
     ],
   },
