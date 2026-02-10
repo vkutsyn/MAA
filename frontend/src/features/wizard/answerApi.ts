@@ -7,38 +7,43 @@ import { SaveAnswerDto, SessionAnswerDto } from "./types";
 
 /**
  * Save or update an answer for the current session.
+ * @param sessionId The session ID
  * @param answer Answer data to save
  */
 export async function saveAnswer(
+  sessionId: string,
   answer: SaveAnswerDto,
 ): Promise<SessionAnswerDto> {
   const response = await apiClient.post<SessionAnswerDto>(
-    "/sessions/me/answers",
+    `/sessions/${sessionId}/answers`,
     answer,
   );
   return response.data;
 }
 
 /**
- * Get all answers for the current session.
+ * Get all answers for a session.
+ * @param sessionId The session ID
  */
-export async function fetchAnswers(): Promise<SessionAnswerDto[]> {
+export async function fetchAnswers(sessionId: string): Promise<SessionAnswerDto[]> {
   const response = await apiClient.get<SessionAnswerDto[]>(
-    "/sessions/me/answers",
+    `/sessions/${sessionId}/answers`,
   );
   return response.data;
 }
 
 /**
  * Get a specific answer by field key.
+ * @param sessionId The session ID
  * @param fieldKey The field key to lookup
  */
 export async function fetchAnswer(
+  sessionId: string,
   fieldKey: string,
 ): Promise<SessionAnswerDto | null> {
   try {
     const response = await apiClient.get<SessionAnswerDto>(
-      `/sessions/me/answers/${fieldKey}`,
+      `/sessions/${sessionId}/answers/${fieldKey}`,
     );
     return response.data;
   } catch (error: any) {

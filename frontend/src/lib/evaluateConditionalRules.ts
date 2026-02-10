@@ -1,4 +1,7 @@
-import type { ConditionalRuleDto, QuestionDefinitionDto } from "@/services/questionService";
+import type {
+  ConditionalRuleDto,
+  QuestionDefinitionDto,
+} from "@/services/questionService";
 
 export type AnswerValue = string | number | boolean | null | undefined;
 
@@ -131,7 +134,11 @@ class Tokenizer {
       case ">":
         if (this.peek("=")) {
           this.position += 2;
-          return { type: TokenType.GreaterOrEqual, lexeme: ">=", position: start };
+          return {
+            type: TokenType.GreaterOrEqual,
+            lexeme: ">=",
+            position: start,
+          };
         }
         this.position++;
         return { type: TokenType.Greater, lexeme: ">", position: start };
@@ -148,7 +155,10 @@ class Tokenizer {
     }
 
     if (this.isDigit(current) || (current === "-" && this.peekDigit())) {
-      return this.readNumberToken();
+      if (this.looksLikeNumber()) {
+        return this.readNumberToken();
+      }
+      return this.readIdentifierOrKeyword();
     }
 
     if (this.isIdentifierStart(current)) {
@@ -159,17 +169,26 @@ class Tokenizer {
   }
 
   private skipWhitespace() {
-    while (this.position < this.text.length && /\s/.test(this.text[this.position])) {
+    while (
+      this.position < this.text.length &&
+      /\s/.test(this.text[this.position])
+    ) {
       this.position++;
     }
   }
 
   private peek(expected: string) {
-    return this.position + 1 < this.text.length && this.text[this.position + 1] === expected;
+    return (
+      this.position + 1 < this.text.length &&
+      this.text[this.position + 1] === expected
+    );
   }
 
   private peekDigit() {
-    return this.position + 1 < this.text.length && /\d/.test(this.text[this.position + 1]);
+    return (
+      this.position + 1 < this.text.length &&
+      /\d/.test(this.text[this.position + 1])
+    );
   }
 
   private isDigit(value: string): boolean {
@@ -178,6 +197,41 @@ class Tokenizer {
 
   private isIdentifierStart(value: string) {
     return /[A-Za-z0-9]/.test(value);
+  }
+
+  private looksLikeNumber(): boolean {
+    let position = this.position;
+    if (this.text[position] === "-") {
+      position++;
+    }
+
+    let sawDigit = false;
+    let sawDot = false;
+
+    while (position < this.text.length) {
+      const current = this.text[position];
+      if (/\d/.test(current)) {
+        sawDigit = true;
+        position++;
+        continue;
+      }
+      if (current === "." && !sawDot) {
+        sawDot = true;
+        position++;
+        continue;
+      }
+      break;
+    }
+
+    if (!sawDigit) {
+      return false;
+    }
+
+    if (position < this.text.length && /[A-Za-z_-]/.test(this.text[position])) {
+      return false;
+    }
+
+    return true;
   }
 
   private readStringToken(): Token {
@@ -292,7 +346,8 @@ class Parser {
       const right = this.parseAnd();
       const left = node;
       node = {
-        evaluate: (answers) => left.evaluate(answers) || right.evaluate(answers),
+        evaluate: (answers) =>
+          left.evaluate(answers) || right.evaluate(answers),
         collectIds: (ids) => {
           left.collectIds(ids);
           right.collectIds(ids);
@@ -308,7 +363,8 @@ class Parser {
       const right = this.parseUnary();
       const left = node;
       node = {
-        evaluate: (answers) => left.evaluate(answers) && right.evaluate(answers),
+        evaluate: (answers) =>
+          left.evaluate(answers) && right.evaluate(answers),
         collectIds: (ids) => {
           left.collectIds(ids);
           right.collectIds(ids);
@@ -362,10 +418,14 @@ class Parser {
     }
 
     if (this.match(TokenType.Equals)) {
-      return this.buildComparisonNode(questionId, "equals", [this.parseLiteral()]);
+      return this.buildComparisonNode(questionId, "equals", [
+        this.parseLiteral(),
+      ]);
     }
     if (this.match(TokenType.NotEquals)) {
-      return this.buildComparisonNode(questionId, "notEquals", [this.parseLiteral()]);
+      return this.buildComparisonNode(questionId, "notEquals", [
+        this.parseLiteral(),
+      ]);
     }
     if (this.match(TokenType.GreaterOrEqual)) {
       return this.buildComparisonNode(questionId, "gte", [this.parseLiteral()]);
@@ -380,7 +440,9 @@ class Parser {
       return this.buildComparisonNode(questionId, "lt", [this.parseLiteral()]);
     }
 
-    throw new Error(`Expected comparison operator after '${identifier.lexeme}'.`);
+    throw new Error(
+      `Expected comparison operator after '${identifier.lexeme}'.`,
+    );
   }
 
   private parseList(): RuleValue[] {
@@ -469,13 +531,29 @@ class Parser {
           case "notEquals":
             return values[0] ? !matches(values[0], answer) : false;
           case "gt":
-            return compareNumeric(values[0], answer, (left, right) => left > right);
+            return compareNumeric(
+              values[0],
+              answer,
+              (left, right) => left > right,
+            );
           case "gte":
-            return compareNumeric(values[0], answer, (left, right) => left >= right);
+            return compareNumeric(
+              values[0],
+              answer,
+              (left, right) => left >= right,
+            );
           case "lt":
-            return compareNumeric(values[0], answer, (left, right) => left < right);
+            return compareNumeric(
+              values[0],
+              answer,
+              (left, right) => left < right,
+            );
           case "lte":
-            return compareNumeric(values[0], answer, (left, right) => left <= right);
+            return compareNumeric(
+              values[0],
+              answer,
+              (left, right) => left <= right,
+            );
           case "in":
             return values.some((value) => matches(value, answer));
           case "notIn":
@@ -496,7 +574,8 @@ function matches(value: RuleValue, answer: AnswerValue): boolean {
 
   switch (value.type) {
     case "number": {
-      const numericAnswer = typeof answer === "number" ? answer : Number(answer);
+      const numericAnswer =
+        typeof answer === "number" ? answer : Number(answer);
       return !Number.isNaN(numericAnswer) && numericAnswer === value.value;
     }
     case "boolean": {

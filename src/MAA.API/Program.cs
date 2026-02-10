@@ -1,4 +1,5 @@
 using MAA.API.Middleware;
+using MAA.Application.Handlers;
 using MAA.Application.Services;
 using MAA.Application.Sessions;
 using MAA.Application.Eligibility.Handlers;
@@ -102,6 +103,9 @@ try
     builder.Services.AddScoped<SaveStepAnswerRequestValidator>();
     builder.Services.AddScoped<GetWizardSessionStateValidator>();
 
+    // Register Question Definitions handler (specs/008)
+    builder.Services.AddScoped<GetQuestionDefinitionsHandler>();
+
     // Add AutoMapper
     builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -126,8 +130,15 @@ try
     }
 
     // Register infrastructure services (US4: Azure Key Vault integration)
-    // In test environment, skip Azure Key Vault - tests provide mock
-    if (builder.Environment.IsProduction() || builder.Configuration["Azure:KeyVault:Uri"] == null)
+    // Check if local encryption is enabled for development
+    var useLocalEncryption = builder.Configuration.GetValue<bool>("Azure:KeyVault:UseLocalEncryption", false);
+    
+    if (useLocalEncryption)
+    {
+        // Development: Use local encryption (no Azure Key Vault)
+        builder.Services.AddScoped<IKeyVaultClient, MAA.Infrastructure.Security.LocalKeyVaultClient>();
+    }
+    else if (builder.Environment.IsProduction() || builder.Configuration["Azure:KeyVault:Uri"] == null)
     {
         // Production: Use real Key Vault
         // Test: Use mock (provided by TestWebApplicationFactory or use default)

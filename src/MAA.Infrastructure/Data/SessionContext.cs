@@ -173,7 +173,7 @@ public class SessionContext : DbContext
             entity.Property(e => e.AnswerPlain).HasMaxLength(1000);
             entity.Property(e => e.AnswerEncrypted).HasColumnType("text");
             entity.Property(e => e.AnswerHash).HasMaxLength(256);
-            entity.Property(e => e.KeyVersion).IsRequired();
+            entity.Property(e => e.KeyVersion); // Nullable for non-PII answers
             entity.Property(e => e.IsPii).HasDefaultValue(false);
             entity.Property(e => e.ValidationErrors).HasColumnType("jsonb");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");

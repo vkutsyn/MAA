@@ -32,12 +32,13 @@ export async function renewSession(
 
   refreshPromise = refreshSession(refreshToken)
     .then((response) => {
-      setSessionCredential({
+      const updatedCredential = {
         accessToken: response.accessToken,
         tokenType: response.tokenType,
         expiresInSeconds: response.expiresIn,
         refreshToken: refreshToken, // Keep the same refresh token
-      });
+      };
+      setSessionCredential(updatedCredential);
       setStatus("authenticated");
       if (!options.silent) {
         setError(null);
@@ -69,6 +70,9 @@ export function redirectToLogin(returnPath?: string) {
   if (returnPath) {
     setReturnPath(returnPath);
   }
+  // Clear sessionId and tokens to ensure fresh session on next login
+  localStorage.removeItem("sessionId");
+  localStorage.removeItem("sessionCredential");
   clearAuth();
 
   if (window.location.pathname !== "/login") {

@@ -25,7 +25,7 @@ public class QuestionTaxonomyService : IQuestionTaxonomyService
         var normalizedCode = stateCode.Trim().ToUpperInvariant();
 
         // MVP: Return basic question set for pilot states
-        if (normalizedCode == "TX" || normalizedCode == "CA")
+        if (normalizedCode == "TX" || normalizedCode == "CA" || normalizedCode == "OK")
         {
             var questionSet = new QuestionSetDto
             {

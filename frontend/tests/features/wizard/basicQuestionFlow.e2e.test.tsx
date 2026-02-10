@@ -222,7 +222,7 @@ describe("E2E: Basic Question Flow", () => {
       expect(
         screen.getByLabelText(/date of birth/i, {
           selector: "input, textarea",
-        })
+        }),
       ).toBeTruthy();
     });
 

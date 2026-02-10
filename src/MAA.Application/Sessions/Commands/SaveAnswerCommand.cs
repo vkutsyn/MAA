@@ -118,7 +118,7 @@ public class SaveAnswerCommandHandler
             answer.AnswerPlain = command.AnswerValue;
             answer.AnswerEncrypted = null;
             answer.AnswerHash = null;
-            answer.KeyVersion = 0; // No encryption key needed
+            answer.KeyVersion = null; // No encryption key needed for non-PII
         }
 
         // Save or update

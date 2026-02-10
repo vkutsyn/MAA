@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWizardStore } from "./store";
@@ -7,6 +7,9 @@ import { WizardStep } from "./WizardStep";
 import { useWizardNavigator } from "./useWizardNavigator";
 import { saveWizardState, clearWizardState } from "./useResumeWizard";
 import { Answer } from "./types";
+import { ConditionalQuestionContainer } from "./ConditionalQuestionContainer";
+import { computeVisibility, AnswerMap } from "./conditionEvaluator";
+import { debounce } from "./perf";
 
 /**
  * Main wizard page that orchestrates the question flow.
@@ -18,13 +21,48 @@ export function WizardPage() {
   const questions = useWizardStore((state) => state.questions);
   const currentStep = useWizardStore((state) => state.currentStep);
   const selectedState = useWizardStore((state) => state.selectedState);
+  const answers = useWizardStore((state) => state.answers);
+  const storedAnswerMap = useWizardStore((state) => state.answerMap);
+  const setAnswer = useWizardStore((state) => state.setAnswer);
+  const updateAnswerMap = useWizardStore((state) => state.updateAnswerMap);
 
   const navigator = useWizardNavigator();
 
-  // Redirect to landing if no session or questions
+  const debouncedUpdateAnswerMap = useMemo(
+    () =>
+      debounce((fieldKey: string, value: string | string[] | null) => {
+        updateAnswerMap(fieldKey, value);
+      }, 150),
+    [updateAnswerMap],
+  );
+
+  const visibilityState = useMemo(
+    () => computeVisibility(questions, storedAnswerMap),
+    [questions, storedAnswerMap],
+  );
+
+  const questionKeySignature = useMemo(
+    () => questions.map((question) => question.key).join("|"),
+    [questions],
+  );
+  const seededSignatureRef = useRef<string>("");
+  const userHasInteractedRef = useRef(false);
+
+  useEffect(() => {
+    if (questions.length === 0 || userHasInteractedRef.current) return;
+    if (seededSignatureRef.current === questionKeySignature) return;
+    const seededMap = buildAnswerMap(questions, answers);
+    if (Object.keys(seededMap).length === 0) return;
+    Object.entries(seededMap).forEach(([fieldKey, value]) => {
+      updateAnswerMap(fieldKey, value);
+    });
+    seededSignatureRef.current = questionKeySignature;
+  }, [questions, answers, updateAnswerMap, questionKeySignature]);
+
+  // Redirect to state-context if no session or questions
   useEffect(() => {
     if (!session || questions.length === 0) {
-      navigate("/");
+      navigate("/state-context");
     }
   }, [session, questions, navigate]);
 
@@ -50,6 +88,15 @@ export function WizardPage() {
   // Handle back navigation
   const handleBack = () => {
     navigator.goBack();
+  };
+
+  const handleAnswerChange = (
+    nextAnswer: Answer,
+    rawValue: string | string[],
+  ) => {
+    userHasInteractedRef.current = true;
+    setAnswer(nextAnswer.fieldKey, nextAnswer);
+    debouncedUpdateAnswerMap(nextAnswer.fieldKey, rawValue);
   };
 
   // Guard: Show loading if not ready
@@ -100,7 +147,7 @@ export function WizardPage() {
         <CardHeader>
           <CardTitle className="text-lg">Question {currentStep + 1}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           {navigator.saveError && (
             <div
               role="alert"
@@ -109,13 +156,33 @@ export function WizardPage() {
               <p className="text-sm text-destructive">{navigator.saveError}</p>
             </div>
           )}
-          <WizardStep
-            question={currentQuestion}
-            onNext={handleNext}
-            onBack={handleBack}
-            canGoBack={navigator.canGoBack}
-            isSaving={navigator.isSaving}
-          />
+          {questions.map((question) => {
+            const isVisible = visibilityState[question.key] ?? true;
+            const isCurrent = question.key === currentQuestion?.key;
+            const answer = answers[question.key] ?? null;
+
+            return (
+              <ConditionalQuestionContainer
+                key={question.key}
+                question={question}
+                isVisible={isVisible}
+                answer={answer}
+                onAnswer={handleAnswerChange}
+              >
+                <WizardStep
+                  question={question}
+                  answer={answer}
+                  onAnswer={handleAnswerChange}
+                  onNext={handleNext}
+                  onBack={handleBack}
+                  canGoBack={isCurrent ? navigator.canGoBack : false}
+                  canGoNext={isCurrent ? navigator.canGoNext : false}
+                  isSaving={isCurrent ? navigator.isSaving : false}
+                  showNavigation={isCurrent}
+                />
+              </ConditionalQuestionContainer>
+            );
+          })}
         </CardContent>
       </Card>
 
@@ -131,4 +198,30 @@ export function WizardPage() {
       </Card>
     </div>
   );
+}
+
+function buildAnswerMap(
+  questions: Array<{ key: string; type: string }>,
+  answers: Record<string, Answer>,
+): AnswerMap {
+  const map: AnswerMap = {};
+
+  questions.forEach((question) => {
+    const answer = answers[question.key];
+    if (!answer) return;
+
+    if (question.type === "multiselect") {
+      map[question.key] = answer.answerValue
+        ? answer.answerValue
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+        : [];
+      return;
+    }
+
+    map[question.key] = answer.answerValue ?? "";
+  });
+
+  return map;
 }

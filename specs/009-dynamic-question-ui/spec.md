@@ -2,7 +2,7 @@
 
 **Feature Branch**: `009-dynamic-question-ui`  
 **Created**: February 10, 2026  
-**Status**: Done (pending Phase 6 manual validation: T039, T040, T045, T046, T048)  
+**Status**: Done (skipped T039, T040, T045, T046, T048 per /speckit.close)  
 **Input**: User description: "Dynamic Eligibility Question UI - Render questions dynamically, support conditional questions, include 'Why we ask this' tooltips"
 
 ## User Scenarios & Testing _(mandatory)_

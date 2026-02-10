@@ -7,7 +7,10 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ZipCodeForm, type ZipCodeFormData } from "../features/state-context/components/ZipCodeForm";
+import {
+  ZipCodeForm,
+  type ZipCodeFormData,
+} from "../features/state-context/components/ZipCodeForm";
 import { StateConfirmation } from "../features/state-context/components/StateConfirmation";
 import { StateOverride } from "../features/state-context/components/StateOverride";
 import {
@@ -19,6 +22,9 @@ import { Card } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { CreateSessionDto, SessionDto } from "@/features/wizard/types";
+import { useWizardStore } from "@/features/wizard/store";
+import { fetchQuestions } from "@/features/wizard/questionApi";
+import { saveWizardState } from "@/features/wizard/useResumeWizard";
 
 export function StateContextStep() {
   const navigate = useNavigate();
@@ -27,6 +33,11 @@ export function StateContextStep() {
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showStateOverride, setShowStateOverride] = useState(false);
+  const [isInitializingWizard, setIsInitializingWizard] = useState(false);
+
+  // Wizard store actions
+  const { setSession, setQuestions, setSelectedState, reset } =
+    useWizardStore();
 
   // Hooks for API calls
   const {
@@ -79,7 +90,7 @@ export function StateContextStep() {
 
         const response = await apiClient.post<SessionDto>(
           "/sessions",
-          sessionPayload
+          sessionPayload,
         );
 
         const session = response.data;
@@ -88,9 +99,9 @@ export function StateContextStep() {
       } catch (err: any) {
         console.error("Failed to create session:", err);
         setSessionError(
-          err.response?.data?.message || 
-          err.response?.data?.error ||
-          "Failed to create session. Please try again."
+          err.response?.data?.message ||
+            err.response?.data?.error ||
+            "Failed to create session. Please try again.",
         );
       } finally {
         setIsCreatingSession(false);
@@ -128,8 +139,54 @@ export function StateContextStep() {
   };
 
   // Handle continue to wizard
-  const handleContinue = () => {
-    navigate("/wizard/step-1");
+  const handleContinue = async () => {
+    if (!sessionId || !stateData || !stateConfig) {
+      setSessionError("Session or state data not available");
+      return;
+    }
+
+    setIsInitializingWizard(true);
+    setSessionError(null);
+
+    try {
+      // Fetch questions for the selected state
+      const questionSet = await fetchQuestions(stateData.stateCode);
+
+      // Fetch session details to get expiration
+      const sessionResponse = await apiClient.get<SessionDto>(
+        `/sessions/${sessionId}`,
+      );
+      const session = sessionResponse.data;
+
+      // Initialize wizard store with existing session and questions
+      setSession({
+        sessionId: session.id,
+        stateCode: stateData.stateCode,
+        stateName: stateData.stateName,
+        currentStep: 0,
+        totalSteps: questionSet.questions.length,
+        expiresAt: session.expiresAt,
+      });
+
+      setQuestions(questionSet.questions);
+      setSelectedState(stateData.stateCode, stateData.stateName);
+
+      // Save wizard state to localStorage for resume capability
+      saveWizardState(stateData.stateCode, stateData.stateName, 0);
+
+      // Navigate to the wizard
+      navigate("/wizard");
+    } catch (err: any) {
+      console.error("Failed to initialize wizard:", err);
+      setSessionError(
+        err.response?.data?.message ||
+          "Failed to start wizard. Please try again.",
+      );
+      // Reset wizard store on error
+      reset();
+    } finally {
+      setIsInitializingWizard(false);
+    }
   };
 
   // Handle state override - show override form
@@ -255,7 +312,9 @@ export function StateContextStep() {
                   Error
                 </h3>
                 <p className="text-sm text-red-800 dark:text-red-300">
-                  {initError?.message || updateError?.message || "An error occurred"}
+                  {initError?.message ||
+                    updateError?.message ||
+                    "An error occurred"}
                 </p>
               </div>
             </div>
@@ -303,7 +362,7 @@ export function StateContextStep() {
                 isManualOverride={stateData.isManualOverride}
                 onContinue={handleContinue}
                 onChangeState={handleShowStateOverride}
-                isLoading={false}
+                isLoading={isInitializingWizard}
               />
             )}
           </>

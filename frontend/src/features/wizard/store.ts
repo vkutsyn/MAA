@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { WizardSession, QuestionDto, Answer, WizardProgress } from "./types";
+import { AnswerMap, VisibilityState, computeVisibility } from "./conditionEvaluator";
 
 /**
  * Wizard state store using Zustand.
  * Manages wizard session, questions, answers, and navigation state.
+ * Includes conditional visibility tracking for dynamic questions.
  */
 interface WizardState {
   // Session
@@ -21,6 +23,12 @@ interface WizardState {
   setAnswer: (fieldKey: string, answer: Answer) => void;
   setAnswers: (answers: Answer[]) => void;
   getAnswer: (fieldKey: string) => Answer | undefined;
+
+  // Conditional visibility
+  answerMap: AnswerMap; // simplified answers for condition evaluation
+  visibilityState: VisibilityState; // computed visibility for each question
+  updateAnswerMap: (fieldKey: string, value: string | string[] | null) => void;
+  recomputeVisibility: () => void;
 
   // Progress
   currentStep: number;
@@ -47,6 +55,8 @@ const initialState = {
   session: null,
   questions: [],
   answers: {},
+  answerMap: {},
+  visibilityState: {},
   currentStep: 0,
   selectedState: null,
   isLoading: false,
@@ -62,7 +72,10 @@ export const useWizardStore = create<WizardState>()(
       clearSession: () => set({ session: null }),
 
       // Question management
-      setQuestions: (questions) => set({ questions, currentStep: 0 }),
+      setQuestions: (questions) => {
+        const visibilityState = computeVisibility(questions, {});
+        set({ questions, currentStep: 0, visibilityState });
+      },
 
       // Answer management
       setAnswer: (fieldKey, answer) =>
@@ -85,6 +98,23 @@ export const useWizardStore = create<WizardState>()(
         }),
 
       getAnswer: (fieldKey) => get().answers[fieldKey],
+
+      // Conditional visibility management
+      updateAnswerMap: (fieldKey, value) => {
+        const newAnswerMap = {
+          ...get().answerMap,
+          [fieldKey]: value,
+        };
+        set({ answerMap: newAnswerMap });
+        // Recompute visibility when answer changes
+        get().recomputeVisibility();
+      },
+
+      recomputeVisibility: () => {
+        const { questions, answerMap } = get();
+        const visibilityState = computeVisibility(questions, answerMap);
+        set({ visibilityState });
+      },
 
       // Navigation
       setCurrentStep: (step) => {
