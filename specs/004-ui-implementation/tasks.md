@@ -27,9 +27,9 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 **Constitution Alignment**: Supports testability, accessibility, and performance constraints via shared services and typed contracts.
 
-- [ ] T004 Update anonymous session creation to allow unauthenticated access and set `MAA_SessionId` cookie in src/MAA.API/Controllers/SessionsController.cs
-- [ ] T005 [P] Add state metadata DTOs in src/MAA.Application/Eligibility/DTOs/StateInfoDto.cs and src/MAA.Application/Eligibility/DTOs/StateLookupDto.cs
-- [ ] T006 [P] Add question taxonomy DTOs in src/MAA.Application/Eligibility/DTOs/QuestionDto.cs and src/MAA.Application/Eligibility/DTOs/QuestionSetDto.cs
+- [X] T004 Update anonymous session creation to allow unauthenticated access and set `MAA_SessionId` cookie in src/MAA.API/Controllers/SessionsController.cs
+- [X] T005 [P] Add state metadata DTOs in src/MAA.Application/Eligibility/DTOs/StateInfoDto.cs and src/MAA.Application/Eligibility/DTOs/StateLookupDto.cs
+- [X] T006 [P] Add question taxonomy DTOs in src/MAA.Application/Eligibility/DTOs/QuestionDto.cs and src/MAA.Application/Eligibility/DTOs/QuestionSetDto.cs
 - [ ] T007 Add state metadata service in src/MAA.Application/Eligibility/Services/StateMetadataService.cs
 - [ ] T008 Add question taxonomy service in src/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
 - [ ] T009 Add states endpoints controller in src/MAA.API/Controllers/StatesController.cs

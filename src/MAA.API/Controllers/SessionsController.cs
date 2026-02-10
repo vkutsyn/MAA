@@ -40,15 +40,15 @@ public class SessionsController : ControllerBase
     /// <summary>
     /// POST /api/sessions
     /// Creates a new anonymous session.
-    /// Returns: 201 Created with SessionDto
+    /// Returns: 201 Created with SessionDto and sets MAA_SessionId cookie
     /// </summary>
     /// <param name="request">Session creation request with IP and user agent</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>201 Created with SessionDto</returns>
     [HttpPost]
+    [AllowAnonymous]  // Allow anonymous access for UI wizard
     [ProducesResponseType(typeof(SessionDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SessionDto>> CreateSession(
         [FromBody] CreateSessionDto request,
@@ -72,6 +72,19 @@ public class SessionsController : ControllerBase
             var session = await _sessionService.CreateSessionAsync(ipAddress, userAgent, cancellationToken);
 
             var sessionDto = _mapper.Map<SessionDto>(session);
+
+            // Set MAA_SessionId cookie for UI wizard (CONST-III: HttpOnly, Secure in production)
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,  // Prevent JavaScript access
+                Secure = !HttpContext.Request.Host.Host.Contains("localhost"),  // HTTPS only in production
+                SameSite = SameSiteMode.Strict,  // CSRF protection
+                Expires = session.ExpiresAt,  // Match session expiry
+                Path = "/"
+            };
+            HttpContext.Response.Cookies.Append("MAA_SessionId", session.Id.ToString(), cookieOptions);
+
+            _logger.LogInformation("Session {SessionId} created with cookie set", session.Id);
 
             return CreatedAtAction(
                 nameof(GetSessionById),
