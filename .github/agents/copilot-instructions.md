@@ -5,6 +5,10 @@ Auto-generated from all feature plans. Last updated: 2026-02-09
 ## Active Technologies
 - Backend: C# 13 (.NET 10), Frontend: TypeScript 5.7+ (React 19) (006-state-context-init)
 - PostgreSQL 16+ (session persistence, state configuration storage) (006-state-context-init)
+- C# 13 on .NET 10 (backend API) + ASP.NET Core Web API, EF Core 10 (Npgsql), MediatR, FluentValidation (007-wizard-session-api)
+- PostgreSQL 16+ with JSONB answer storage (007-wizard-session-api)
+- C# 13 (backend), TypeScript 5.x with React 18.x (frontend) (008-question-definitions-api)
+- PostgreSQL 15.x (existing `SessionContext` extended with new tables) (008-question-definitions-api)
 
 - C# 13 / .NET 10 + ASP.NET Core 10, EF Core 10, Npgsql.EntityFrameworkCore.PostgreSQL, JSONLogic.Net, Azure.Identity, Azure.Security.KeyVault.Secrets (002-rules-engine)
 - PostgreSQL 16+ (JSONB for rule logic, indexed queries for state/program) (002-rules-engine)
@@ -33,10 +37,10 @@ tests/
 C# 13 / .NET 10: Follow standard conventions
 
 ## Recent Changes
+- 008-question-definitions-api: Added C# 13 (backend), TypeScript 5.x with React 18.x (frontend)
+- 007-wizard-session-api: Added C# 13 on .NET 10 (backend API) + ASP.NET Core Web API, EF Core 10 (Npgsql), MediatR, FluentValidation
 - 006-state-context-init: Added Backend: C# 13 (.NET 10), Frontend: TypeScript 5.7+ (React 19)
 
-- 005-frontend-auth-flow: Added TypeScript 5.7+, React 19+ + React Router, Axios, React Hook Form, Zod, shadcn/ui, Tailwind CSS
-- 004-ui-implementation: Added TypeScript 5.7 (React 19), C# 13 (.NET 10 API integration) + React 19, Vite 6, shadcn/ui + Tailwind CSS, React Hook Form + Zod, TanStack Query, Zustand
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

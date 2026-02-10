@@ -149,6 +149,11 @@
 
 **Dependencies**: E1 (authentication/sessions) ✅, E2 (rules engine for question taxonomy) ✅
 
+**Related Backend Features**:
+
+- [x] F4.10: Wizard Session API — Save step answers, restore state, next-step navigation ([specs/007-wizard-session-api/spec.md](../specs/007-wizard-session-api/spec.md))
+- [ ] F4.11: Eligibility Question Definitions API — State/program question definitions with conditional rules ([specs/008-question-definitions-api/spec.md](../specs/008-question-definitions-api/spec.md))
+
 **Success Criteria**:
 
 - ✅ Questions render in correct conditional order

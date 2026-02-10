@@ -10,4 +10,8 @@
     <PackageReference Include="JsonLogic.Net" Version="1.1.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Wizard\Definitions\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,7 @@
+using MAA.Domain;
 using MAA.Domain.Rules;
 using MAA.Domain.Sessions;
+using MAA.Domain.Wizard;
 using Microsoft.EntityFrameworkCore;
 
 namespace MAA.Infrastructure.Data;
@@ -59,6 +61,36 @@ public class SessionContext : DbContext
     /// </summary>
     public DbSet<Domain.StateContext.StateConfiguration> StateConfigurations => Set<Domain.StateContext.StateConfiguration>();
 
+    /// <summary>
+    /// Wizard Sessions: per-session wizard state
+    /// </summary>
+    public DbSet<WizardSession> WizardSessions => Set<WizardSession>();
+
+    /// <summary>
+    /// Step Answers: per-step wizard answer data
+    /// </summary>
+    public DbSet<StepAnswer> StepAnswers => Set<StepAnswer>();
+
+    /// <summary>
+    /// Step Progress: per-step completion status
+    /// </summary>
+    public DbSet<StepProgress> StepProgress => Set<StepProgress>();
+
+    /// <summary>
+    /// Questions: eligibility question definitions
+    /// </summary>
+    public DbSet<Question> Questions => Set<Question>();
+
+    /// <summary>
+    /// Conditional Rules: visibility conditions for questions
+    /// </summary>
+    public DbSet<ConditionalRule> ConditionalRules => Set<ConditionalRule>();
+
+    /// <summary>
+    /// Question Options: selectable options for questions
+    /// </summary>
+    public DbSet<QuestionOption> QuestionOptions => Set<QuestionOption>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -70,10 +102,14 @@ public class SessionContext : DbContext
         ConfigureMedicaidProgramEntity(modelBuilder);
         ConfigureEligibilityRuleEntity(modelBuilder);
         ConfigureFederalPovertyLevelEntity(modelBuilder);
+        ConfigureQuestionEntities(modelBuilder);
 
         // Apply configuration from separate configuration classes
         modelBuilder.ApplyConfiguration(new Infrastructure.StateContext.StateContextConfiguration());
         modelBuilder.ApplyConfiguration(new Infrastructure.StateContext.StateConfigurationConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.WizardSessionConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.StepAnswerConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.StepProgressConfiguration());
     }
 
     private void ConfigureSessionEntity(ModelBuilder modelBuilder)
@@ -300,6 +336,72 @@ public class SessionContext : DbContext
 
             // Query optimization indexes
             entity.HasIndex(e => new { e.Year, e.HouseholdSize });
+        });
+    }
+
+    private void ConfigureQuestionEntities(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Question>(entity =>
+        {
+            entity.ToTable("questions");
+
+            entity.HasKey(e => e.QuestionId);
+            entity.Property(e => e.QuestionId).ValueGeneratedNever();
+
+            entity.Property(e => e.StateCode).IsRequired().HasMaxLength(2);
+            entity.Property(e => e.ProgramCode).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.DisplayOrder).IsRequired();
+            entity.Property(e => e.QuestionText).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.FieldType).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.IsRequired).HasDefaultValue(false);
+            entity.Property(e => e.HelpText).HasMaxLength(2000);
+            entity.Property(e => e.ValidationRegex).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => new { e.StateCode, e.ProgramCode });
+            entity.HasIndex(e => new { e.StateCode, e.ProgramCode, e.DisplayOrder }).IsUnique();
+            entity.HasIndex(e => e.ConditionalRuleId);
+
+            entity.HasOne(e => e.ConditionalRule)
+                .WithMany(r => r.Questions)
+                .HasForeignKey(e => e.ConditionalRuleId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(e => e.Options)
+                .WithOne(o => o.Question)
+                .HasForeignKey(o => o.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ConditionalRule>(entity =>
+        {
+            entity.ToTable("conditional_rules");
+
+            entity.HasKey(e => e.ConditionalRuleId);
+            entity.Property(e => e.ConditionalRuleId).ValueGeneratedNever();
+
+            entity.Property(e => e.RuleExpression).IsRequired().HasMaxLength(5000);
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<QuestionOption>(entity =>
+        {
+            entity.ToTable("question_options");
+
+            entity.HasKey(e => e.OptionId);
+            entity.Property(e => e.OptionId).ValueGeneratedNever();
+
+            entity.Property(e => e.OptionLabel).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.OptionValue).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.DisplayOrder).IsRequired();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => new { e.QuestionId, e.OptionValue }).IsUnique();
+            entity.HasIndex(e => new { e.QuestionId, e.DisplayOrder }).IsUnique();
         });
     }
 }

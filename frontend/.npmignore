@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Logs
+*.log
+logs/
+
+# Env files
+.env
+.env.*
+
+# Tooling
+.vscode/
+.idea/
+*.suo
+
+# Test/coverage
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db

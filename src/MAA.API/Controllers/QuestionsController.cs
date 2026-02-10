@@ -1,6 +1,9 @@
+using MAA.Application.DTOs;
 using MAA.Application.Eligibility.DTOs;
 using MAA.Application.Eligibility.Services;
+using MAA.Application.Handlers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace MAA.API.Controllers;
 
@@ -13,13 +16,16 @@ namespace MAA.API.Controllers;
 public class QuestionsController : ControllerBase
 {
     private readonly IQuestionTaxonomyService _questionService;
+    private readonly GetQuestionDefinitionsHandler _definitionsHandler;
     private readonly ILogger<QuestionsController> _logger;
 
     public QuestionsController(
         IQuestionTaxonomyService questionService,
+        GetQuestionDefinitionsHandler definitionsHandler,
         ILogger<QuestionsController> logger)
     {
         _questionService = questionService ?? throw new ArgumentNullException(nameof(questionService));
+        _definitionsHandler = definitionsHandler ?? throw new ArgumentNullException(nameof(definitionsHandler));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -69,5 +75,43 @@ public class QuestionsController : ControllerBase
             _logger.LogError(ex, "Error fetching questions for state: {State}", state);
             return StatusCode(500, new { error = "Internal server error" });
         }
+    }
+
+    /// <summary>
+    /// GET /api/questions/{stateCode}/{programCode}
+    /// Gets question definitions for a state and program.
+    /// </summary>
+    /// <param name="stateCode">Two-letter state code (e.g., "CA")</param>
+    /// <param name="programCode">Program code (e.g., "MEDI-CAL")</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    [HttpGet("{stateCode}/{programCode}")]
+    [ProducesResponseType(typeof(GetQuestionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<GetQuestionsResponse>> GetQuestionDefinitions(
+        string stateCode,
+        string programCode,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Audit: Question definitions requested for {StateCode}/{ProgramCode} (TraceId: {TraceId})",
+            stateCode,
+            programCode,
+            HttpContext.TraceIdentifier);
+
+        var result = await _definitionsHandler.HandleAsync(new GetQuestionDefinitionsQuery
+        {
+            StateCode = stateCode,
+            ProgramCode = programCode
+        }, cancellationToken);
+
+        Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
+        {
+            Public = true,
+            MaxAge = TimeSpan.FromHours(24)
+        };
+
+        return Ok(result);
     }
 }

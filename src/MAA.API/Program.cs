@@ -6,11 +6,19 @@ using MAA.Application.Eligibility.Repositories;
 using MAA.Application.Eligibility.Caching;
 using MAA.Application.Eligibility.Services;
 using MAA.Application.Eligibility.Validators;
+using MAA.Application.Interfaces;
+using MAA.Application.Validation;
+using MAA.Application.Wizard.Repositories;
+using MAA.Application.Wizard.Commands;
+using MAA.Application.Wizard.Queries;
+using MAA.Application.Wizard.Validators;
 using MAA.Domain.Repositories;
 using MAA.Domain.Rules;
+using MAA.Domain.Wizard;
 using MAA.Infrastructure.Data;
 using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
+using MAA.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
@@ -27,6 +35,10 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     Log.Information("Starting MAA API application");
+
+    // Configure Npgsql to use UTC timestamps globally
+    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", false);
+    AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +75,13 @@ try
     builder.Services.AddScoped<MAA.Application.StateContext.IStateContextRepository, MAA.Infrastructure.StateContext.StateContextRepository>();
     builder.Services.AddScoped<MAA.Application.StateContext.IStateConfigurationRepository, MAA.Infrastructure.StateContext.StateConfigurationRepository>();
 
+    // Register Wizard Session repositories
+    builder.Services.AddScoped<IWizardSessionRepository, MAA.Infrastructure.Wizard.WizardSessionRepository>();
+    builder.Services.AddScoped<IStepAnswerRepository, MAA.Infrastructure.Wizard.StepAnswerRepository>();
+    builder.Services.AddSingleton<IStepDefinitionProvider, StepDefinitionProvider>();
+    builder.Services.AddSingleton<StepNavigationEngine>();
+    builder.Services.AddSingleton<StepInvalidationService>();
+
     // Register State Context handlers
     builder.Services.AddScoped<MAA.Application.StateContext.Commands.InitializeStateContextHandler>();
     builder.Services.AddScoped<MAA.Application.StateContext.Commands.UpdateStateContextHandler>();
@@ -72,11 +91,39 @@ try
     builder.Services.AddScoped<MAA.Application.StateContext.Validators.InitializeStateContextRequestValidator>();
     builder.Services.AddScoped<MAA.Application.StateContext.Validators.UpdateStateContextRequestValidator>();
 
+    // Register Wizard Session handlers
+    builder.Services.AddScoped<SaveStepAnswerHandler>();
+    builder.Services.AddScoped<GetWizardSessionStateHandler>();
+    builder.Services.AddScoped<GetStepAnswersHandler>();
+    builder.Services.AddScoped<GetNextStepHandler>();
+    builder.Services.AddScoped<GetStepDetailHandler>();
+
+    // Register Wizard Session validators
+    builder.Services.AddScoped<SaveStepAnswerRequestValidator>();
+    builder.Services.AddScoped<GetWizardSessionStateValidator>();
+
     // Add AutoMapper
     builder.Services.AddAutoMapper(typeof(MappingProfile));
 
     // Add memory cache for key caching (US4: Encryption Service)
     builder.Services.AddMemoryCache();
+
+    // Configure question definitions cache options
+    var questionCacheOptions = new QuestionDefinitionsCacheOptions();
+    builder.Configuration.GetSection("QuestionDefinitionsCache").Bind(questionCacheOptions);
+    builder.Services.Configure<QuestionDefinitionsCacheOptions>(builder.Configuration.GetSection("QuestionDefinitionsCache"));
+
+    if (questionCacheOptions.Enabled && !string.IsNullOrWhiteSpace(questionCacheOptions.ConnectionString))
+    {
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = questionCacheOptions.ConnectionString;
+        });
+    }
+    else
+    {
+        builder.Services.AddDistributedMemoryCache();
+    }
 
     // Register infrastructure services (US4: Azure Key Vault integration)
     // In test environment, skip Azure Key Vault - tests provide mock
@@ -103,6 +150,12 @@ try
     // Register domain services
     builder.Services.AddScoped<ISessionService, SessionService>();
     builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // US4: Production implementation with Azure Key Vault
+
+    // Register Question Definitions services
+    builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+    builder.Services.AddScoped<IQuestionDefinitionsCache, QuestionDefinitionsCache>();
+    builder.Services.AddScoped<StateProgramValidator>();
+    builder.Services.AddScoped<ConditionalRuleValidator>();
 
     // Register JWT token provider and settings (Phase 5: Auth feature)
     var jwtSettings = new MAA.Infrastructure.Security.JwtSettings();
@@ -153,6 +206,7 @@ try
 
     // Register Rules infrastructure services
     builder.Services.AddScoped<IRuleRepository, RuleRepository>();
+    builder.Services.AddScoped<IMedicaidProgramRepository, MedicaidProgramRepository>();
     builder.Services.AddScoped<IFplRepository, FplRepository>();
     builder.Services.AddScoped<IRuleCacheService, RuleCacheService>();
     builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
@@ -251,6 +305,14 @@ try
 
     var app = builder.Build();
 
+    // Seed state configurations on startup
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<MAA.Infrastructure.StateContext.StateConfigurationSeeder>();
+        await seeder.SeedAsync();
+        Log.Information("State configurations seeded successfully");
+    }
+
     // Configure the HTTP request pipeline
     if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
     {
@@ -283,6 +345,9 @@ try
 
     // Global exception handler middleware
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    // Concurrency exception handler middleware
+    app.UseMiddleware<ConcurrencyExceptionMiddleware>();
 
     // Enable CORS (must be after exception handling, before auth)
     app.UseCors("AllowFrontend");

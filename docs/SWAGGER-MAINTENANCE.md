@@ -53,3 +53,7 @@ This guide explains how to keep Swagger/OpenAPI documentation accurate and relia
 - Swagger disabled in environment settings.
 - Incorrect route prefix or OpenAPI route template.
 - Unhandled DTO changes without updated XML comments.
+
+## Endpoint Notes
+
+- Question definitions: ensure `GET /api/questions/{stateCode}/{programCode}` documents `GetQuestionsResponse` with `conditionalRules` and `options` populated per the OpenAPI contract in specs/008-question-definitions-api/contracts/questions-api.openapi.yaml.

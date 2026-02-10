@@ -22,6 +22,143 @@ namespace MAA.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("MAA.Domain.ConditionalRule", b =>
+                {
+                    b.Property<Guid>("ConditionalRuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("RuleExpression")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("ConditionalRuleId");
+
+                    b.ToTable("conditional_rules", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Question", b =>
+                {
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ConditionalRuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FieldType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("HelpText")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ProgramCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("StateCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("ValidationRegex")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("QuestionId");
+
+                    b.HasIndex("ConditionalRuleId");
+
+                    b.HasIndex("StateCode", "ProgramCode");
+
+                    b.HasIndex("StateCode", "ProgramCode", "DisplayOrder")
+                        .IsUnique();
+
+                    b.ToTable("questions", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.QuestionOption", b =>
+                {
+                    b.Property<Guid>("OptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OptionLabel")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("OptionValue")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("OptionId");
+
+                    b.HasIndex("QuestionId", "DisplayOrder")
+                        .IsUnique();
+
+                    b.HasIndex("QuestionId", "OptionValue")
+                        .IsUnique();
+
+                    b.ToTable("question_options", (string)null);
+                });
+
             modelBuilder.Entity("MAA.Domain.Rules.EligibilityRule", b =>
                 {
                     b.Property<Guid>("RuleId")
@@ -546,6 +683,178 @@ namespace MAA.Infrastructure.Migrations
                     b.ToTable("state_contexts", (string)null);
                 });
 
+            modelBuilder.Entity("MAA.Domain.Wizard.StepAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AnswerData")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("answer_data");
+
+                    b.Property<string>("SchemaVersion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("schema_version");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StepId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("step_id");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_StepAnswers_SessionId");
+
+                    b.HasIndex("SessionId", "StepId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StepAnswers_SessionId_StepId");
+
+                    b.ToTable("step_answers", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Wizard.StepProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_updated_at");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StepId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("step_id");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId", "Status")
+                        .HasDatabaseName("IX_StepProgress_SessionId_Status");
+
+                    b.HasIndex("SessionId", "StepId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_StepProgress_SessionId_StepId");
+
+                    b.ToTable("step_progress", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Wizard.WizardSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("CurrentStepId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("current_step_id");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_activity_at");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastActivityAt")
+                        .HasDatabaseName("IX_WizardSessions_LastActivityAt");
+
+                    b.HasIndex("SessionId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_WizardSessions_SessionId");
+
+                    b.ToTable("wizard_sessions", (string)null);
+                });
+
+            modelBuilder.Entity("MAA.Domain.Question", b =>
+                {
+                    b.HasOne("MAA.Domain.ConditionalRule", "ConditionalRule")
+                        .WithMany("Questions")
+                        .HasForeignKey("ConditionalRuleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ConditionalRule");
+                });
+
+            modelBuilder.Entity("MAA.Domain.QuestionOption", b =>
+                {
+                    b.HasOne("MAA.Domain.Question", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
             modelBuilder.Entity("MAA.Domain.Rules.EligibilityRule", b =>
                 {
                     b.HasOne("MAA.Domain.Rules.MedicaidProgram", "Program")
@@ -605,6 +914,16 @@ namespace MAA.Infrastructure.Migrations
                     b.Navigation("Session");
 
                     b.Navigation("StateConfiguration");
+                });
+
+            modelBuilder.Entity("MAA.Domain.ConditionalRule", b =>
+                {
+                    b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("MAA.Domain.Question", b =>
+                {
+                    b.Navigation("Options");
                 });
 
             modelBuilder.Entity("MAA.Domain.Rules.MedicaidProgram", b =>

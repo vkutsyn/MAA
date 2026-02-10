@@ -22,11 +22,13 @@ ConnectionStrings__DefaultConnection="Host=<db-host>;Port=5432;Database=<db-name
 ```
 
 **Example** (Production):
+
 ```bash
 ConnectionStrings__DefaultConnection="Host=maa-postgres.postgres.database.azure.com;Port=5432;Database=maa_prod;Username=maa_admin;Password=${DB_PASSWORD};SSL Mode=Require"
 ```
 
 **Environment-Specific Values**:
+
 - **Development**: `Host=127.0.0.1;Port=5432;Database=maa_dev;Username=maa;Password=devpass`
 - **Staging**: `Host=maa-postgres-staging.postgres.database.azure.com;...`
 - **Production**: `Host=maa-postgres.postgres.database.azure.com;...`
@@ -59,6 +61,7 @@ Jwt__RefreshThresholdMinutes=5
 ```
 
 **Security Notes**:
+
 - `Jwt__SecretKey` MUST be stored in Azure Key Vault or equivalent secrets manager
 - Never commit secrets to source control
 - Rotate keys periodically (recommended: every 90 days)
@@ -86,6 +89,7 @@ Logging__LogLevel__MicrosoftEntityFrameworkCore="Warning"
 ```
 
 **Environment-Specific Recommendations**:
+
 - **Development**: `Debug` or `Information`
 - **Staging**: `Information`
 - **Production**: `Warning` (reduce noise, log only important events)
@@ -182,6 +186,7 @@ VITE_API_BASE_URL="https://api.maa.example.com"
 ```
 
 **Environment-Specific Values**:
+
 - **Development**: `http://localhost:5000` or `http://localhost:5063`
 - **Staging**: `https://api-staging.maa.example.com`
 - **Production**: `https://api.maa.example.com`
@@ -218,6 +223,7 @@ VITE_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 ```
 
 **Build Command**:
+
 ```bash
 npm run build --mode production
 ```
@@ -231,11 +237,13 @@ npm run build --mode production
 ### Apply Migrations (Production)
 
 **Prerequisites**:
+
 - PostgreSQL 16+ server running
 - EF Core CLI installed: `dotnet tool install --global dotnet-ef`
 - Connection string configured in environment or `appsettings.Production.json`
 
 **Command**:
+
 ```bash
 cd src/MAA.Infrastructure
 dotnet ef database update --startup-project ../MAA.API --configuration Release
@@ -248,16 +256,19 @@ dotnet ef database update --startup-project ../MAA.API --configuration Release
 ### Seed State Configurations
 
 **Prerequisites**:
+
 - Database migrations applied
 - `state-configs.json` file contains all 50 states + DC + territories
 
 **Command** (manual seed via API):
+
 ```bash
 POST /api/admin/seed-state-configs
 Authorization: Bearer <admin-jwt-token>
 ```
 
 **Or** (automatic seed on application startup):
+
 - Configure `StateConfigurationSeeder` to run on startup in `Program.cs`:
 
 ```csharp
@@ -275,6 +286,7 @@ await seeder.SeedAsync();
 **File**: `src/MAA.Infrastructure/Data/zip-to-state.csv`
 
 **Format**:
+
 ```csv
 ZipCode,StateCode,City
 90210,CA,Beverly Hills
@@ -286,6 +298,7 @@ ZipCode,StateCode,City
 **Source**: [SimpleMaps U.S. ZIP Codes Database](https://simplemaps.com/data/us-zips) (free tier: ~42,000 entries)
 
 **Deployment**:
+
 - Ensure `zip-to-state.csv` is copied to `{app-directory}/Data/` on deployment
 - File is loaded into memory at application startup by `ZipCodeMappingService`
 - Update quarterly to reflect USPS changes
@@ -299,11 +312,13 @@ ZipCode,StateCode,City
 **Format**: See `state-configs.json` for schema.
 
 **Production Requirement**: File must contain configurations for:
+
 - All 50 U.S. states
 - District of Columbia (DC)
 - U.S. territories (optional): Puerto Rico (PR), Guam (GU), U.S. Virgin Islands (VI), American Samoa (AS), Northern Mariana Islands (MP)
 
 **Deployment**:
+
 - Ensure `state-configs.json` is copied to `{app-directory}/Data/` on deployment
 - File is read by `StateConfigurationSeeder` during initial database seeding
 - Update annually or when state Medicaid rules change
@@ -315,6 +330,7 @@ ZipCode,StateCode,City
 Before deploying to production, verify:
 
 ### Backend
+
 - [ ] `ConnectionStrings__DefaultConnection` configured with production database
 - [ ] `Jwt__SecretKey` stored in Azure Key Vault (not in appsettings.json)
 - [ ] `Swagger__Enabled=false` in production
@@ -325,6 +341,7 @@ Before deploying to production, verify:
 - [ ] HTTPS enabled with valid SSL certificate
 
 ### Frontend
+
 - [ ] `VITE_API_BASE_URL` points to production API
 - [ ] Frontend built with `npm run build --mode production`
 - [ ] Static assets served over HTTPS
@@ -332,11 +349,13 @@ Before deploying to production, verify:
 - [ ] Browser console shows no errors on page load
 
 ### Data
+
 - [ ] `state-configs.json` contains all 50 states + DC (minimum)
 - [ ] `zip-to-state.csv` is up-to-date (quarterly refresh recommended)
 - [ ] Database backups configured (daily snapshots recommended)
 
 ### Security
+
 - [ ] Secrets not committed to source control
 - [ ] JWT secret key rotated and stored in Key Vault
 - [ ] Database credentials use least-privilege principle
@@ -372,18 +391,22 @@ If deployment fails or critical bugs are discovered:
 ### Common Issues
 
 #### "ZIP code not found" errors for valid ZIP codes
+
 - **Cause**: `zip-to-state.csv` missing or incomplete
 - **Fix**: Verify file exists in `{app-directory}/Data/` and contains ~42,000 entries
 
 #### "State configuration not found" errors
+
 - **Cause**: State configurations not seeded into database
 - **Fix**: Run `StateConfigurationSeeder.SeedAsync()` manually or via admin API endpoint
 
 #### API returns 500 errors for state context endpoints
+
 - **Cause**: Database connection failure or missing migrations
 - **Fix**: Verify `ConnectionStrings__DefaultConnection` is correct and migrations applied
 
 #### Frontend shows "Network Error" when calling API
+
 - **Cause**: CORS misconfiguration or incorrect `VITE_API_BASE_URL`
 - **Fix**: Verify backend CORS policy allows frontend origin; verify API base URL
 
@@ -392,6 +415,7 @@ If deployment fails or critical bugs are discovered:
 ## Contact
 
 For deployment assistance or configuration issues, contact:
+
 - **DevOps Team**: devops@maa.example.com
 - **Backend Lead**: backend-lead@maa.example.com
 - **Frontend Lead**: frontend-lead@maa.example.com

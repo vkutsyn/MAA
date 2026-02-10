@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Feature 006: State Context Initialization Step (2026-02-10)
 
 - **State Context Initialization**: Users can now enter their ZIP code to establish Medicaid jurisdiction context before beginning the eligibility evaluation.
-  
+
   **Backend (C# / .NET 10)**:
   - Added `StateContext` domain entity to track user's state selection and ZIP code
   - Added `StateConfiguration` domain entity for state-specific Medicaid program settings
@@ -143,19 +143,25 @@ None. This is a new feature with no impact on existing functionality.
 ### [Version] - YYYY-MM-DD
 
 #### Added
+
 - New features
 
 #### Changed
+
 - Changes to existing features
 
 #### Deprecated
+
 - Features marked for removal
 
 #### Removed
+
 - Features removed from project
 
 #### Fixed
+
 - Bug fixes
 
 #### Security
+
 - Security patches
