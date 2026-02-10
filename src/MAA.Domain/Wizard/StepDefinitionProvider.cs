@@ -47,6 +47,6 @@ public class StepDefinitionProvider : IStepDefinitionProvider
 
         var json = File.ReadAllText(filePath);
         var definitions = JsonSerializer.Deserialize<List<StepDefinition>>(json, SerializerOptions);
-        return definitions ?? Array.Empty<StepDefinition>();
+        return definitions ?? new List<StepDefinition>();
     }
 }

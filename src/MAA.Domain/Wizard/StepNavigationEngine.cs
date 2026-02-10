@@ -15,7 +15,7 @@ public class StepNavigationEngine
     public StepNavigationEngine(IStepDefinitionProvider definitionProvider)
     {
         _definitionProvider = definitionProvider ?? throw new ArgumentNullException(nameof(definitionProvider));
-        _evaluator = new JsonLogicEvaluator();
+        _evaluator = new JsonLogicEvaluator(new EvaluateOperators());
     }
 
     public StepDefinition? GetNextStep(string currentStepId, IReadOnlyDictionary<string, JsonElement> answers)

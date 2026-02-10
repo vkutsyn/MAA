@@ -6,6 +6,8 @@ using MAA.Application.Eligibility.Repositories;
 using MAA.Application.Eligibility.Caching;
 using MAA.Application.Eligibility.Services;
 using MAA.Application.Eligibility.Validators;
+using MAA.Application.Interfaces;
+using MAA.Application.Validation;
 using MAA.Application.Wizard.Repositories;
 using MAA.Application.Wizard.Commands;
 using MAA.Application.Wizard.Queries;
@@ -16,6 +18,7 @@ using MAA.Domain.Wizard;
 using MAA.Infrastructure.Data;
 using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
+using MAA.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Writers;
@@ -105,6 +108,23 @@ try
     // Add memory cache for key caching (US4: Encryption Service)
     builder.Services.AddMemoryCache();
 
+    // Configure question definitions cache options
+    var questionCacheOptions = new QuestionDefinitionsCacheOptions();
+    builder.Configuration.GetSection("QuestionDefinitionsCache").Bind(questionCacheOptions);
+    builder.Services.Configure<QuestionDefinitionsCacheOptions>(builder.Configuration.GetSection("QuestionDefinitionsCache"));
+
+    if (questionCacheOptions.Enabled && !string.IsNullOrWhiteSpace(questionCacheOptions.ConnectionString))
+    {
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = questionCacheOptions.ConnectionString;
+        });
+    }
+    else
+    {
+        builder.Services.AddDistributedMemoryCache();
+    }
+
     // Register infrastructure services (US4: Azure Key Vault integration)
     // In test environment, skip Azure Key Vault - tests provide mock
     if (builder.Environment.IsProduction() || builder.Configuration["Azure:KeyVault:Uri"] == null)
@@ -130,6 +150,12 @@ try
     // Register domain services
     builder.Services.AddScoped<ISessionService, SessionService>();
     builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // US4: Production implementation with Azure Key Vault
+
+    // Register Question Definitions services
+    builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+    builder.Services.AddScoped<IQuestionDefinitionsCache, QuestionDefinitionsCache>();
+    builder.Services.AddScoped<StateProgramValidator>();
+    builder.Services.AddScoped<ConditionalRuleValidator>();
 
     // Register JWT token provider and settings (Phase 5: Auth feature)
     var jwtSettings = new MAA.Infrastructure.Security.JwtSettings();
@@ -180,6 +206,7 @@ try
 
     // Register Rules infrastructure services
     builder.Services.AddScoped<IRuleRepository, RuleRepository>();
+    builder.Services.AddScoped<IMedicaidProgramRepository, MedicaidProgramRepository>();
     builder.Services.AddScoped<IFplRepository, FplRepository>();
     builder.Services.AddScoped<IRuleCacheService, RuleCacheService>();
     builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
