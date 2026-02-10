@@ -1,0 +1,389 @@
+openapi: 3.0.0
+
+info:
+  title: Eligibility Question Definitions API
+  description: API for retrieving state- and program-specific question definitions with conditional visibility rules
+  version: 1.0.0
+  contact:
+    name: MAA Development Team
+    email: dev@example.com
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.example.com
+    description: Production API
+  - url: http://localhost:5000
+    description: Local development server
+
+tags:
+  - name: Questions
+    description: Question definition retrieval endpoints
+
+paths:
+  /api/questions/{stateCode}/{programCode}:
+    get:
+      summary: Get question definitions for a state and program combination
+      description: |
+        Retrieves all question definitions applicable to a specific state and program.
+        Returns questions with metadata and conditional visibility rules that can be
+        evaluated client-side against user answers.
+        
+        Questions are ordered by displayOrder (1, 2, 3, ...).
+        Questions with conditionalRuleId reference a rule in the conditionalRules array.
+      operationId: getQuestionDefinitions
+      tags:
+        - Questions
+      parameters:
+        - name: stateCode
+          in: path
+          required: true
+          description: US state code (e.g., CA, TX, NY) or US territory code
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+            example: CA
+        - name: programCode
+          in: path
+          required: true
+          description: Eligibility program code (e.g., MEDI-CAL, CALFRESH)
+          schema:
+            type: string
+            pattern: '^[A-Z0-9_-]{3,50}$'
+            example: MEDI-CAL
+      responses:
+        '200':
+          description: Successful retrieval of question definitions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetQuestionsResponse'
+              examples:
+                basic:
+                  $ref: '#/components/examples/QuestionResponseBasic'
+                withConditions:
+                  $ref: '#/components/examples/QuestionResponseWithConditions'
+        
+        '400':
+          description: Invalid state code or program code format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidState:
+                  value:
+                    error: "Invalid state code 'XX': must be 2-letter US state abbreviation"
+                    code: INVALID_STATE_CODE
+                    timestamp: "2026-02-10T15:30:45Z"
+                invalidProgram:
+                  value:
+                    error: "Invalid program code: must be 3-50 alphanumeric characters"
+                    code: INVALID_PROGRAM_CODE
+                    timestamp: "2026-02-10T15:30:45Z"
+        
+        '404':
+          description: State/program combination has no questions defined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "No questions found for state 'CA' and program 'UNKNOWN_PROGRAM'"
+                code: NO_QUESTIONS_FOUND
+                timestamp: "2026-02-10T15:30:45Z"
+        
+        '500':
+          description: Internal server error during question retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Internal server error retrieving questions"
+                code: INTERNAL_SERVER_ERROR
+                timestamp: "2026-02-10T15:30:45Z"
+
+components:
+  schemas:
+    GetQuestionsResponse:
+      type: object
+      description: Response containing question definitions and conditional rules for a state/program combination
+      required:
+        - stateCode
+        - programCode
+        - questions
+        - conditionalRules
+      properties:
+        stateCode:
+          type: string
+          description: US state code echoed from request
+          example: CA
+        
+        programCode:
+          type: string
+          description: Eligibility program code echoed from request
+          example: MEDI-CAL
+        
+        questions:
+          type: array
+          description: Array of question definitions ordered by displayOrder
+          items:
+            $ref: '#/components/schemas/QuestionDefinition'
+        
+        conditionalRules:
+          type: array
+          description: Array of conditional visibility rules referenced by questions
+          items:
+            $ref: '#/components/schemas/ConditionalRuleDefinition'
+    
+    QuestionDefinition:
+      type: object
+      description: Definition of a single eligibility question with metadata
+      required:
+        - questionId
+        - displayOrder
+        - questionText
+        - fieldType
+        - isRequired
+      properties:
+        questionId:
+          type: string
+          format: uuid
+          description: Unique identifier for this question (immutable)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        
+        displayOrder:
+          type: integer
+          minimum: 1
+          description: Position of question in questionnaire (1-indexed)
+          example: 1
+        
+        questionText:
+          type: string
+          maxLength: 1000
+          description: Question text displayed to user (plain language, no HTML)
+          example: "What is your household size?"
+        
+        fieldType:
+          type: string
+          enum:
+            - text
+            - select
+            - checkbox
+            - radio
+            - date
+            - currency
+          description: Input field type for rendering
+          example: text
+        
+        isRequired:
+          type: boolean
+          description: Whether answer is mandatory
+          example: true
+        
+        helpText:
+          type: string
+          maxLength: 2000
+          nullable: true
+          description: Optional guidance text shown below question (supports markdown)
+          example: "Include all people you live with"
+        
+        validationRegex:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Optional regex pattern for text field validation (applied client & server-side)
+          example: "^[0-9]+$"
+        
+        conditionalRuleId:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID of conditional rule determining visibility (null = always visible)
+          example: "660f9511-f30c-52e5-b827-557766551111"
+        
+        options:
+          type: array
+          nullable: true
+          description: Available options for select/checkbox/radio questions (null for text/date/currency)
+          items:
+            $ref: '#/components/schemas/QuestionOption'
+    
+    QuestionOption:
+      type: object
+      description: A selectable option for select/checkbox/radio type questions
+      required:
+        - optionId
+        - optionLabel
+        - optionValue
+        - displayOrder
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Unique identifier for this option
+          example: "770f0612-g41d-63e6-c938-668877662222"
+        
+        optionLabel:
+          type: string
+          maxLength: 200
+          description: Display text shown to user (renderable, plain language)
+          example: "Yes"
+        
+        optionValue:
+          type: string
+          maxLength: 100
+          description: Internal code stored in answer (not user-visible)
+          example: "yes"
+        
+        displayOrder:
+          type: integer
+          minimum: 1
+          description: Position of option in list
+          example: 1
+    
+    ConditionalRuleDefinition:
+      type: object
+      description: A boolean expression rule determining question visibility based on previous answers
+      required:
+        - conditionalRuleId
+        - ruleExpression
+      properties:
+        conditionalRuleId:
+          type: string
+          format: uuid
+          description: Unique identifier for this rule
+          example: "660f9511-f30c-52e5-b827-557766551111"
+        
+        ruleExpression:
+          type: string
+          maxLength: 5000
+          description: |
+            Boolean expression in format: "{questionId} operator 'value'" with AND/OR connectors.
+            
+            Supported operators: ==, !=, >, <, >=, <=, IN, NOT IN
+            Supported logic: AND, OR, NOT, parentheses for grouping
+            
+            Variable references use UUID of referenced question, not display order.
+            Values must match optionValue (for select/radio/checkbox) or literal for text/date/currency.
+          example: "550e8400-e29b-41d4-a716-446655440001 == 'yes' AND 550e8400-e29b-41d4-a716-446655440002 >= 18"
+        
+        description:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: Human-readable description of rule (for admin/logging purposes)
+          example: "Show number of dependents if user answered Yes and is 18 or older"
+    
+    ErrorResponse:
+      type: object
+      description: Standard error response format
+      required:
+        - error
+        - code
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Invalid state code 'XX'"
+        
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - INVALID_STATE_CODE
+            - INVALID_PROGRAM_CODE
+            - NO_QUESTIONS_FOUND
+            - INTERNAL_SERVER_ERROR
+          example: INVALID_STATE_CODE
+        
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of error occurrence
+          example: "2026-02-10T15:30:45Z"
+        
+        details:
+          type: object
+          nullable: true
+          description: Additional error details (implementation-specific)
+          example: null
+
+  examples:
+    QuestionResponseBasic:
+      summary: Simple questions without conditional rules
+      value:
+        stateCode: CA
+        programCode: MEDI-CAL
+        questions:
+          - questionId: "550e8400-e29b-41d4-a716-446655440000"
+            displayOrder: 1
+            questionText: "What is your household size?"
+            fieldType: text
+            isRequired: true
+            helpText: "Include all people you live with"
+            validationRegex: "^[0-9]+$"
+            conditionalRuleId: null
+            options: null
+          - questionId: "550e8400-e29b-41d4-a716-446655440001"
+            displayOrder: 2
+            questionText: "What is your annual household income?"
+            fieldType: currency
+            isRequired: true
+            helpText: null
+            validationRegex: null
+            conditionalRuleId: null
+            options: null
+        conditionalRules: []
+    
+    QuestionResponseWithConditions:
+      summary: Questions with conditional visibility rules
+      value:
+        stateCode: CA
+        programCode: MEDI-CAL
+        questions:
+          - questionId: "550e8400-e29b-41d4-a716-446655440000"
+            displayOrder: 1
+            questionText: "Do you have any dependents?"
+            fieldType: select
+            isRequired: false
+            helpText: null
+            validationRegex: null
+            conditionalRuleId: null
+            options:
+              - optionId: "770f0612-g41d-63e6-c938-668877662222"
+                optionLabel: "Yes"
+                optionValue: "yes"
+                displayOrder: 1
+              - optionId: "770f0612-g41d-63e6-c938-668877662223"
+                optionLabel: "No"
+                optionValue: "no"
+                displayOrder: 2
+          - questionId: "550e8400-e29b-41d4-a716-446655440001"
+            displayOrder: 2
+            questionText: "How many dependents do you have?"
+            fieldType: text
+            isRequired: true
+            helpText: null
+            validationRegex: "^[0-9]+$"
+            conditionalRuleId: "660f9511-f30c-52e5-b827-557766551111"
+            options: null
+        conditionalRules:
+          - conditionalRuleId: "660f9511-f30c-52e5-b827-557766551111"
+            ruleExpression: "550e8400-e29b-41d4-a716-446655440000 == 'yes'"
+            description: "Show number of dependents only if user answered Yes"
+
+---
+
+## API Contract Notes
+
+1. **Caching**: Response should cache for 24 hours on client (immutable data)
+2. **State/Program Combination**: Must be valid per reference data; returns 404 if not found
+3. **Conditional Rules**: Returned for ALL rules referenced by questions (even if not visible initially)
+4. **Rule Evaluation**: Frontend responsibility; backend provides rule definitions only
+5. **Error Handling**: All errors return ISO 8601 timestamps for audit and debugging
+6. **Versioning**: No version in URL; managed via header if needed in future (feature 009+)
+7. **Authentication**: Not specified here; assumed to be handled by global API authentication middleware
+8. **Rate Limiting**: Not specified; implement per API governance standards
