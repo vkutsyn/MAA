@@ -3,6 +3,7 @@
 ## Entities
 
 ### WizardSession
+
 - Fields:
   - sessionId (uuid, required)
   - stateCode (string, required, 2 chars)
@@ -17,6 +18,7 @@
   - completionPercent derived from currentStep/totalSteps
 
 ### StateSelection
+
 - Fields:
   - stateCode (string, required, 2 chars)
   - stateName (string, required)
@@ -27,6 +29,7 @@
   - zip is 5 digits if present
 
 ### Question
+
 - Fields:
   - key (string, required, max 200)
   - label (string, required)
@@ -40,6 +43,7 @@
   - options required for select/multiselect
 
 ### Answer
+
 - Fields (matches API contract):
   - id (uuid)
   - sessionId (uuid, required)
@@ -56,6 +60,7 @@
   - answerValue validated by fieldType rules
 
 ### ProgressState
+
 - Fields:
   - currentIndex (integer, required)
   - totalSteps (integer, required)
@@ -65,12 +70,14 @@
   - currentIndex in range 0..totalSteps-1
 
 ## State Transitions
+
 - WizardSession:
   - draft -> in_progress -> completed
   - in_progress -> draft (user edits previous steps)
   - in_progress -> expired (session timeout)
 
 ## Relationships Summary
+
 - WizardSession 1:many Answer
 - StateSelection 1:1 WizardSession
 - Question 1:many Answer (by fieldKey)

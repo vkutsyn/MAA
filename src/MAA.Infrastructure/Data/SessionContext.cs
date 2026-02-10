@@ -185,6 +185,7 @@ public class SessionContext : DbContext
             
             entity.Property(e => e.Email).IsRequired().HasMaxLength(320); // RFC 5321 max
             entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(128);
+            entity.Property(e => e.Role).IsRequired(); // User role for RBAC
             entity.Property(e => e.EmailVerified).HasDefaultValue(false);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");

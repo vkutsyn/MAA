@@ -1,5 +1,5 @@
-import { useWizardStore } from './store'
-import { calculateProgress } from './flow'
+import { useWizardStore } from "./store";
+import { calculateProgress } from "./flow";
 
 /**
  * Progress indicator showing current step and completion percentage.
@@ -7,15 +7,18 @@ import { calculateProgress } from './flow'
  * Uses conditional flow to show only visible questions in progress.
  */
 export function WizardProgress() {
-  const { questions, currentStep, answers } = useWizardStore()
-  
+  const questions = useWizardStore((state) => state.questions);
+  const currentStep = useWizardStore((state) => state.currentStep);
+  const answers = useWizardStore((state) => state.answers);
+
   // Calculate progress based on visible questions (respects conditional flow)
-  const progress = calculateProgress(questions, currentStep, answers)
-  const { currentVisibleIndex, totalVisibleQuestions, completionPercent } = progress
+  const progress = calculateProgress(questions, currentStep, answers);
+  const { currentVisibleIndex, totalVisibleQuestions, completionPercent } =
+    progress;
 
   // Calculate step display (1-based for users)
-  const currentStepDisplay = currentVisibleIndex + 1
-  const totalSteps = totalVisibleQuestions
+  const currentStepDisplay = currentVisibleIndex + 1;
+  const totalSteps = totalVisibleQuestions;
 
   return (
     <div className="space-y-2" role="region" aria-label="Progress indicator">
@@ -24,7 +27,9 @@ export function WizardProgress() {
         <span className="font-medium">
           Question {currentStepDisplay} of {totalSteps}
         </span>
-        <span className="text-muted-foreground">{completionPercent}% complete</span>
+        <span className="text-muted-foreground">
+          {completionPercent}% complete
+        </span>
       </div>
 
       {/* Progress bar */}
@@ -42,5 +47,5 @@ export function WizardProgress() {
         />
       </div>
     </div>
-  )
+  );
 }

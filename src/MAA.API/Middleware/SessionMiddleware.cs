@@ -27,6 +27,8 @@ public class SessionMiddleware
         "/api/auth",
         "/api/admin",
         "/api/rules",  // Rules API uses JWT authentication
+        "/api/states", // Public wizard endpoints (anonymous or authenticated)
+        "/api/questions", // Public wizard endpoints (anonymous or authenticated)
         "/api-docs",
         "/swagger"
     };
@@ -48,6 +50,18 @@ public class SessionMiddleware
         {
             await _next(context);
             return;
+        }
+
+        // Skip session validation if JWT token is present (user is authenticated)
+        if (context.Request.Headers.ContainsKey("Authorization"))
+        {
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("JWT token present, bypassing session cookie validation");
+                await _next(context);
+                return;
+            }
         }
 
         // Skip GET /api/sessions/* (session creation is public)

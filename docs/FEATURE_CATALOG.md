@@ -127,6 +127,7 @@
 **Specification**: [specs/004-ui-implementation/spec.md](../specs/004-ui-implementation/spec.md)
 
 **Implementation Progress**:
+
 - ✅ Phase 1: Setup (T001-T003) — Vite, Tailwind, Router
 - ✅ Phase 2: Foundational (T004-T014) — API contracts, state/question services, frontend infrastructure
 - ✅ Phase 3: User Story 1 (T015-T020) — Landing page, state selector, start wizard
@@ -136,14 +137,14 @@
 
 **Features**:
 
-- [X] F4.1: Landing Page — Hero, value props, "Check Eligibility" CTA
-- [X] F4.2: State Selection — Auto-detect by ZIP; override allowed; state info explained
-- [X] F4.3: Question Taxonomy — Define question types (text, number, select, multi-select, checkbox, date)
-- [X] F4.4: Conditional Question Flow — Render questions based on previous answers
-- [X] F4.5: Progress Indicator & Navigation — Show % complete; enable backtracking
-- [X] F4.6: Question Explanations — Tooltips explaining "why we ask this"
-- [X] F4.7: Accessibility Compliance — WCAG 2.1 AA: semantic HTML, ARIA labels, keyboard nav
-- [X] F4.8: Mobile Optimization — Touch-friendly buttons, readable text, vertical scrolling
+- [x] F4.1: Landing Page — Hero, value props, "Check Eligibility" CTA
+- [x] F4.2: State Selection — Auto-detect by ZIP; override allowed; state info explained
+- [x] F4.3: Question Taxonomy — Define question types (text, number, select, multi-select, checkbox, date)
+- [x] F4.4: Conditional Question Flow — Render questions based on previous answers
+- [x] F4.5: Progress Indicator & Navigation — Show % complete; enable backtracking
+- [x] F4.6: Question Explanations — Tooltips explaining "why we ask this"
+- [x] F4.7: Accessibility Compliance — WCAG 2.1 AA: semantic HTML, ARIA labels, keyboard nav
+- [x] F4.8: Mobile Optimization — Touch-friendly buttons, readable text, vertical scrolling
 - [ ] F4.9: Save & Resume ⭐ Phase 7 (Future) — Save answers to account; allow resumption beyond session
 
 **Dependencies**: E1 (authentication/sessions) ✅, E2 (rules engine for question taxonomy) ✅

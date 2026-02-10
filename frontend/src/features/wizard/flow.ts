@@ -1,4 +1,4 @@
-import { QuestionDto, QuestionCondition, Answer } from './types'
+import { QuestionDto, QuestionCondition, Answer } from "./types";
 
 /**
  * Conditional flow evaluation for wizard questions.
@@ -13,52 +13,60 @@ import { QuestionDto, QuestionCondition, Answer } from './types'
  */
 export function evaluateCondition(
   condition: QuestionCondition,
-  answerValue: string | undefined
+  answerValue: string | undefined,
 ): boolean {
   // If no answer exists, condition fails
-  if (answerValue === undefined || answerValue === null || answerValue === '') {
-    return false
+  if (answerValue === undefined || answerValue === null || answerValue === "") {
+    return false;
   }
 
-  const { operator, value: conditionValue } = condition
+  const { operator, value: conditionValue } = condition;
 
   switch (operator) {
-    case 'equals':
-      return answerValue === conditionValue
+    case "equals":
+      return answerValue === conditionValue;
 
-    case 'not_equals':
-      return answerValue !== conditionValue
+    case "not_equals":
+      return answerValue !== conditionValue;
 
-    case 'gt': {
-      const numAnswer = parseFloat(answerValue)
-      const numCondition = parseFloat(conditionValue)
-      return !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer > numCondition
+    case "gt": {
+      const numAnswer = parseFloat(answerValue);
+      const numCondition = parseFloat(conditionValue);
+      return (
+        !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer > numCondition
+      );
     }
 
-    case 'gte': {
-      const numAnswer = parseFloat(answerValue)
-      const numCondition = parseFloat(conditionValue)
-      return !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer >= numCondition
+    case "gte": {
+      const numAnswer = parseFloat(answerValue);
+      const numCondition = parseFloat(conditionValue);
+      return (
+        !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer >= numCondition
+      );
     }
 
-    case 'lt': {
-      const numAnswer = parseFloat(answerValue)
-      const numCondition = parseFloat(conditionValue)
-      return !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer < numCondition
+    case "lt": {
+      const numAnswer = parseFloat(answerValue);
+      const numCondition = parseFloat(conditionValue);
+      return (
+        !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer < numCondition
+      );
     }
 
-    case 'lte': {
-      const numAnswer = parseFloat(answerValue)
-      const numCondition = parseFloat(conditionValue)
-      return !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer <= numCondition
+    case "lte": {
+      const numAnswer = parseFloat(answerValue);
+      const numCondition = parseFloat(conditionValue);
+      return (
+        !isNaN(numAnswer) && !isNaN(numCondition) && numAnswer <= numCondition
+      );
     }
 
-    case 'includes':
-      return answerValue.toLowerCase().includes(conditionValue.toLowerCase())
+    case "includes":
+      return answerValue.toLowerCase().includes(conditionValue.toLowerCase());
 
     default:
-      console.warn(`Unknown operator: ${operator}`)
-      return false
+      console.warn(`Unknown operator: ${operator}`);
+      return false;
   }
 }
 
@@ -70,18 +78,18 @@ export function evaluateCondition(
  */
 export function shouldShowQuestion(
   question: QuestionDto,
-  answers: Record<string, Answer>
+  answers: Record<string, Answer>,
 ): boolean {
   // If no conditions, always show
   if (!question.conditions || question.conditions.length === 0) {
-    return true
+    return true;
   }
 
   // All conditions must be met (AND logic)
   return question.conditions.every((condition) => {
-    const answer = answers[condition.fieldKey]
-    return evaluateCondition(condition, answer?.answerValue)
-  })
+    const answer = answers[condition.fieldKey];
+    return evaluateCondition(condition, answer?.answerValue);
+  });
 }
 
 /**
@@ -92,9 +100,11 @@ export function shouldShowQuestion(
  */
 export function getVisibleQuestions(
   allQuestions: QuestionDto[],
-  answers: Record<string, Answer>
+  answers: Record<string, Answer>,
 ): QuestionDto[] {
-  return allQuestions.filter((question) => shouldShowQuestion(question, answers))
+  return allQuestions.filter((question) =>
+    shouldShowQuestion(question, answers),
+  );
 }
 
 /**
@@ -107,14 +117,14 @@ export function getVisibleQuestions(
 export function getNextVisibleIndex(
   allQuestions: QuestionDto[],
   currentIndex: number,
-  answers: Record<string, Answer>
+  answers: Record<string, Answer>,
 ): number {
   for (let i = currentIndex + 1; i < allQuestions.length; i++) {
     if (shouldShowQuestion(allQuestions[i], answers)) {
-      return i
+      return i;
     }
   }
-  return -1 // No more questions
+  return -1; // No more questions
 }
 
 /**
@@ -127,14 +137,14 @@ export function getNextVisibleIndex(
 export function getPreviousVisibleIndex(
   allQuestions: QuestionDto[],
   currentIndex: number,
-  answers: Record<string, Answer>
+  answers: Record<string, Answer>,
 ): number {
   for (let i = currentIndex - 1; i >= 0; i--) {
     if (shouldShowQuestion(allQuestions[i], answers)) {
-      return i
+      return i;
     }
   }
-  return -1 // No previous questions
+  return -1; // No previous questions
 }
 
 /**
@@ -147,29 +157,29 @@ export function getPreviousVisibleIndex(
 export function calculateProgress(
   allQuestions: QuestionDto[],
   currentIndex: number,
-  answers: Record<string, Answer>
+  answers: Record<string, Answer>,
 ): {
-  currentVisibleIndex: number
-  totalVisibleQuestions: number
-  completionPercent: number
+  currentVisibleIndex: number;
+  totalVisibleQuestions: number;
+  completionPercent: number;
 } {
-  const visibleQuestions = getVisibleQuestions(allQuestions, answers)
-  const currentQuestion = allQuestions[currentIndex]
-  
+  const visibleQuestions = getVisibleQuestions(allQuestions, answers);
+  const currentQuestion = allQuestions[currentIndex];
+
   // Find the position of the current question in the visible list
   const currentVisibleIndex = visibleQuestions.findIndex(
-    (q) => q.key === currentQuestion?.key
-  )
+    (q) => q.key === currentQuestion?.key,
+  );
 
-  const totalVisibleQuestions = visibleQuestions.length
+  const totalVisibleQuestions = visibleQuestions.length;
   const completionPercent =
     totalVisibleQuestions > 0
       ? Math.round(((currentVisibleIndex + 1) / totalVisibleQuestions) * 100)
-      : 0
+      : 0;
 
   return {
     currentVisibleIndex: currentVisibleIndex >= 0 ? currentVisibleIndex : 0,
     totalVisibleQuestions,
     completionPercent,
-  }
+  };
 }
