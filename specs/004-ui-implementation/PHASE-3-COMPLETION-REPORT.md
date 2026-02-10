@@ -237,7 +237,7 @@ Wizard Flow:
    - Bundle size: 463 KB (gzipped: 149 KB)
    - No errors or warnings
 
-✅ dotnet build src/MAA.API/MAA.API.csproj
+✅ dotnet build backend/MAA.API/MAA.API.csproj
    - Compilation: Success
    - No new errors (existing warnings documented)
 ```

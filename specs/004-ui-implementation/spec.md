@@ -2,7 +2,7 @@
 
 **Feature Branch**: `004-ui-implementation`  
 **Created**: February 10, 2026  
-**Status**: Draft  
+**Status**: Implemented (Phases 1-6 Complete)  
 **Input**: User description: "I want to start feature with UI - analyze current docks, other feature state and specify UI implementation"
 
 ## User Scenarios & Testing _(mandatory)_
@@ -94,9 +94,9 @@ As a user on any device, I can complete the wizard using keyboard or touch and u
 
 - **SC-001**: Users can reach the first wizard question from the landing page in under 30 seconds.
 - **SC-002**: 95% of step transitions complete in under 500 ms.
-- **SC-003**: Wizard completion rate is at least 70% for the MVP flow.
+- **SC-003**: Wizard completion rate is at least 70% for the MVP flow (measured as: users who complete all questions / users who start the wizard by clicking "Start Eligibility Check").
 - **SC-004**: WCAG 2.1 AA scan reports zero violations for the wizard UI.
-- **SC-005**: 90% of users can complete the wizard flow in under 5 minutes on a standard connection.
+- **SC-005**: 90% of users can complete the wizard flow in under 5 minutes on a standard connection (defined as: 4G LTE with 5 Mbps download, 2 Mbps upload, 50ms latency).
 
 ## Assumptions
 

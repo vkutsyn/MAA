@@ -76,7 +76,7 @@ specs/004-ui-implementation/
 ### Source Code (repository root)
 
 ```text
-src/
+backend/
 ├── MAA.API/
 ├── MAA.Application/
 ├── MAA.Domain/
@@ -94,7 +94,7 @@ frontend/
 └── tests/
 ```
 
-**Structure Decision**: Use the existing backend layout under `src/` and add a Vite-powered React frontend in `frontend/` to keep UI concerns isolated while integrating with the API.
+**Structure Decision**: Use the existing backend layout under `backend/` and add a Vite-powered React frontend in `frontend/` to keep UI concerns isolated while integrating with the API.
 
 ## Complexity Tracking
 

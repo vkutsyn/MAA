@@ -6,10 +6,10 @@
 - PostgreSQL 13+
 
 ## Backend (API)
-1. Configure database connection in `src/MAA.API/appsettings.Development.json`.
+1. Configure database connection in `backend/MAA.API/appsettings.Development.json`.
 2. Apply migrations:
    ```bash
-   cd src/MAA.Infrastructure
+   cd backend/MAA.Infrastructure
    dotnet ef database update --startup-project ../MAA.API
    ```
 3. Run the API:

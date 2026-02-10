@@ -27,26 +27,17 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 **Constitution Alignment**: Supports testability, accessibility, and performance constraints via shared services and typed contracts.
 
-- [X] T004 Update anonymous session creation to allow unauthenticated access and set `MAA_SessionId` cookie in src/MAA.API/Controllers/SessionsController.cs
-- [X] T005 [P] Add state metadata DTOs in src/MAA.Application/Eligibility/DTOs/StateInfoDto.cs and src/MAA.Application/Eligibility/DTOs/StateLookupDto.cs
-- [X] T006 [P] Add question taxonomy DTOs in src/MAA.Application/Eligibility/DTOs/QuestionDto.cs and src/MAA.Application/Eligibility/DTOs/QuestionSetDto.cs
-- [X] T007 Add state metadata service in src/MAA.Application/Eligibility/Services/StateMetadataService.cs
-- [X] T008 Add question taxonomy service in src/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
-- [X] T009 Add states endpoints controller in src/MAA.API/Controllers/StatesController.cs
-- [X] T010 Add questions endpoint controller in src/MAA.API/Controllers/QuestionsController.cs
+- [X] T004 Update anonymous session creation to allow unauthenticated access and set `MAA_SessionId` cookie in backend/MAA.API/Controllers/SessionsController.cs
+- [X] T005 [P] Add state metadata DTOs in backend/MAA.Application/Eligibility/DTOs/StateInfoDto.cs and backend/MAA.Application/Eligibility/DTOs/StateLookupDto.cs
+- [X] T006 [P] Add question taxonomy DTOs in backend/MAA.Application/Eligibility/DTOs/QuestionDto.cs and backend/MAA.Application/Eligibility/DTOs/QuestionSetDto.cs
+- [X] T007 Add state metadata service in backend/MAA.Application/Eligibility/Services/StateMetadataService.cs
+- [X] T008 Add question taxonomy service in backend/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
+- [X] T009 Add states endpoints controller in backend/MAA.API/Controllers/StatesController.cs
+- [X] T010 Add questions endpoint controller in backend/MAA.API/Controllers/QuestionsController.cs
 - [X] T011 [P] Add frontend API client with credentials in frontend/src/lib/api.ts
 - [X] T012 [P] Add wizard types and DTO mapping in frontend/src/features/wizard/types.ts
 - [X] T013 Add wizard state store in frontend/src/features/wizard/store.ts
 - [X] T014 Add session bootstrap hook in frontend/src/features/wizard/useSession.ts
-
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
-- [ ] T008 Add question taxonomy service in src/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
-- [ ] T009 Add states endpoints controller in src/MAA.API/Controllers/StatesController.cs
-- [ ] T010 Add questions endpoint controller in src/MAA.API/Controllers/QuestionsController.cs
-- [ ] T011 [P] Add frontend API client with credentials in frontend/src/lib/api.ts
-- [ ] T012 [P] Add wizard types and DTO mapping in frontend/src/features/wizard/types.ts
-- [ ] T013 Add wizard state store in frontend/src/features/wizard/store.ts
-- [ ] T014 Add session bootstrap hook in frontend/src/features/wizard/useSession.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
