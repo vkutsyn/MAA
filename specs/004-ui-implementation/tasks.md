@@ -34,7 +34,12 @@ description: "Task list for Eligibility Wizard UI implementation"
 - [X] T008 Add question taxonomy service in src/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
 - [X] T009 Add states endpoints controller in src/MAA.API/Controllers/StatesController.cs
 - [X] T010 Add questions endpoint controller in src/MAA.API/Controllers/QuestionsController.cs
-- [ ] T011 [P] Add frontend API client with credentials in frontend/src/lib/api.ts
+- [X] T011 [P] Add frontend API client with credentials in frontend/src/lib/api.ts
+- [X] T012 [P] Add wizard types and DTO mapping in frontend/src/features/wizard/types.ts
+- [X] T013 Add wizard state store in frontend/src/features/wizard/store.ts
+- [X] T014 Add session bootstrap hook in frontend/src/features/wizard/useSession.ts
+
+**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 - [ ] T008 Add question taxonomy service in src/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
 - [ ] T009 Add states endpoints controller in src/MAA.API/Controllers/StatesController.cs
 - [ ] T010 Add questions endpoint controller in src/MAA.API/Controllers/QuestionsController.cs
