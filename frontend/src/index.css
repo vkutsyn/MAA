@@ -57,3 +57,122 @@
     @apply bg-background text-foreground;
   }
 }
+
+/**
+ * Accessibility and Mobile-First Responsive Styles
+ * 
+ * Touch targets: Minimum 44x44px (mobile), 40x40px (desktop)
+ * Font sizes: Responsive scaling for readability
+ * Spacing: Adapted for mobile-first design
+ * Focus visible: Enhanced keyboard navigation indicator
+ * No horizontal scroll: All content fits within viewport width
+ */
+
+@layer components {
+  /* Enhanced focus visible for keyboard navigation (WCAG 2.1 AA) */
+  @supports selector(:focus-visible) {
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [role="button"]:focus-visible,
+    [tabindex]:focus-visible {
+      @apply outline-2 outline-offset-2 outline-ring;
+    }
+  }
+
+  /* Touch target sizing for mobile - applies to small screens */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    @apply min-h-11 min-w-11 sm:min-h-10 sm:min-w-10;
+  }
+
+  /* Increase spacing around interactive elements on touch devices */
+  label {
+    @apply text-base;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply min-h-11 text-base sm:min-h-10 sm:text-sm;
+  }
+
+  /* Mobile-first padding and margins to prevent horizontal scroll */
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    /* Ensure no horizontal overflow on narrow viewports */
+    overflow-x: hidden;
+    width: 100vw;
+  }
+
+  /* Screen reader only content (sr-only pattern) */
+  .sr-only {
+    @apply absolute left-[-10000px] h-px w-px overflow-hidden;
+  }
+
+  /* Skip to main content link (keyboard focus visible) */
+  a[href="#main"] {
+    @apply absolute top-0 left-0 z-50;
+    @apply bg-primary text-primary-foreground;
+    @apply px-4 py-2;
+    @apply -translate-y-full focus:translate-y-0;
+    @apply transition-transform;
+  }
+
+  /* Focus visible indicator for all interactive elements */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  /* Enhanced text contrast for readability */
+  @media (prefers-contrast: more) {
+    body {
+      @apply text-foreground;
+    }
+    
+    button,
+    [role="button"] {
+      @apply font-semibold;
+    }
+  }
+
+  /* Reduced motion support for animations */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      @apply !transition-none !animate-none;
+    }
+  }
+
+  /* Dark mode text sizing for accessibility */
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply !text-foreground;
+    }
+  }
+}
+
+/* Ensure form elements have proper padding for touch/keyboard use */
+@layer utilities {
+  /* Touch-friendly form spacing */
+  .touch-friendly {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  /*Responsive form input sizing */
+  .input-responsive {
+    @apply text-base sm:text-sm;
+    @apply min-h-11 sm:min-h-10;
+  }
+
+  /* Mobile-safe container */
+  .mobile-safe {
+    @apply max-w-full px-4 sm:px-6 lg:px-8;
+  }
+}

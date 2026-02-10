@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +22,13 @@ interface WizardStepProps {
 /**
  * Renders a single wizard question with appropriate input control.
  * Supports various field types and includes validation and accessibility.
+ * 
+ * Accessibility features:
+ * - aria-describedby links to help text and error messages
+ * - aria-invalid/aria-required for validation state
+ * - role="alert" for error messages (announced to screen readers)
+ * - Enhanced labels and field descriptions
+ * - Touch-friendly button sizes
  */
 export function WizardStep({ 
   question, 
@@ -218,13 +224,17 @@ export function WizardStep({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="Question response form">
       {/* Question */}
-      <div className="space-y-2">
-        <Label htmlFor={`question-${question.key}`} className="text-base font-medium">
+      <fieldset className="space-y-3 border-0 p-0">
+        <legend className="text-base font-medium">
           {question.label}
-          {question.required && <span className="ml-1 text-destructive">*</span>}
-        </Label>
+          {question.required && (
+            <span className="ml-1 text-destructive" aria-label="required">
+              *
+            </span>
+          )}
+        </legend>
 
         {/* Help text */}
         {question.helpText && (
@@ -241,28 +251,44 @@ export function WizardStep({
 
         {/* Error message */}
         {error && (
-          <p
+          <div
             id={`question-${question.key}-error`}
             role="alert"
-            className="text-sm text-destructive"
+            aria-live="assertive"
+            className="rounded-md bg-destructive/10 p-3 text-sm text-destructive font-medium"
           >
+            <span aria-hidden="true">⚠ </span>
             {error}
-          </p>
+          </div>
         )}
-      </div>
+      </fieldset>
 
       {/* Navigation buttons */}
-      <div className="flex justify-between gap-4">
+      <div className="flex gap-4 justify-between">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
           disabled={!canGoBack || isSaving}
+          className="min-h-10 min-w-10"
+          aria-label="Go back to previous question"
         >
           Back
         </Button>
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Next'}
+        <Button 
+          type="submit" 
+          disabled={isSaving}
+          className="min-h-10 min-w-10"
+          aria-label={isSaving ? 'Saving your answer' : 'Save answer and continue to next question'}
+        >
+          {isSaving ? (
+            <>
+              <span aria-hidden="true">Saving...</span>
+              <span className="sr-only">Saving your answer</span>
+            </>
+          ) : (
+            'Next'
+          )}
         </Button>
       </div>
     </form>

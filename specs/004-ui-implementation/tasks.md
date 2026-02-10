@@ -96,10 +96,10 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Add keyboard navigation and focus management in frontend/src/features/wizard/a11y.ts
-- [ ] T026 [US3] Add semantic labels and ARIA attributes in frontend/src/features/wizard/LandingPage.tsx, frontend/src/features/wizard/StateSelector.tsx, frontend/src/features/wizard/WizardStep.tsx
-- [ ] T027 [US3] Ensure mobile responsive layout and touch targets in frontend/src/features/wizard/WizardLayout.tsx and frontend/src/index.css
-- [ ] T028 [US3] Add inline help and validation messaging components in frontend/src/features/wizard/HelpText.tsx and frontend/src/features/wizard/ValidationMessage.tsx
+- [X] T025 [US3] Add keyboard navigation and focus management in frontend/src/features/wizard/a11y.ts
+- [X] T026 [US3] Add semantic labels and ARIA attributes in frontend/src/features/wizard/LandingPage.tsx, frontend/src/features/wizard/StateSelector.tsx, frontend/src/features/wizard/WizardStep.tsx
+- [X] T027 [US3] Ensure mobile responsive layout and touch targets in frontend/src/features/wizard/WizardLayout.tsx and frontend/src/index.css
+- [X] T028 [US3] Add inline help and validation messaging components in frontend/src/features/wizard/HelpText.tsx and frontend/src/features/wizard/ValidationMessage.tsx
 
 **Checkpoint**: All user stories should now be independently functional
 

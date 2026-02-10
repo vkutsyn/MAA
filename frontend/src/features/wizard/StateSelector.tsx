@@ -20,6 +20,13 @@ interface StateSelectorProps {
 /**
  * State selector component with manual selection and ZIP code lookup.
  * Supports WCAG 2.1 AA with keyboard navigation and screen reader support.
+ * 
+ * Accessibility features:
+ * - Proper form labels (htmlFor association)
+ * - ARIA descriptions and error states
+ * - Keyboard support (Enter to submit, Tab navigation)
+ * - Screen reader announcements via aria-live
+ * - Touch-friendly button sizes (minimum 44x44px)
  */
 export function StateSelector({ onStateSelected, disabled = false }: StateSelectorProps) {
   const [states, setStates] = useState<StateInfo[]>([])
@@ -110,24 +117,29 @@ export function StateSelector({ onStateSelected, disabled = false }: StateSelect
   }
 
   return (
-    <div className="space-y-6">
+    <fieldset className="space-y-6" disabled={disabled}>
+      <legend className="sr-only">State Selection Options</legend>
+
       {/* ZIP Code Lookup Section */}
-      <div className="space-y-2">
-        <Label htmlFor="zip-input">
-          Find Your State by ZIP Code (Optional)
+      <div className="space-y-3">
+        <Label htmlFor="zip-input" className="font-medium">
+          Find Your State by ZIP Code <span className="text-muted-foreground">(Optional)</span>
         </Label>
+        <p id="zip-help" className="text-sm text-muted-foreground">
+          Enter your 5-digit ZIP code to automatically determine your state.
+        </p>
         <div className="flex gap-2">
           <Input
             id="zip-input"
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            placeholder="Enter 5-digit ZIP"
+            placeholder="e.g., 75001"
             value={zipCode}
             onChange={handleZipChange}
             onKeyDown={handleZipKeyDown}
             disabled={disabled || isLookingUpZip}
-            aria-describedby={zipError ? 'zip-error' : undefined}
+            aria-describedby={zipError ? 'zip-error' : 'zip-help'}
             aria-invalid={zipError ? 'true' : 'false'}
             className="flex-1"
             maxLength={5}
@@ -137,13 +149,21 @@ export function StateSelector({ onStateSelected, disabled = false }: StateSelect
             onClick={handleZipLookup}
             disabled={disabled || isLookingUpZip || zipCode.length !== 5}
             variant="secondary"
-            aria-label="Look up state by ZIP code"
+            aria-label={`Look up state by ZIP code ${zipCode || ''}`}
+            className="min-h-10 min-w-10"
           >
-            {isLookingUpZip ? 'Looking up...' : 'Lookup'}
+            {isLookingUpZip ? (
+              <>
+                <span aria-hidden="true">...</span>
+                <span className="sr-only">Looking up ZIP code</span>
+              </>
+            ) : (
+              'Lookup'
+            )}
           </Button>
         </div>
         {zipError && (
-          <p id="zip-error" role="alert" className="text-sm text-destructive">
+          <p id="zip-error" role="alert" className="text-sm text-destructive font-medium">
             {zipError}
           </p>
         )}
@@ -160,14 +180,24 @@ export function StateSelector({ onStateSelected, disabled = false }: StateSelect
       </div>
 
       {/* Manual State Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="state-select">Select Your State</Label>
+      <div className="space-y-3">
+        <Label htmlFor="state-select" className="font-medium">
+          <span className="font-semibold">Select Your State</span> <span className="text-destructive" aria-label="required">*</span>
+        </Label>
+        <p id="state-help" className="text-sm text-muted-foreground">
+          Choose the state where you need Medicaid coverage.
+        </p>
         <Select
           value={selectedState}
           onValueChange={handleStateChange}
           disabled={disabled || isLoadingStates}
         >
-          <SelectTrigger id="state-select" aria-label="Select your state">
+          <SelectTrigger 
+            id="state-select" 
+            aria-describedby="state-help"
+            aria-label="Select your state"
+            className="min-h-10"
+          >
             <SelectValue placeholder={isLoadingStates ? 'Loading states...' : 'Choose a state'} />
           </SelectTrigger>
           <SelectContent>
@@ -179,11 +209,11 @@ export function StateSelector({ onStateSelected, disabled = false }: StateSelect
           </SelectContent>
         </Select>
         {selectedState && (
-          <p className="text-sm text-muted-foreground" role="status">
-            Selected: {states.find((s) => s.code === selectedState)?.name}
+          <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+            You selected: <span className="font-medium">{states.find((s) => s.code === selectedState)?.name}</span>
           </p>
         )}
       </div>
-    </div>
+    </fieldset>
   )
 }
