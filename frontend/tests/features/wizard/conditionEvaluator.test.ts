@@ -12,7 +12,11 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { evaluateCondition, computeVisibility, AnswerMap } from "@/features/wizard/conditionEvaluator";
+import {
+  evaluateCondition,
+  computeVisibility,
+  AnswerMap,
+} from "@/features/wizard/conditionEvaluator";
 import { QuestionCondition } from "@/features/wizard/types";
 
 describe("evaluateCondition - All Operators", () => {
@@ -45,7 +49,9 @@ describe("evaluateCondition - All Operators", () => {
         operator: "equals",
         value: "Spanish",
       };
-      const answers: AnswerMap = { languages: ["English", "Spanish", "French"] };
+      const answers: AnswerMap = {
+        languages: ["English", "Spanish", "French"],
+      };
 
       expect(evaluateCondition(condition, answers)).toBe(true);
     });
@@ -389,11 +395,7 @@ describe("evaluateCondition - All Operators", () => {
 
 describe("computeVisibility", () => {
   it("should make all questions visible when no conditions exist", () => {
-    const questions = [
-      { key: "q1" },
-      { key: "q2" },
-      { key: "q3" },
-    ];
+    const questions = [{ key: "q1" }, { key: "q2" }, { key: "q3" }];
     const answers: AnswerMap = {};
 
     const visibility = computeVisibility(questions, answers);

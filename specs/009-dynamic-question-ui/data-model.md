@@ -15,6 +15,7 @@ This data model documents the TypeScript interfaces and state structures for dyn
 Represents a single eligibility question from the backend API.
 
 **Properties**:
+
 - `key: string` - Unique identifier for the question (e.g., "household_income")
 - `label: string` - Display text for the question
 - `type: QuestionType` - Input control type (currency, integer, string, boolean, date, text, select, multiselect)
@@ -24,16 +25,19 @@ Represents a single eligibility question from the backend API.
 - `conditions?: QuestionCondition[]` - Rules determining question visibility
 
 **Relationships**:
+
 - Contains 0..n `QuestionOption` (for select/multiselect)
 - Contains 0..n `QuestionCondition` (conditional visibility rules)
 
 **Validation Rules**:
+
 - `key` must be unique within question set
 - `type` must match one of enum values
 - `options` required if type is select/multiselect
 - `conditions` optional; empty array = always visible
 
 **State Transitions**:
+
 - Visible → Hidden: When conditions evaluated to false
 - Hidden → Visible: When conditions evaluated to true
 - Always Visible: When conditions is null/undefined/empty
@@ -45,35 +49,50 @@ Represents a single eligibility question from the backend API.
 Defines a single rule for conditional question visibility.
 
 **Properties**:
+
 - `fieldKey: string` - Key of the trigger question (question being checked)
 - `operator: ConditionOperator` - Comparison operator (equals, not_equals, gt, gte, lt, lte, includes)
 - `value: string` - Expected value for condition to pass
 
 **Relationships**:
+
 - Belongs to 1 `QuestionDto`
 - References 1 trigger question by `fieldKey`
 
 **Validation Rules**:
+
 - `fieldKey` must reference a valid question key in the same question set
 - `operator` must be one of enum values
 - `value` must be compatible with trigger question's type
 - Numeric operators (gt, gte, lt, lte) only valid for currency/integer types
 
 **Evaluation Logic**:
+
 ```typescript
-function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): boolean {
-  const answer = answers.get(condition.fieldKey)
-  if (!answer) return false // No answer = condition fails
-  
+function evaluateCondition(
+  condition: QuestionCondition,
+  answers: AnswerMap,
+): boolean {
+  const answer = answers.get(condition.fieldKey);
+  if (!answer) return false; // No answer = condition fails
+
   switch (condition.operator) {
-    case 'equals': return answer === condition.value
-    case 'not_equals': return answer !== condition.value
-    case 'gt': return Number(answer) > Number(condition.value)
-    case 'gte': return Number(answer) >= Number(condition.value)
-    case 'lt': return Number(answer) < Number(condition.value)
-    case 'lte': return Number(answer) <= Number(condition.value)
-    case 'includes': return answer.includes(condition.value)
-    default: return false
+    case "equals":
+      return answer === condition.value;
+    case "not_equals":
+      return answer !== condition.value;
+    case "gt":
+      return Number(answer) > Number(condition.value);
+    case "gte":
+      return Number(answer) >= Number(condition.value);
+    case "lt":
+      return Number(answer) < Number(condition.value);
+    case "lte":
+      return Number(answer) <= Number(condition.value);
+    case "includes":
+      return answer.includes(condition.value);
+    default:
+      return false;
   }
 }
 ```
@@ -85,24 +104,28 @@ function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): bo
 Frontend-only structure for efficient answer lookups during condition evaluation.
 
 **Structure**:
+
 ```typescript
-type AnswerMap = Map<string, string>
+type AnswerMap = Map<string, string>;
 // Key: question fieldKey, Value: answer value as string
 ```
 
 **Purpose**:
+
 - O(1) lookup for condition evaluation
 - Consistent interface for all question types (all answers normalized to strings)
 
 **Population**:
+
 ```typescript
-const answerMap = new Map<string, string>()
-sessionAnswers.forEach(answer => {
-  answerMap.set(answer.fieldKey, answer.answerValue)
-})
+const answerMap = new Map<string, string>();
+sessionAnswers.forEach((answer) => {
+  answerMap.set(answer.fieldKey, answer.answerValue);
+});
 ```
 
 **Invariants**:
+
 - Keys match QuestionDto.key values
 - Values are string representation of answers (even for numbers/dates)
 - Updated on every answer submission
@@ -114,42 +137,47 @@ sessionAnswers.forEach(answer => {
 Tracks which questions are currently visible based on conditional evaluation.
 
 **Structure**:
+
 ```typescript
 interface VisibilityState {
-  visibleQuestionKeys: Set<string>
-  evaluatedAt: number // timestamp
+  visibleQuestionKeys: Set<string>;
+  evaluatedAt: number; // timestamp
 }
 ```
 
 **Properties**:
+
 - `visibleQuestionKeys`: Set of question keys that should be displayed
 - `evaluatedAt`: Timestamp of last evaluation (for debugging/logging)
 
 **Computation**:
+
 ```typescript
 function computeVisibility(
   questions: QuestionDto[],
-  answers: AnswerMap
+  answers: AnswerMap,
 ): VisibilityState {
-  const visible = new Set<string>()
-  
-  questions.forEach(question => {
-    const isVisible = !question.conditions || 
-      question.conditions.every(c => evaluateCondition(c, answers))
-    
+  const visible = new Set<string>();
+
+  questions.forEach((question) => {
+    const isVisible =
+      !question.conditions ||
+      question.conditions.every((c) => evaluateCondition(c, answers));
+
     if (isVisible) {
-      visible.add(question.key)
+      visible.add(question.key);
     }
-  })
-  
+  });
+
   return {
     visibleQuestionKeys: visible,
-    evaluatedAt: Date.now()
-  }
+    evaluatedAt: Date.now(),
+  };
 }
 ```
 
 **Usage**:
+
 - Recomputed via useMemo when answers change
 - Used to filter questions before rendering
 
@@ -160,21 +188,25 @@ function computeVisibility(
 Tracks open/closed state for question tooltips (managed per-question).
 
 **Structure**:
+
 ```typescript
 interface TooltipState {
-  openTooltipKey: string | null
+  openTooltipKey: string | null;
 }
 ```
 
 **Properties**:
+
 - `openTooltipKey`: Key of question with visible tooltip, or null if all closed
 
 **State Transitions**:
+
 - Closed → Open: User clicks/focuses help icon → set to question.key
 - Open → Closed: User clicks outside, presses Escape, or clicks another tooltip → set to null
 - Open (Q1) → Open (Q2): User clicks Q2 tooltip while Q1 open → set to Q2.key
 
-**Rationale**: 
+**Rationale**:
+
 - Single-tooltip-at-a-time prevents UI clutter
 - Radix UI handles accessibility; this state just tracks which is open
 
@@ -189,22 +221,23 @@ The existing wizard store (`store.ts`) will be extended to support conditional q
 ```typescript
 interface WizardStore {
   // Existing state
-  session: SessionDto | null
-  questions: QuestionDto[]
-  currentStep: number
-  selectedState: StateInfo | null
-  
+  session: SessionDto | null;
+  questions: QuestionDto[];
+  currentStep: number;
+  selectedState: StateInfo | null;
+
   // New state for conditional questions
-  answerMap: AnswerMap          // NEW: Fast lookup for condition evaluation
-  visibilityState: VisibilityState // NEW: Cached visibility computation
-  
+  answerMap: AnswerMap; // NEW: Fast lookup for condition evaluation
+  visibilityState: VisibilityState; // NEW: Cached visibility computation
+
   // New actions
-  updateAnswerMap: (fieldKey: string, value: string) => void
-  recomputeVisibility: () => void
+  updateAnswerMap: (fieldKey: string, value: string) => void;
+  recomputeVisibility: () => void;
 }
 ```
 
 **Invariants**:
+
 - `answerMap` always synced with session answers
 - `visibilityState` recomputed after every answer change
 - `currentStep` only references visible questions
@@ -217,14 +250,15 @@ interface WizardStore {
 
 ```typescript
 interface ConditionalQuestionContainerProps {
-  question: QuestionDto
-  answers: AnswerMap
-  children: React.ReactNode
-  onVisibilityChange?: (visible: boolean) => void
+  question: QuestionDto;
+  answers: AnswerMap;
+  children: React.ReactNode;
+  onVisibilityChange?: (visible: boolean) => void;
 }
 ```
 
 **Behavior**:
+
 - Evaluates `question.conditions` against `answers`
 - Renders `children` only if all conditions pass
 - Calls `onVisibilityChange` when visibility changes (for focus management)
@@ -235,13 +269,14 @@ interface ConditionalQuestionContainerProps {
 
 ```typescript
 interface QuestionTooltipProps {
-  questionKey: string
-  helpText: string
-  triggerLabel?: string // Defaults to "Why we ask this"
+  questionKey: string;
+  helpText: string;
+  triggerLabel?: string; // Defaults to "Why we ask this"
 }
 ```
 
 **Behavior**:
+
 - Renders Radix UI Tooltip with help icon trigger
 - Displays `helpText` in popover
 - Keyboard-accessible (Enter/Space to open, Escape to close)
@@ -252,15 +287,16 @@ interface QuestionTooltipProps {
 
 ```typescript
 interface QuestionRendererProps {
-  question: QuestionDto
-  value?: string
-  onChange: (value: string) => void
-  error?: string
-  showTooltip?: boolean // Default true
+  question: QuestionDto;
+  value?: string;
+  onChange: (value: string) => void;
+  error?: string;
+  showTooltip?: boolean; // Default true
 }
 ```
 
 **Behavior**:
+
 - Renders appropriate input control based on `question.type`
 - Shows QuestionTooltip if `question.helpText` exists and `showTooltip` is true
 - Emits `onChange` for answer updates

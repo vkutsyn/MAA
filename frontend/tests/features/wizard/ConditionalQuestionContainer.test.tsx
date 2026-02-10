@@ -15,7 +15,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConditionalQuestionContainer } from "@/features/wizard/ConditionalQuestionContainer";
-import { VisibilityState, AnswerMap } from "@/features/wizard/conditionEvaluator";
+import {
+  VisibilityState,
+  AnswerMap,
+} from "@/features/wizard/conditionEvaluator";
 import { QuestionDto } from "@/features/wizard/types";
 
 describe("ConditionalQuestionContainer", () => {
@@ -51,7 +54,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={visibility["dependent-q"]}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       expect(screen.getByText(/this question depends/i)).toBeTruthy();
@@ -68,7 +71,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={visibility["dependent-q"]}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Question should not be visible
@@ -76,7 +79,7 @@ describe("ConditionalQuestionContainer", () => {
       // But container should exist (for aria-live)
       expect(
         container.querySelector('[aria-live="polite"]') ||
-          container.querySelector('[aria-live="assertive"]')
+          container.querySelector('[aria-live="assertive"]'),
       ).toBeTruthy();
     });
 
@@ -91,7 +94,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={visibility["dependent-q"]}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       const hiddenSection = container.querySelector("[aria-hidden='true']");
@@ -109,7 +112,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       const liveRegion =
@@ -126,11 +129,11 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={false}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Get the aria-live region
-      const liveRegion = container.querySelector('[aria-live]');
+      const liveRegion = container.querySelector("[aria-live]");
       expect(liveRegion).toBeTruthy();
 
       // Re-render with visible=true
@@ -140,16 +143,17 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Should announce appearance
       await waitFor(() => {
         const announcement =
-          liveRegion?.textContent || screen.queryByText(/appears|shown|visible/i);
+          liveRegion?.textContent ||
+          screen.queryByText(/appears|shown|visible/i);
         // Announcement should exist (specific text depends on implementation)
         expect(
-          announcement || screen.queryByText(/this question depends/i)
+          announcement || screen.queryByText(/this question depends/i),
         ).toBeTruthy();
       });
     });
@@ -165,7 +169,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       const input = screen.getByRole("textbox");
@@ -185,7 +189,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={false}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Try to interact with hidden content (should not work)
@@ -194,7 +198,7 @@ describe("ConditionalQuestionContainer", () => {
         // If input exists in DOM, it should be disabled/readonly
         expect(
           (inputs[0] as HTMLInputElement).disabled ||
-            (inputs[0] as HTMLInputElement).readOnly
+            (inputs[0] as HTMLInputElement).readOnly,
         ).toBe(true);
       }
     });
@@ -214,7 +218,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={answer}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       const input = screen.getByRole("textbox") as HTMLInputElement;
@@ -227,7 +231,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={false}
           answer={answer}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       mockOnAnswer.mockClear();
@@ -239,7 +243,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={answer}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Value should be restored
@@ -256,7 +260,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={false}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Make visible
@@ -266,7 +270,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       await waitFor(() => {
@@ -276,7 +280,7 @@ describe("ConditionalQuestionContainer", () => {
           // Implementation may focus different element
           expect(
             document.activeElement === input ||
-              document.activeElement?.contains(input)
+              document.activeElement?.contains(input),
           ).toBeTruthy();
         }
       });
@@ -291,7 +295,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Check for transition/animation classes
@@ -312,7 +316,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       const initialHeight = container.offsetHeight;
@@ -323,7 +327,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={false}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       // Should minimize height shift (implementation may keep container size)
@@ -352,7 +356,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={true}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       expect(screen.getByText(/complex dependent/i)).toBeTruthy();
@@ -366,7 +370,7 @@ describe("ConditionalQuestionContainer", () => {
           isVisible={false}
           answer={null}
           onAnswer={mockOnAnswer}
-        />
+        />,
       );
 
       expect(screen.queryByText(/complex dependent/i)).toBeFalsy();

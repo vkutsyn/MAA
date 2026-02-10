@@ -13,6 +13,7 @@ This document defines the contracts between components and user interaction flow
 ## User Flow 1: Basic Question Rendering (P1)
 
 ### Flow Description
+
 User navigates to wizard, sees questions, answers them, and proceeds.
 
 ### Sequence Diagram
@@ -42,7 +43,8 @@ User                 WizardPage              QuestionRenderer        Backend API
 
 **Input**: `QuestionDto[]` from API  
 **Output**: Rendered questions with input controls  
-**Invariants**: 
+**Invariants**:
+
 - All questions rendered regardless of conditions (conditional logic in Flow 2)
 - Input type matches question.type
 - Labels properly associated with inputs
@@ -52,6 +54,7 @@ User                 WizardPage              QuestionRenderer        Backend API
 ## User Flow 2: Conditional Question Rendering (P2)
 
 ### Flow Description
+
 User answers a trigger question, conditional questions appear/disappear based on answer.
 
 ### Sequence Diagram
@@ -84,21 +87,24 @@ User                 WizardPage              ConditionalContainer   ConditionEva
 ### Component Contract: ConditionalQuestionContainer
 
 **Props**:
+
 ```typescript
 interface ConditionalQuestionContainerProps {
-  question: QuestionDto
-  answers: AnswerMap
-  children: React.ReactNode
-  onVisibilityChange?: (visible: boolean) => void
+  question: QuestionDto;
+  answers: AnswerMap;
+  children: React.ReactNode;
+  onVisibilityChange?: (visible: boolean) => void;
 }
 ```
 
 **Behavior**:
+
 - **Input**: Question with conditions, current answers
 - **Output**: Renders children if all conditions pass, null otherwise
 - **Side Effects**: Calls onVisibilityChange when visibility changes
 
 **Contract Rules**:
+
 1. If `question.conditions` is null/empty → always render children
 2. If `question.conditions` exists → evaluate all conditions with AND logic
 3. If ALL conditions pass → render children
@@ -106,6 +112,7 @@ interface ConditionalQuestionContainerProps {
 5. When visibility changes → call onVisibilityChange callback
 
 **Accessibility Requirements**:
+
 - Use `aria-live="polite"` announcements for appearing questions
 - Preserve focus if currently focused question remains visible
 - Move focus to safe location if currently focused question disappears
@@ -115,6 +122,7 @@ interface ConditionalQuestionContainerProps {
 ## User Flow 3: Tooltip Interaction (P3)
 
 ### Flow Description
+
 User clicks/hovers help icon, sees "Why we ask this" explanation, closes tooltip.
 
 ### Sequence Diagram
@@ -142,21 +150,24 @@ User                 QuestionRenderer        QuestionTooltip        Radix UI Too
 ### Component Contract: QuestionTooltip
 
 **Props**:
+
 ```typescript
 interface QuestionTooltipProps {
-  questionKey: string
-  helpText: string
-  triggerLabel?: string // Defaults to "Why we ask this"
+  questionKey: string;
+  helpText: string;
+  triggerLabel?: string; // Defaults to "Why we ask this"
 }
 ```
 
 **Behavior**:
+
 - **Input**: Help text string, optional trigger label
 - **Output**: Rendered help icon with accessible tooltip
 - **Trigger**: Click or keyboard (Enter/Space)
 - **Dismissal**: Escape key, click outside, or re-click trigger
 
 **Contract Rules**:
+
 1. Tooltip trigger MUST be a `<button type="button">` for keyboard accessibility
 2. Trigger MUST have `aria-label="Why we ask this"` (or custom label)
 3. Tooltip content MUST be linked via `aria-describedby`
@@ -165,6 +176,7 @@ interface QuestionTooltipProps {
 6. Tooltip positioning MUST adapt to viewport (Radix auto-positioning)
 
 **Accessibility Requirements**:
+
 - Keyboard navigation: Tab to focus, Enter/Space to open
 - Screen reader: aria-describedby announces content when focused
 - Focus trap: Focus remains on trigger, content read via aria
@@ -177,6 +189,7 @@ interface QuestionTooltipProps {
 ### WizardPage → ConditionalQuestionContainer
 
 **Data Flow**:
+
 ```typescript
 // WizardPage computes visible questions
 const answerMap = useAnswerMap(sessionAnswers)
@@ -184,13 +197,13 @@ const visibilityState = useMemo(
   () => computeVisibility(questions, answerMap),
   [questions, answerMap]
 )
-const visibleQuestions = questions.filter(q => 
+const visibleQuestions = questions.filter(q =>
   visibilityState.visibleQuestionKeys.has(q.key)
 )
 
 // WizardPage renders only visible questions
 {visibleQuestions.map(question => (
-  <ConditionalQuestionContainer 
+  <ConditionalQuestionContainer
     key={question.key}
     question={question}
     answers={answerMap}
@@ -201,6 +214,7 @@ const visibleQuestions = questions.filter(q =>
 ```
 
 **Contract**:
+
 - WizardPage MUST provide current answerMap to ConditionalQuestionContainer
 - WizardPage MUST recompute visibility when answerMap changes
 - WizardPage MUST NOT render questions that fail visibility check
@@ -218,10 +232,10 @@ updateAnswer: (fieldKey: string, value: string) => {
   set(state => ({
     answerMap: new Map(state.answerMap).set(fieldKey, value)
   }))
-  
+
   // 2. Recompute visibility
   get().recomputeVisibility()
-  
+
   // 3. Submit to backend
   submitAnswer({ fieldKey, answerValue: value, ... })
 }
@@ -235,6 +249,7 @@ recomputeVisibility: () => {
 ```
 
 **Contract Rules**:
+
 1. Every answer update MUST trigger visibility recomputation
 2. Visibility recomputation MUST happen synchronously (before render)
 3. AnswerMap MUST remain immutable (new Map on each update for React reactivity)
@@ -246,33 +261,36 @@ recomputeVisibility: () => {
 ### Condition Evaluation Performance
 
 **Requirements** (from Constitution IV):
+
 - Question rendering: <1 second for 50 questions
 - Conditional evaluation: <200ms after answer change
 - Tooltip display: <100ms on interaction
 
 **Implementation Contract**:
+
 ```typescript
 // Memoize condition evaluation
-const evaluateCondition = useMemo(() => 
-  (condition: QuestionCondition, answers: AnswerMap) => {
+const evaluateCondition = useMemo(
+  () => (condition: QuestionCondition, answers: AnswerMap) => {
     // O(1) map lookup, O(1) comparison
-    const answer = answers.get(condition.fieldKey)
-    if (!answer) return false
-    return performComparison(condition.operator, answer, condition.value)
+    const answer = answers.get(condition.fieldKey);
+    if (!answer) return false;
+    return performComparison(condition.operator, answer, condition.value);
   },
-  [] // Pure function, no deps
-)
+  [], // Pure function, no deps
+);
 
 // Memoize visibility computation
 const visibilityState = useMemo(
   () => computeVisibility(questions, answerMap),
-  [questions, answerMap] // Only recompute on change
-)
+  [questions, answerMap], // Only recompute on change
+);
 ```
 
 **Guarantees**:
+
 - Condition evaluation is O(1) per condition (Map lookup)
-- Visibility computation is O(n*m) where n=questions, m=avg conditions per question
+- Visibility computation is O(n\*m) where n=questions, m=avg conditions per question
 - For typical case (20 questions, 2 conditions avg) = 40 evaluations < 200ms ✓
 - React.memo prevents re-rendering unchanged questions
 
@@ -285,21 +303,28 @@ const visibilityState = useMemo(
 **Scenario**: Condition references non-existent fieldKey
 
 **Contract**:
+
 ```typescript
-function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): boolean {
-  const answer = answers.get(condition.fieldKey)
-  
+function evaluateCondition(
+  condition: QuestionCondition,
+  answers: AnswerMap,
+): boolean {
+  const answer = answers.get(condition.fieldKey);
+
   // If referenced question not answered (or doesn't exist), condition fails
   if (answer === undefined) {
-    console.warn(`Condition references unanswered question: ${condition.fieldKey}`)
-    return false // Safe default: hide conditional question
+    console.warn(
+      `Condition references unanswered question: ${condition.fieldKey}`,
+    );
+    return false; // Safe default: hide conditional question
   }
-  
+
   // Proceed with evaluation...
 }
 ```
 
 **Rules**:
+
 1. Missing answer → condition fails (safe default: hide question)
 2. Invalid operator → log error, return false
 3. Type mismatch (e.g., "gt" on boolean) → log error, return false
@@ -313,14 +338,15 @@ function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): bo
 **Requirement**: Dynamic content MUST be announced (WCAG SC 4.1.3)
 
 **Implementation**:
+
 ```tsx
-<div 
-  role="region" 
-  aria-live="polite" 
+<div
+  role="region"
+  aria-live="polite"
   aria-atomic="false"
   aria-relevant="additions removals"
 >
-  {conditionalQuestions.map(q => (
+  {conditionalQuestions.map((q) => (
     <ConditionalQuestionContainer key={q.key} question={q} answers={answers}>
       <QuestionRenderer question={q} />
     </ConditionalQuestionContainer>
@@ -329,6 +355,7 @@ function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): bo
 ```
 
 **Contract**:
+
 - `aria-live="polite"`: Announce changes after current speech
 - `aria-atomic="false"`: Only announce changed elements
 - `aria-relevant="additions removals"`: Announce both appearing and disappearing questions
@@ -340,23 +367,27 @@ function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): bo
 ### Required Test Coverage
 
 **Unit Tests** (conditionEvaluator.test.ts):
+
 - ✓ All operators (equals, not_equals, gt, gte, lt, lte, includes)
 - ✓ Edge cases (missing answer, invalid operator, type mismatch)
 - ✓ Coverage target: 90%+
 
 **Component Tests** (ConditionalQuestionContainer.test.tsx):
+
 - ✓ Shows children when conditions pass
 - ✓ Hides children when conditions fail
 - ✓ Updates visibility when answers change
 - ✓ Coverage target: 85%+
 
 **Accessibility Tests** (QuestionTooltip.test.tsx):
+
 - ✓ Tooltip has proper aria attributes
 - ✓ Keyboard navigation works (Tab, Enter, Escape)
 - ✓ Screen reader compatibility (aria-describedby)
 - ✓ Coverage target: 80%+
 
 **E2E Tests** (conditional-flow.e2e.test.tsx):
+
 - ✓ Trigger question → conditional appears
 - ✓ Change trigger → conditional disappears
 - ✓ Answers preserved when conditional hidden then shown

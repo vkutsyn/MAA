@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { WizardSession, QuestionDto, Answer, WizardProgress } from "./types";
-import { AnswerMap, VisibilityState, computeVisibility } from "./conditionEvaluator";
+import {
+  AnswerMap,
+  VisibilityState,
+  computeVisibility,
+} from "./conditionEvaluator";
 
 /**
  * Wizard state store using Zustand.

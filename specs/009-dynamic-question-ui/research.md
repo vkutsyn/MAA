@@ -15,16 +15,19 @@ This document consolidates research findings for implementing dynamic question r
 **Decision**: Use composition with separate visibility logic + React.memo for performance
 
 **Rationale**:
+
 - Separating condition evaluation from rendering enables pure function testing
 - React.memo prevents unnecessary re-renders when parent answers change but conditions don't
 - Composition pattern (wrapper component for conditional logic) keeps QuestionRenderer focused on display
 
 **Alternatives Considered**:
+
 - Inline condition evaluation in WizardStep: Rejected (mixes concerns, untestable logic)
 - CSS display:none for hidden questions: Rejected (screen readers would still announce, violates WCAG)
 - Single monolithic question component: Rejected (violates single responsibility)
 
 **Implementation Pattern**:
+
 ```typescript
 // Separate pure evaluation function
 function evaluateCondition(condition: QuestionCondition, answers: AnswerMap): boolean
@@ -49,20 +52,23 @@ function ConditionalQuestionContainer({ question, answers, children })
 **Decision**: Use `aria-live="polite"` regions + focus management for appearing questions
 
 **Rationale**:
+
 - WCAG SC 4.1.3 (Status Messages) requires dynamic content be announced to screen readers
 - `aria-live="polite"` announces new questions without interrupting current focus
 - Focus management ensures keyboard users don't lose context when questions disappear
 - Semantic HTML ensures proper structure (fieldset, legend, label)
 
 **Alternatives Considered**:
+
 - `aria-live="assertive"`: Rejected (too disruptive for non-urgent question additions)
 - No aria-live: Rejected (fails WCAG 4.1.3, screen reader users unaware of new content)
 - Manual focus() on new questions: Rejected (disrupts user flow, unexpected behavior)
 
 **Implementation Pattern**:
+
 ```tsx
 <div role="region" aria-live="polite" aria-atomic="false">
-  {conditionalQuestions.map(q => (
+  {conditionalQuestions.map((q) => (
     <fieldset key={q.key}>
       <legend>{q.label}</legend>
       <QuestionRenderer question={q} />
@@ -71,7 +77,8 @@ function ConditionalQuestionContainer({ question, answers, children })
 </div>
 ```
 
-**Best Practices Source**: 
+**Best Practices Source**:
+
 - WCAG 2.1 SC 4.1.3 (Status Messages)
 - WAI-ARIA Authoring Practices Guide for dynamic content
 - Deque University accessibility patterns
@@ -83,19 +90,26 @@ function ConditionalQuestionContainer({ question, answers, children })
 **Decision**: Use Radix UI Tooltip/Popover (via shadcn/ui) with keyboard trigger
 
 **Rationale**:
+
 - Radix UI provides WCAG-compliant tooltip primitives out of the box
 - Keyboard activation (Enter/Space), Escape to close, auto-positioning
 - `aria-describedby` automatically links tooltip content to trigger
 - Already integrated in project via shadcn/ui
 
 **Alternatives Considered**:
+
 - Native `title` attribute: Rejected (not keyboard-accessible, poor mobile support)
 - Custom tooltip with vanilla JS: Rejected (reinventing wheel, accessibility gaps)
 - Dialog/Modal for help text: Rejected (too heavy-weight, disrupts flow)
 
 **Implementation Pattern**:
+
 ```tsx
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 <Tooltip>
   <TooltipTrigger asChild>
@@ -106,10 +120,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
   <TooltipContent>
     <p>{question.helpText}</p>
   </TooltipContent>
-</Tooltip>
+</Tooltip>;
 ```
 
-**Best Practices Source**: 
+**Best Practices Source**:
+
 - Radix UI Tooltip documentation
 - shadcn/ui component patterns
 - WCAG SC 1.3.1 (Info and Relationships) - `aria-describedby` usage
@@ -121,24 +136,27 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 **Decision**: Memoize condition evaluation results + debounce answer changes
 
 **Rationale**:
+
 - Condition evaluation is O(n) for n questions; memoization prevents redundant calculations
 - Debouncing prevents flickering when user rapidly changes answers (e.g., typing in text field)
 - React.useMemo for computed visible questions list
 - Pure evaluation function enables easy memoization
 
 **Alternatives Considered**:
+
 - Evaluate on every render: Rejected (unnecessary CPU cycles, potential jank)
 - Web Worker for evaluation: Rejected (overkill for simple operators, serialization overhead)
 - Lodash throttle: Rejected (debounce preferred for trailing evaluation)
 
 **Implementation Pattern**:
+
 ```typescript
 // Pure memoizable function
 const evaluateCondition = memoize((condition, answers) => { ... })
 
 // In component
-const visibleQuestions = useMemo(() => 
-  questions.filter(q => 
+const visibleQuestions = useMemo(() =>
+  questions.filter(q =>
     !q.conditions || q.conditions.every(c => evaluateCondition(c, answers))
   ),
   [questions, answers]
@@ -151,7 +169,8 @@ const debouncedSubmit = useMemo(
 )
 ```
 
-**Best Practices Source**: 
+**Best Practices Source**:
+
 - React useMemo documentation
 - Web.dev performance patterns
 - MAA Constitution IV (Performance: <200ms conditional evaluation target)
@@ -163,17 +182,20 @@ const debouncedSubmit = useMemo(
 **Decision**: Three-tier testing - unit (evaluator), component (rendering), E2E (flows)
 
 **Rationale**:
+
 - Unit tests verify condition evaluation logic in isolation (fast, comprehensive edge cases)
 - Component tests verify visibility behavior without full wizard state (focused, maintainable)
 - E2E tests verify real user flows (answer trigger → questions appear → answers preserved)
 - Aligns with MAA Constitution II (Test-First Development)
 
 **Alternatives Considered**:
+
 - E2E tests only: Rejected (slow, hard to debug, incomplete edge case coverage)
 - Component tests only: Rejected (misses integration issues with state management)
 - Manual testing: Rejected (non-repeatable, not test-first)
 
 **Implementation Pattern**:
+
 ```typescript
 // Unit test (conditionEvaluator.test.ts)
 describe('evaluateCondition', () => {
@@ -201,7 +223,8 @@ it('shows pregnancy questions when user selects pregnant', async () => {
 })
 ```
 
-**Best Practices Source**: 
+**Best Practices Source**:
+
 - React Testing Library guiding principles
 - Kent C. Dodds "Write tests. Not too many. Mostly integration."
 - MAA Constitution II (80%+ coverage for domain logic)
@@ -210,13 +233,13 @@ it('shows pregnancy questions when user selects pregnant', async () => {
 
 ## Summary of Key Decisions
 
-| Area | Decision | Primary Justification |
-|------|----------|----------------------|
-| **Conditional Logic** | Pure function + composition | Testability, separation of concerns |
-| **Accessibility** | aria-live + semantic HTML | WCAG 2.1 AA SC 4.1.3 compliance |
-| **Tooltips** | Radix UI (shadcn/ui) | Built-in keyboard support, aria-describedby |
-| **Performance** | useMemo + debounce | <200ms evaluation target, no flickering |
-| **Testing** | Unit + Component + E2E | Constitution II compliance, comprehensive coverage |
+| Area                  | Decision                    | Primary Justification                              |
+| --------------------- | --------------------------- | -------------------------------------------------- |
+| **Conditional Logic** | Pure function + composition | Testability, separation of concerns                |
+| **Accessibility**     | aria-live + semantic HTML   | WCAG 2.1 AA SC 4.1.3 compliance                    |
+| **Tooltips**          | Radix UI (shadcn/ui)        | Built-in keyboard support, aria-describedby        |
+| **Performance**       | useMemo + debounce          | <200ms evaluation target, no flickering            |
+| **Testing**           | Unit + Component + E2E      | Constitution II compliance, comprehensive coverage |
 
 ## Open Questions
 

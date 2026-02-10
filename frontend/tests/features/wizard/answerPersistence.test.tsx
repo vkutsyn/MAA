@@ -80,10 +80,12 @@ describe("Answer Persistence", () => {
     render(
       <MemoryRouter>
         <WizardPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const nameInput = screen.getByRole("textbox", { name: /what is your name/i });
+    const nameInput = screen.getByRole("textbox", {
+      name: /what is your name/i,
+    });
     await user.type(nameInput, "John Doe");
 
     await waitFor(() => {
@@ -112,7 +114,7 @@ describe("Answer Persistence", () => {
     render(
       <MemoryRouter>
         <WizardPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const select = screen.getByRole("combobox", { name: /what state/i });
@@ -143,11 +145,13 @@ describe("Answer Persistence", () => {
     render(
       <MemoryRouter>
         <WizardPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Enter name on first question
-    const nameInput = screen.getByRole("textbox", { name: /what is your name/i });
+    const nameInput = screen.getByRole("textbox", {
+      name: /what is your name/i,
+    });
     await user.type(nameInput, "Jane Smith");
 
     // Navigate forward
@@ -155,7 +159,9 @@ describe("Answer Persistence", () => {
     await user.click(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByRole("spinbutton", { name: /what is your age/i })).toBeTruthy();
+      expect(
+        screen.getByRole("spinbutton", { name: /what is your age/i }),
+      ).toBeTruthy();
     });
 
     // Navigate back
@@ -188,11 +194,13 @@ describe("Answer Persistence", () => {
     render(
       <MemoryRouter>
         <WizardPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     // Answer first question
-    const nameInput = screen.getByRole("textbox", { name: /what is your name/i });
+    const nameInput = screen.getByRole("textbox", {
+      name: /what is your name/i,
+    });
     await user.type(nameInput, "Alice Johnson");
 
     // Navigate to next question and answer it
@@ -200,10 +208,14 @@ describe("Answer Persistence", () => {
     await user.click(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByRole("spinbutton", { name: /what is your age/i })).toBeTruthy();
+      expect(
+        screen.getByRole("spinbutton", { name: /what is your age/i }),
+      ).toBeTruthy();
     });
 
-    const ageInput = screen.getByRole("spinbutton", { name: /what is your age/i });
+    const ageInput = screen.getByRole("spinbutton", {
+      name: /what is your age/i,
+    });
     await user.type(ageInput, "35");
 
     await waitFor(() => {
@@ -239,10 +251,12 @@ describe("Answer Persistence", () => {
     render(
       <MemoryRouter>
         <WizardPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const nameInput = screen.getByRole("textbox", { name: /what is your name/i }) as HTMLInputElement;
+    const nameInput = screen.getByRole("textbox", {
+      name: /what is your name/i,
+    }) as HTMLInputElement;
     expect(nameInput.value).toBe("Bob");
 
     // Clear and type new answer
@@ -273,10 +287,12 @@ describe("Answer Persistence", () => {
     render(
       <MemoryRouter>
         <WizardPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const nameInput = screen.getByRole("textbox", { name: /what is your name/i });
+    const nameInput = screen.getByRole("textbox", {
+      name: /what is your name/i,
+    });
     await user.type(nameInput, "Charlie Brown");
 
     await waitFor(() => {

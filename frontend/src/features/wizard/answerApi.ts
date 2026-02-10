@@ -25,7 +25,9 @@ export async function saveAnswer(
  * Get all answers for a session.
  * @param sessionId The session ID
  */
-export async function fetchAnswers(sessionId: string): Promise<SessionAnswerDto[]> {
+export async function fetchAnswers(
+  sessionId: string,
+): Promise<SessionAnswerDto[]> {
   const response = await apiClient.get<SessionAnswerDto[]>(
     `/sessions/${sessionId}/answers`,
   );

@@ -8,6 +8,7 @@
 ## Summary
 
 This feature implements a dynamic question rendering system for the Medicaid eligibility wizard that:
+
 1. Renders questions dynamically from API-provided definitions
 2. Evaluates conditional logic to show/hide questions based on user answers
 3. Provides contextual "Why we ask this" tooltips for transparency
@@ -22,19 +23,20 @@ The implementation is frontend-focused, leveraging existing QuestionDto types th
 **Testing**: Vitest + React Testing Library + @testing-library/jest-dom for unit and component tests  
 **Target Platform**: Web browsers (Chrome, Firefox, Safari, Edge), responsive 375px → 1920px  
 **Project Type**: Web application (frontend feature within existing React SPA)  
-**Performance Goals**: 
-  - Question rendering: <1 second for sets up to 50 questions
-  - Conditional evaluation: <200ms after answer change
-  - Tooltip display: <100ms on interaction
-  - Zero layout shift when questions appear/disappear
-**Constraints**: 
-  - WCAG 2.1 AA compliance mandatory (keyboard nav, screen readers, color contrast)
-  - Must work with existing wizard state management (Zustand store)
-  - Must integrate with existing question API (`/api/questions/{state}`)
-**Scale/Scope**: 
-  - Expected 10-30 questions per state
-  - Up to 5 conditional rules per question
-  - Support 1,000+ concurrent wizard sessions
+**Performance Goals**:
+
+- Question rendering: <1 second for sets up to 50 questions
+- Conditional evaluation: <200ms after answer change
+- Tooltip display: <100ms on interaction
+- Zero layout shift when questions appear/disappear
+  **Constraints**:
+- WCAG 2.1 AA compliance mandatory (keyboard nav, screen readers, color contrast)
+- Must work with existing wizard state management (Zustand store)
+- Must integrate with existing question API (`/api/questions/{state}`)
+  **Scale/Scope**:
+- Expected 10-30 questions per state
+- Up to 5 conditional rules per question
+- Support 1,000+ concurrent wizard sessions
 
 ## Constitution Check _(GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.)_
 

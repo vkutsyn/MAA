@@ -9,11 +9,13 @@
 This guide provides step-by-step instructions for implementing dynamic question rendering with conditional logic and tooltips in the Medicaid eligibility wizard.
 
 **Prerequisites**:
+
 - Feature branch `009-dynamic-question-ui` checked out
 - Frontend development environment set up (`cd frontend && npm install`)
 - Backend running locally (question definitions API available)
 
 **Development Approach**: Test-First Development (TDD)
+
 1. Write tests based on acceptance criteria
 2. Run tests (expect failures)
 3. Implement minimum code to pass tests
@@ -28,106 +30,110 @@ This guide provides step-by-step instructions for implementing dynamic question 
 **File**: `frontend/tests/features/wizard/conditionEvaluator.test.ts`
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { evaluateCondition, computeVisibility } from '@/features/wizard/conditionEvaluator'
-import { QuestionCondition, QuestionDto } from '@/features/wizard/types'
+import { describe, it, expect } from "vitest";
+import {
+  evaluateCondition,
+  computeVisibility,
+} from "@/features/wizard/conditionEvaluator";
+import { QuestionCondition, QuestionDto } from "@/features/wizard/types";
 
-describe('evaluateCondition', () => {
+describe("evaluateCondition", () => {
   const answers = new Map([
-    ['income', '30000'],
-    ['age', '35'],
-    ['is_pregnant', 'true'],
-  ])
+    ["income", "30000"],
+    ["age", "35"],
+    ["is_pregnant", "true"],
+  ]);
 
-  describe('equals operator', () => {
-    it('returns true when answer matches value', () => {
+  describe("equals operator", () => {
+    it("returns true when answer matches value", () => {
       const condition: QuestionCondition = {
-        fieldKey: 'income',
-        operator: 'equals',
-        value: '30000'
-      }
-      expect(evaluateCondition(condition, answers)).toBe(true)
-    })
+        fieldKey: "income",
+        operator: "equals",
+        value: "30000",
+      };
+      expect(evaluateCondition(condition, answers)).toBe(true);
+    });
 
-    it('returns false when answer does not match', () => {
+    it("returns false when answer does not match", () => {
       const condition: QuestionCondition = {
-        fieldKey: 'income',
-        operator: 'equals',
-        value: '40000'
-      }
-      expect(evaluateCondition(condition, answers)).toBe(false)
-    })
-  })
+        fieldKey: "income",
+        operator: "equals",
+        value: "40000",
+      };
+      expect(evaluateCondition(condition, answers)).toBe(false);
+    });
+  });
 
-  describe('gt operator', () => {
-    it('returns true when answer is greater than value', () => {
+  describe("gt operator", () => {
+    it("returns true when answer is greater than value", () => {
       const condition: QuestionCondition = {
-        fieldKey: 'age',
-        operator: 'gt',
-        value: '30'
-      }
-      expect(evaluateCondition(condition, answers)).toBe(true)
-    })
-  })
+        fieldKey: "age",
+        operator: "gt",
+        value: "30",
+      };
+      expect(evaluateCondition(condition, answers)).toBe(true);
+    });
+  });
 
-  describe('missing answer', () => {
-    it('returns false when question not answered', () => {
+  describe("missing answer", () => {
+    it("returns false when question not answered", () => {
       const condition: QuestionCondition = {
-        fieldKey: 'not_answered',
-        operator: 'equals',
-        value: 'yes'
-      }
-      expect(evaluateCondition(condition, answers)).toBe(false)
-    })
-  })
+        fieldKey: "not_answered",
+        operator: "equals",
+        value: "yes",
+      };
+      expect(evaluateCondition(condition, answers)).toBe(false);
+    });
+  });
 
   // Add tests for: not_equals, gte, lt, lte, includes
-})
+});
 
-describe('computeVisibility', () => {
-  it('includes questions without conditions', () => {
+describe("computeVisibility", () => {
+  it("includes questions without conditions", () => {
     const questions: QuestionDto[] = [
-      { key: 'q1', label: 'Question 1', type: 'string', required: true }
-    ]
-    const result = computeVisibility(questions, new Map())
-    expect(result.visibleQuestionKeys.has('q1')).toBe(true)
-  })
+      { key: "q1", label: "Question 1", type: "string", required: true },
+    ];
+    const result = computeVisibility(questions, new Map());
+    expect(result.visibleQuestionKeys.has("q1")).toBe(true);
+  });
 
-  it('includes questions when all conditions pass', () => {
+  it("includes questions when all conditions pass", () => {
     const questions: QuestionDto[] = [
-      { 
-        key: 'q2', 
-        label: 'Question 2', 
-        type: 'string', 
+      {
+        key: "q2",
+        label: "Question 2",
+        type: "string",
+        required: true,
+        conditions: [{ fieldKey: "q1", operator: "equals", value: "yes" }],
+      },
+    ];
+    const answers = new Map([["q1", "yes"]]);
+    const result = computeVisibility(questions, answers);
+    expect(result.visibleQuestionKeys.has("q2")).toBe(true);
+  });
+
+  it("excludes questions when any condition fails", () => {
+    const questions: QuestionDto[] = [
+      {
+        key: "q3",
+        label: "Question 3",
+        type: "string",
         required: true,
         conditions: [
-          { fieldKey: 'q1', operator: 'equals', value: 'yes' }
-        ]
-      }
-    ]
-    const answers = new Map([['q1', 'yes']])
-    const result = computeVisibility(questions, answers)
-    expect(result.visibleQuestionKeys.has('q2')).toBe(true)
-  })
-
-  it('excludes questions when any condition fails', () => {
-    const questions: QuestionDto[] = [
-      { 
-        key: 'q3', 
-        label: 'Question 3', 
-        type: 'string', 
-        required: true,
-        conditions: [
-          { fieldKey: 'q1', operator: 'equals', value: 'yes' },
-          { fieldKey: 'q2', operator: 'equals', value: 'no' }
-        ]
-      }
-    ]
-    const answers = new Map([['q1', 'yes'], ['q2', 'yes']])
-    const result = computeVisibility(questions, answers)
-    expect(result.visibleQuestionKeys.has('q3')).toBe(false)
-  })
-})
+          { fieldKey: "q1", operator: "equals", value: "yes" },
+          { fieldKey: "q2", operator: "equals", value: "no" },
+        ],
+      },
+    ];
+    const answers = new Map([
+      ["q1", "yes"],
+      ["q2", "yes"],
+    ]);
+    const result = computeVisibility(questions, answers);
+    expect(result.visibleQuestionKeys.has("q3")).toBe(false);
+  });
+});
 ```
 
 **Run Tests**: `npm test conditionEvaluator.test.ts` (should fail - not implemented)
@@ -139,13 +145,13 @@ describe('computeVisibility', () => {
 **File**: `frontend/src/features/wizard/conditionEvaluator.ts`
 
 ```typescript
-import { QuestionCondition, QuestionDto } from './types'
+import { QuestionCondition, QuestionDto } from "./types";
 
-export type AnswerMap = Map<string, string>
+export type AnswerMap = Map<string, string>;
 
 export interface VisibilityState {
-  visibleQuestionKeys: Set<string>
-  evaluatedAt: number
+  visibleQuestionKeys: Set<string>;
+  evaluatedAt: number;
 }
 
 /**
@@ -154,40 +160,42 @@ export interface VisibilityState {
  */
 export function evaluateCondition(
   condition: QuestionCondition,
-  answers: AnswerMap
+  answers: AnswerMap,
 ): boolean {
-  const answer = answers.get(condition.fieldKey)
-  
+  const answer = answers.get(condition.fieldKey);
+
   if (answer === undefined) {
-    console.warn(`Condition references unanswered question: ${condition.fieldKey}`)
-    return false
+    console.warn(
+      `Condition references unanswered question: ${condition.fieldKey}`,
+    );
+    return false;
   }
 
   switch (condition.operator) {
-    case 'equals':
-      return answer === condition.value
-    
-    case 'not_equals':
-      return answer !== condition.value
-    
-    case 'gt':
-      return Number(answer) > Number(condition.value)
-    
-    case 'gte':
-      return Number(answer) >= Number(condition.value)
-    
-    case 'lt':
-      return Number(answer) < Number(condition.value)
-    
-    case 'lte':
-      return Number(answer) <= Number(condition.value)
-    
-    case 'includes':
-      return answer.includes(condition.value)
-    
+    case "equals":
+      return answer === condition.value;
+
+    case "not_equals":
+      return answer !== condition.value;
+
+    case "gt":
+      return Number(answer) > Number(condition.value);
+
+    case "gte":
+      return Number(answer) >= Number(condition.value);
+
+    case "lt":
+      return Number(answer) < Number(condition.value);
+
+    case "lte":
+      return Number(answer) <= Number(condition.value);
+
+    case "includes":
+      return answer.includes(condition.value);
+
     default:
-      console.error(`Unknown operator: ${condition.operator}`)
-      return false
+      console.error(`Unknown operator: ${condition.operator}`);
+      return false;
   }
 }
 
@@ -196,31 +204,31 @@ export function evaluateCondition(
  */
 export function computeVisibility(
   questions: QuestionDto[],
-  answers: AnswerMap
+  answers: AnswerMap,
 ): VisibilityState {
-  const visibleKeys = new Set<string>()
+  const visibleKeys = new Set<string>();
 
-  questions.forEach(question => {
+  questions.forEach((question) => {
     // No conditions = always visible
     if (!question.conditions || question.conditions.length === 0) {
-      visibleKeys.add(question.key)
-      return
+      visibleKeys.add(question.key);
+      return;
     }
 
     // All conditions must pass (AND logic)
-    const allConditionsPass = question.conditions.every(condition =>
-      evaluateCondition(condition, answers)
-    )
+    const allConditionsPass = question.conditions.every((condition) =>
+      evaluateCondition(condition, answers),
+    );
 
     if (allConditionsPass) {
-      visibleKeys.add(question.key)
+      visibleKeys.add(question.key);
     }
-  })
+  });
 
   return {
     visibleQuestionKeys: visibleKeys,
-    evaluatedAt: Date.now()
-  }
+    evaluatedAt: Date.now(),
+  };
 }
 ```
 
@@ -260,21 +268,21 @@ describe('QuestionTooltip', () => {
   it('shows tooltip on click', async () => {
     const user = userEvent.setup()
     render(<QuestionTooltip questionKey="q1" helpText="Test help text" />)
-    
+
     const trigger = screen.getByRole('button', { name: 'Why we ask this' })
     await user.click(trigger)
-    
+
     expect(screen.getByText('Test help text')).toBeVisible()
   })
 
   it('closes tooltip on Escape key', async () => {
     const user = userEvent.setup()
     render(<QuestionTooltip questionKey="q1" helpText="Test help text" />)
-    
+
     const trigger = screen.getByRole('button', { name: 'Why we ask this' })
     await user.click(trigger)
     expect(screen.getByText('Test help text')).toBeVisible()
-    
+
     await user.keyboard('{Escape}')
     expect(screen.queryByText('Test help text')).not.toBeInTheDocument()
   })
@@ -282,10 +290,10 @@ describe('QuestionTooltip', () => {
   it('is keyboard accessible', async () => {
     const user = userEvent.setup()
     render(<QuestionTooltip questionKey="q1" helpText="Keyboard test" />)
-    
+
     await user.tab() // Focus trigger
     expect(screen.getByRole('button', { name: 'Why we ask this' })).toHaveFocus()
-    
+
     await user.keyboard('{Enter}') // Open tooltip
     expect(screen.getByText('Keyboard test')).toBeVisible()
   })
@@ -383,7 +391,7 @@ describe('ConditionalQuestionContainer', () => {
       ]
     }
     const answers = new Map([['trigger', 'yes']])
-    
+
     render(
       <ConditionalQuestionContainer question={question} answers={answers}>
         <div>Conditional Content</div>
@@ -400,7 +408,7 @@ describe('ConditionalQuestionContainer', () => {
       ]
     }
     const answers = new Map([['trigger', 'no']])
-    
+
     render(
       <ConditionalQuestionContainer question={question} answers={answers}>
         <div>Should Not Appear</div>
@@ -475,41 +483,45 @@ export function ConditionalQuestionContainer({
 Add answer map and visibility state:
 
 ```typescript
-import { AnswerMap, VisibilityState, computeVisibility } from './conditionEvaluator'
+import {
+  AnswerMap,
+  VisibilityState,
+  computeVisibility,
+} from "./conditionEvaluator";
 
 interface WizardStore {
   // ... existing state ...
-  
+
   // New state
-  answerMap: AnswerMap
-  visibilityState: VisibilityState | null
-  
+  answerMap: AnswerMap;
+  visibilityState: VisibilityState | null;
+
   // New actions
-  updateAnswerMap: (fieldKey: string, value: string) => void
-  recomputeVisibility: () => void
+  updateAnswerMap: (fieldKey: string, value: string) => void;
+  recomputeVisibility: () => void;
 }
 
 export const useWizardStore = create<WizardStore>((set, get) => ({
   // ... existing state ...
-  
+
   answerMap: new Map(),
   visibilityState: null,
-  
+
   updateAnswerMap: (fieldKey, value) => {
-    set(state => ({
-      answerMap: new Map(state.answerMap).set(fieldKey, value)
-    }))
-    get().recomputeVisibility()
+    set((state) => ({
+      answerMap: new Map(state.answerMap).set(fieldKey, value),
+    }));
+    get().recomputeVisibility();
   },
-  
+
   recomputeVisibility: () => {
-    const { questions, answerMap } = get()
+    const { questions, answerMap } = get();
     if (questions.length > 0) {
-      const newVisibility = computeVisibility(questions, answerMap)
-      set({ visibilityState: newVisibility })
+      const newVisibility = computeVisibility(questions, answerMap);
+      set({ visibilityState: newVisibility });
     }
-  }
-}))
+  },
+}));
 ```
 
 ---
@@ -527,36 +539,36 @@ import { computeVisibility } from './conditionEvaluator'
 
 export function WizardPage() {
   // ... existing code ...
-  
+
   const answerMap = useWizardStore(state => state.answerMap)
   const recomputeVisibility = useWizardStore(state => state.recomputeVisibility)
-  
+
   // Compute visible questions
   const visibleQuestions = useMemo(() => {
     const visibility = computeVisibility(questions, answerMap)
     return questions.filter(q => visibility.visibleQuestionKeys.has(q.key))
   }, [questions, answerMap])
-  
+
   // Recompute when questions loaded
   useEffect(() => {
     if (questions.length > 0) {
       recomputeVisibility()
     }
   }, [questions, recomputeVisibility])
-  
+
   // ... rest of component ...
-  
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* ... existing header ... */}
-      
+
       {visibleQuestions.map(question => (
         <ConditionalQuestionContainer
           key={question.key}
           question={question}
           answers={answerMap}
         >
-          <WizardStep 
+          <WizardStep
             question={question}
             onNext={handleNext}
             onBack={handleBack}
@@ -586,7 +598,7 @@ export function WizardStep({ question, onNext, onBack }: WizardStepProps) {
         <CardTitle className="flex items-center">
           {question.label}
           {question.helpText && (
-            <QuestionTooltip 
+            <QuestionTooltip
               questionKey={question.key}
               helpText={question.helpText}
             />
@@ -612,6 +624,7 @@ npm test
 ```
 
 **Expected**:
+
 - ✓ Unit tests (conditionEvaluator): 90%+ coverage
 - ✓ Component tests (QuestionTooltip, ConditionalContainer): 85%+ coverage
 - ✓ Integration tests: Wizard flows work with conditional logic
@@ -621,12 +634,14 @@ npm test
 ### Step 5.2: Manual Testing Checklist
 
 **Conditional Logic**:
+
 - [ ] Answer trigger question → dependent questions appear
 - [ ] Change trigger answer → dependent questions disappear
 - [ ] Answers to conditional questions preserved when hidden then re-shown
 - [ ] Multiple conditions (AND logic) work correctly
 
 **Tooltips**:
+
 - [ ] Help icon visible on questions with helpText
 - [ ] Click help icon → tooltip appears
 - [ ] Press Escape → tooltip closes
@@ -634,6 +649,7 @@ npm test
 - [ ] Keyboard navigation works (Tab, Enter, Escape)
 
 **Accessibility**:
+
 - [ ] Screen reader announces new questions (test with NVDA/JAWS)
 - [ ] Keyboard-only navigation complete (no mouse required)
 - [ ] Color contrast meets WCAG 2.1 AA (use axe DevTools)
@@ -655,6 +671,7 @@ npm run dev
 ```
 
 **Check**:
+
 - Conditional evaluation < 200ms
 - No layout thrashing
 - React renders optimized (minimal re-renders)
@@ -707,6 +724,7 @@ Closes #009-dynamic-question-ui
 **Title**: `feat(wizard): Dynamic Eligibility Question UI`
 
 **Description**:
+
 ```
 ## Summary
 Implements dynamic question rendering with conditional logic and tooltips.
@@ -741,6 +759,7 @@ Closes #009
 **Issue**: "Cannot find module '@/features/wizard/conditionEvaluator'"
 
 **Fix**: Check `tsconfig.json` has path alias:
+
 ```json
 {
   "compilerOptions": {
@@ -766,11 +785,12 @@ Closes #009
 **Issue**: Questions flash when typing in trigger field
 
 **Fix**: Add debounce to answer submission:
+
 ```typescript
 const debouncedUpdate = useMemo(
   () => debounce((key, value) => updateAnswerMap(key, value), 200),
-  []
-)
+  [],
+);
 ```
 
 ---
