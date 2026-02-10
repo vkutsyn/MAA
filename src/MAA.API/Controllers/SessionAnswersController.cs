@@ -38,10 +38,40 @@ public class SessionAnswersController : ControllerBase
     /// POST /api/sessions/{sessionId}/answers
     /// US2 Acceptance Scenario 1: Income=$2100 encrypted before DB insert.
     /// </summary>
-    /// <param name="sessionId">Session ID</param>
-    /// <param name="dto">Answer data</param>
+    /// <param name="sessionId">Session ID (UUID format, required)</param>
+    /// <param name="dto">Answer data including field key, type, value, and PII flag</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Saved answer DTO</returns>
+    /// <returns>Saved answer DTO with ID and encryption metadata</returns>
+    /// <remarks>
+    /// Request Body (SaveAnswerDto):
+    /// - fieldKey: Required, max 200 characters, must match question taxonomy
+    ///   Example: "income_annual", "ssn", "household_size"
+    /// - fieldType: Required, must be one of: "currency", "integer", "string", "boolean", "date", "text"
+    ///   Determines validation rules applied to answerValue
+    /// - answerValue: Required, max 10000 characters
+    ///   Type-specific validation:
+    ///   * currency: Must be non-negative decimal (e.g., "45000.00")
+    ///   * integer: Must be valid integer (e.g., "128")
+    ///   * boolean: Must be "true" or "false"
+    ///   * date: Must be valid DateTime in ISO 8601 format (e.g., "2026-02-10")
+    ///   * string: Max 5000 characters
+    ///   * text: Max 10000 characters
+    /// - isPii: Boolean flag. If true, answerValue is encrypted at rest
+    ///   PII examples: ssn, email, phone, income, driver_license
+    /// 
+    /// Response (SessionAnswerDto):
+    /// - id: Unique answer identifier (UUID)
+    /// - sessionId: Reference to parent session
+    /// - fieldKey, fieldType, answerValue: Echo of input (value is decrypted)
+    /// - isPii, keyVersion, validationErrors: Metadata
+    /// 
+    /// Status Codes:
+    /// - 201 Created: Answer saved successfully
+    /// - 400 Bad Request: Validation failed (see validation rules above)
+    /// - 401 Unauthorized: Session expired or revoked (exceeds 30-min timeout)
+    /// - 404 Not Found: Session does not exist
+    /// - 500 Internal Server Error: Server error (unexpected)
+    /// </remarks>
     /// <response code="201">Answer saved successfully</response>
     /// <response code="400">Validation failed</response>
     /// <response code="401">Session expired or invalid</response>
