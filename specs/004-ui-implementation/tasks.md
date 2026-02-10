@@ -15,9 +15,9 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [X] T001 Create Vite React TypeScript app in frontend/ (frontend/package.json, frontend/vite.config.ts, frontend/tsconfig.json, frontend/src/main.tsx, frontend/src/App.tsx)
-- [X] T002 [P] Configure Tailwind + shadcn/ui base styles in frontend/tailwind.config.ts, frontend/postcss.config.cjs, frontend/src/index.css
-- [X] T003 [P] Add router scaffold in frontend/src/routes/index.tsx and wire it in frontend/src/main.tsx
+- [x] T001 Create Vite React TypeScript app in frontend/ (frontend/package.json, frontend/vite.config.ts, frontend/tsconfig.json, frontend/src/main.tsx, frontend/src/App.tsx)
+- [x] T002 [P] Configure Tailwind + shadcn/ui base styles in frontend/tailwind.config.ts, frontend/postcss.config.cjs, frontend/src/index.css
+- [x] T003 [P] Add router scaffold in frontend/src/routes/index.tsx and wire it in frontend/src/main.tsx
 
 ---
 
@@ -27,17 +27,17 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 **Constitution Alignment**: Supports testability, accessibility, and performance constraints via shared services and typed contracts.
 
-- [X] T004 Update anonymous session creation to allow unauthenticated access and set `MAA_SessionId` cookie in backend/MAA.API/Controllers/SessionsController.cs
-- [X] T005 [P] Add state metadata DTOs in backend/MAA.Application/Eligibility/DTOs/StateInfoDto.cs and backend/MAA.Application/Eligibility/DTOs/StateLookupDto.cs
-- [X] T006 [P] Add question taxonomy DTOs in backend/MAA.Application/Eligibility/DTOs/QuestionDto.cs and backend/MAA.Application/Eligibility/DTOs/QuestionSetDto.cs
-- [X] T007 Add state metadata service in backend/MAA.Application/Eligibility/Services/StateMetadataService.cs
-- [X] T008 Add question taxonomy service in backend/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
-- [X] T009 Add states endpoints controller in backend/MAA.API/Controllers/StatesController.cs
-- [X] T010 Add questions endpoint controller in backend/MAA.API/Controllers/QuestionsController.cs
-- [X] T011 [P] Add frontend API client with credentials in frontend/src/lib/api.ts
-- [X] T012 [P] Add wizard types and DTO mapping in frontend/src/features/wizard/types.ts
-- [X] T013 Add wizard state store in frontend/src/features/wizard/store.ts
-- [X] T014 Add session bootstrap hook in frontend/src/features/wizard/useSession.ts
+- [x] T004 Update anonymous session creation to allow unauthenticated access and set `MAA_SessionId` cookie in backend/MAA.API/Controllers/SessionsController.cs
+- [x] T005 [P] Add state metadata DTOs in backend/MAA.Application/Eligibility/DTOs/StateInfoDto.cs and backend/MAA.Application/Eligibility/DTOs/StateLookupDto.cs
+- [x] T006 [P] Add question taxonomy DTOs in backend/MAA.Application/Eligibility/DTOs/QuestionDto.cs and backend/MAA.Application/Eligibility/DTOs/QuestionSetDto.cs
+- [x] T007 Add state metadata service in backend/MAA.Application/Eligibility/Services/StateMetadataService.cs
+- [x] T008 Add question taxonomy service in backend/MAA.Application/Eligibility/Services/QuestionTaxonomyService.cs
+- [x] T009 Add states endpoints controller in backend/MAA.API/Controllers/StatesController.cs
+- [x] T010 Add questions endpoint controller in backend/MAA.API/Controllers/QuestionsController.cs
+- [x] T011 [P] Add frontend API client with credentials in frontend/src/lib/api.ts
+- [x] T012 [P] Add wizard types and DTO mapping in frontend/src/features/wizard/types.ts
+- [x] T013 Add wizard state store in frontend/src/features/wizard/store.ts
+- [x] T014 Add session bootstrap hook in frontend/src/features/wizard/useSession.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -51,12 +51,12 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 ### Implementation for User Story 1
 
-- [X] T015 [US1] Build landing page layout in frontend/src/features/wizard/LandingPage.tsx
-- [X] T016 [US1] Wire landing route in frontend/src/routes/WizardLandingRoute.tsx
-- [X] T017 [US1] Implement state selector UI in frontend/src/features/wizard/StateSelector.tsx
-- [X] T018 [US1] Connect state list/lookup APIs in frontend/src/features/wizard/stateApi.ts
-- [X] T019 [US1] Implement Start action (create session + set state) in frontend/src/features/wizard/useStartWizard.ts
-- [X] T020 [US1] Render first question and progress initialization in frontend/src/features/wizard/WizardStep.tsx and frontend/src/features/wizard/WizardProgress.tsx
+- [x] T015 [US1] Build landing page layout in frontend/src/features/wizard/LandingPage.tsx
+- [x] T016 [US1] Wire landing route in frontend/src/routes/WizardLandingRoute.tsx
+- [x] T017 [US1] Implement state selector UI in frontend/src/features/wizard/StateSelector.tsx
+- [x] T018 [US1] Connect state list/lookup APIs in frontend/src/features/wizard/stateApi.ts
+- [x] T019 [US1] Implement Start action (create session + set state) in frontend/src/features/wizard/useStartWizard.ts
+- [x] T020 [US1] Render first question and progress initialization in frontend/src/features/wizard/WizardStep.tsx and frontend/src/features/wizard/WizardProgress.tsx
 
 **Checkpoint**: User Story 1 should be functional and testable independently
 
@@ -70,10 +70,10 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 ### Implementation for User Story 2
 
-- [X] T021 [US2] Implement next/back navigation in frontend/src/features/wizard/WizardNavigator.tsx
-- [X] T022 [US2] Persist answers on step advance in frontend/src/features/wizard/answerApi.ts
-- [X] T023 [US2] Restore answers and last step on refresh in frontend/src/features/wizard/useResumeWizard.ts
-- [X] T024 [US2] Implement conditional flow evaluation in frontend/src/features/wizard/flow.ts
+- [x] T021 [US2] Implement next/back navigation in frontend/src/features/wizard/WizardNavigator.tsx
+- [x] T022 [US2] Persist answers on step advance in frontend/src/features/wizard/answerApi.ts
+- [x] T023 [US2] Restore answers and last step on refresh in frontend/src/features/wizard/useResumeWizard.ts
+- [x] T024 [US2] Implement conditional flow evaluation in frontend/src/features/wizard/flow.ts
 
 **Checkpoint**: User Stories 1 and 2 should both work independently
 
@@ -87,10 +87,10 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 ### Implementation for User Story 3
 
-- [X] T025 [US3] Add keyboard navigation and focus management in frontend/src/features/wizard/a11y.ts
-- [X] T026 [US3] Add semantic labels and ARIA attributes in frontend/src/features/wizard/LandingPage.tsx, frontend/src/features/wizard/StateSelector.tsx, frontend/src/features/wizard/WizardStep.tsx
-- [X] T027 [US3] Ensure mobile responsive layout and touch targets in frontend/src/features/wizard/WizardLayout.tsx and frontend/src/index.css
-- [X] T028 [US3] Add inline help and validation messaging components in frontend/src/features/wizard/HelpText.tsx and frontend/src/features/wizard/ValidationMessage.tsx
+- [x] T025 [US3] Add keyboard navigation and focus management in frontend/src/features/wizard/a11y.ts
+- [x] T026 [US3] Add semantic labels and ARIA attributes in frontend/src/features/wizard/LandingPage.tsx, frontend/src/features/wizard/StateSelector.tsx, frontend/src/features/wizard/WizardStep.tsx
+- [x] T027 [US3] Ensure mobile responsive layout and touch targets in frontend/src/features/wizard/WizardLayout.tsx and frontend/src/index.css
+- [x] T028 [US3] Add inline help and validation messaging components in frontend/src/features/wizard/HelpText.tsx and frontend/src/features/wizard/ValidationMessage.tsx
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -100,8 +100,8 @@ description: "Task list for Eligibility Wizard UI implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [X] T029 [P] Add step transition timing helper in frontend/src/features/wizard/perf.ts
-- [X] T030 [P] Update docs/FEATURE_CATALOG.md to link the E4 spec at specs/004-ui-implementation/spec.md
+- [x] T029 [P] Add step transition timing helper in frontend/src/features/wizard/perf.ts
+- [x] T030 [P] Update docs/FEATURE_CATALOG.md to link the E4 spec at specs/004-ui-implementation/spec.md
 
 ---
 

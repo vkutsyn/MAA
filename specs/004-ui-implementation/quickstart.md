@@ -1,11 +1,13 @@
 # Quickstart: Eligibility Wizard UI
 
 ## Prerequisites
+
 - .NET 9/10 SDK
 - Node.js 22 LTS
 - PostgreSQL 13+
 
 ## Backend (API)
+
 1. Configure database connection in `backend/MAA.API/appsettings.Development.json`.
 2. Apply migrations:
    ```bash
@@ -20,6 +22,7 @@
 4. Verify Swagger is available at http://localhost:5008/swagger
 
 ## Frontend (Wizard UI)
+
 1. Once the frontend is scaffolded in `frontend/`, install dependencies:
    ```bash
    cd frontend
@@ -32,6 +35,7 @@
 3. Open the Vite URL and start the wizard from the landing page.
 
 ## Tests
+
 - Frontend (planned):
   ```bash
   cd frontend
