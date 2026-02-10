@@ -29,7 +29,7 @@ Thank you for considering contributing to the MAA API! This document provides gu
 4. Build solution: `dotnet build`
 5. Run tests: `dotnet test`
 6. Start API: `dotnet run --project src/MAA.API`
-7. Verify Swagger UI: Navigate to http://localhost:5000/swagger
+7. Verify Swagger UI: Navigate to http://localhost:5008/swagger
 
 ## Development Workflow
 
@@ -136,13 +136,14 @@ public Guid SessionId { get; set; }
 dotnet build
 ```
 
-The Swagger UI at http://localhost:5000/swagger will immediately reflect your changes. **No separate documentation update step is required.**
+The Swagger UI at http://localhost:5008/swagger will immediately reflect your changes. **No separate documentation update step is required.**
+Resolve XML documentation warnings (CS1570) before opening a PR.
 
 ### Where Swagger Documentation is Generated
 
 After build, the OpenAPI schema is available at:
 
-- **Runtime**: http://localhost:5000/openapi/v1.json
+- **Runtime**: http://localhost:5008/openapi/v1.json
 - **Build output**: `src/MAA.API/bin/{Configuration}/swagger.json`
 
 ### XML Documentation Requirements

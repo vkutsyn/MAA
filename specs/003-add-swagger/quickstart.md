@@ -7,6 +7,7 @@
 ## What is Swagger / OpenAPI?
 
 Swagger is an interactive documentation tool that lets you:
+
 - **View** all API endpoints and their parameters
 - **Test** endpoints with real data directly from the browser
 - **Understand** request/response schemas and validation rules
@@ -23,13 +24,7 @@ This saves you time by replacing static documentation with a living, test-able s
 When the MAA API is running locally in development mode:
 
 ```
-http://localhost:5000/swagger
-```
-
-or
-
-```
-http://localhost:5000/api/docs
+http://localhost:5008/swagger
 ```
 
 You'll see an interactive interface listing all available endpoints.
@@ -42,7 +37,7 @@ https://maa-test.azurewebsites.net/swagger
 
 ### Production
 
-**Note**: Swagger is disabled in production for security (no endpoint documentation exposed publicly). To access the API specification in production, use the `openapi.json` endpoint if enabled per deployment configuration.
+**Note**: Swagger is disabled in production for security (no endpoint documentation exposed publicly). To access the API specification in production, use the `/openapi/v1.json` endpoint if enabled per deployment configuration.
 
 ---
 
@@ -51,6 +46,7 @@ https://maa-test.azurewebsites.net/swagger
 ### 1. View All Available Endpoints
 
 On the Swagger landing page, you'll see all endpoints grouped by category (Sessions, Rules, Admin, etc.). Each endpoint shows:
+
 - **HTTP Method** (GET, POST, PUT, DELETE)
 - **Path** (e.g., `/api/sessions/{sessionId}`)
 - **Brief Description**
@@ -108,6 +104,7 @@ To test endpoints that require authentication:
 4. All subsequent testing requests will include the Authorization header
 
 **Where to get a token?**
+
 - For development/testing: Use the Auth API to login and receive a JWT
   ```
   POST /auth/login
@@ -132,6 +129,7 @@ To execute a real request from the browser:
 5. See the actual response from the server (200, 400, 404, etc.)
 
 **Example**: Test retrieving a session
+
 ```
 GET /api/sessions/550e8400-e29b-41d4-a716-446655440000
 
@@ -153,6 +151,7 @@ Response (200 OK):
 **Goal**: I want to retrieve all answers for a session
 
 **Solution**:
+
 1. Look for "Sessions" section in Swagger
 2. Search for "answers" in endpoints
 3. Find: `GET /api/sessions/{sessionId}/answers`
@@ -163,9 +162,10 @@ Response (200 OK):
 **Goal**: What fields must I provide to create a session?
 
 **Solution**:
+
 1. Find endpoint: `POST /api/sessions`
 2. Expand and scroll to "Request body"
-3. Look for fields marked with **red asterisk (*)** = required
+3. Look for fields marked with **red asterisk (\*)** = required
 4. Example shows sample payload with all required fields
 
 ### Task: See All Possible Error Responses
@@ -173,6 +173,7 @@ Response (200 OK):
 **Goal**: What can go wrong when creating an answer?
 
 **Solution**:
+
 1. Find endpoint: `POST /api/sessions/{sessionId}/answers`
 2. Expand "Responses" section
 3. See all status codes:
@@ -187,7 +188,12 @@ Response (200 OK):
 **Goal**: I need the OpenAPI spec in JSON or YAML format for tools/scripts
 
 **Solution**:
-1. At the top of Swagger UI, click **"swagger.json"** or **"swagger.yaml"**
+
+1. Open the raw spec directly:
+
+- JSON: http://localhost:5008/openapi/v1.json
+- YAML: http://localhost:5008/openapi/v1.yaml
+
 2. Browser shows the raw specification
 3. Save as `.json` or `.yaml` file
 4. Use with code generators:
@@ -208,6 +214,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 The token itself (after "Bearer ") is a JWT (JSON Web Token) containing:
+
 - **sub** (subject): User ID
 - **email**: User's email
 - **role**: User's role (Admin, Reviewer, Analyst, Applicant)
@@ -236,6 +243,7 @@ var response = await client.SendAsync(request);
 **Cause**: Missing or invalid JWT token
 
 **Fix**:
+
 1. Click "Authorize" button
 2. Obtain a fresh token by logging in
 3. Paste the NEW token and try again
@@ -246,6 +254,7 @@ var response = await client.SendAsync(request);
 **Cause**: Resource doesn't exist or session ID is wrong
 
 **Fix**:
+
 1. Double-check session ID is correct UUID format
 2. Create a session first (POST /api/sessions) to get a valid ID
 3. Use that ID in subsequent requests
@@ -255,12 +264,14 @@ var response = await client.SendAsync(request);
 **Cause**: Invalid data in request body
 
 **Fix**:
+
 1. Expand the endpoint and view "Request body" schema
-2. Check which fields are required (marked with *)
+2. Check which fields are required (marked with \*)
 3. Match the exact data types (string, number, boolean, etc.)
 4. Review error message in response – it suggests what's wrong
 
 Example fix:
+
 ```json
 ❌ Wrong:
 {
@@ -280,8 +291,9 @@ Example fix:
 **Cause**: API server not running or Swagger disabled for environment
 
 **Fix**:
+
 1. Ensure API is running: `dotnet run --configuration Development`
-2. Check URL matches your environment (localhost:5000 vs cloud URL)
+2. Check URL matches your environment (localhost:5008 vs cloud URL)
 3. Check appsettings.Development.json doesn't disable Swagger
 
 ---
@@ -318,6 +330,17 @@ All endpoints follow a standard response pattern for errors:
 Success responses return the resource directly (Session, SessionAnswer, etc.) without wrapping.
 
 ---
+
+## Manual Smoke Test (Swagger UI)
+
+Use this to verify the "Try it out" workflow after changes to the API.
+
+1. Start the API in Development: `dotnet run --configuration Development`
+2. Open Swagger UI: http://localhost:5008/swagger
+3. Authenticate using the "Authorize" button with a valid JWT
+4. Expand `GET /api/sessions/{id}`
+5. Click "Try it out", enter a valid session ID, and click "Execute"
+6. Confirm a 200 response and a JSON payload matching the Session schema
 
 ## Next Steps
 

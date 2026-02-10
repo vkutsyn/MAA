@@ -1,7 +1,7 @@
 # OpenAPI Schema: Sessions Endpoints
 
 **Purpose**: Documented API contract for session management endpoints  
-**Format**: OpenAPI 3.0.0 (machine-readable schema)  
+**Format**: OpenAPI 3.0.1 (machine-readable schema)
 **Status**: Specification (to be generated via Swashbuckle in implementation)
 
 ## Overview
@@ -17,47 +17,60 @@ This document defines the API contract for endpoints related to session manageme
 **Summary**: Retrieve a specific session and its metadata
 
 **Parameters**:
+
 - `sessionId` (path, required, string): UUID of the session to retrieve
 
 **Security**: Requires JWT Bearer token (Authorization header)
 
 **Responses**:
 
-| Status | Description | Schema |
-|--------|-------------|--------|
-| 200 | Session retrieved successfully | Session |
-| 400 | Invalid session ID format | ValidationResult |
-| 401 | Missing or invalid authentication token | ValidationResult |
-| 404 | Session not found or user lacks access | ValidationResult |
-| 500 | Server error | ValidationResult |
+| Status | Description                             | Schema         |
+| ------ | --------------------------------------- | -------------- |
+| 200    | Session retrieved successfully          | SessionDto     |
+| 400    | Invalid session ID format               | ProblemDetails |
+| 401    | Missing or invalid authentication token | ProblemDetails |
+| 404    | Session not found or user lacks access  | ProblemDetails |
+| 500    | Server error                            | ProblemDetails |
 
 **Example Request**:
+
 ```
 GET /api/sessions/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer {jwt_token}
 ```
 
 **Example Response (200)**:
+
 ```json
 {
-  "sessionId": "550e8400-e29b-41d4-a716-446655440000",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "state": "draft",
   "userId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "status": "draft",
-  "startedAt": "2026-02-10T10:30:00Z",
-  "lastActivityAt": "2026-02-10T14:22:15Z",
+  "ipAddress": "192.168.1.100",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "sessionType": "anonymous",
+  "encryptionKeyVersion": 1,
+  "expiresAt": "2026-02-10T18:30:00Z",
+  "inactivityTimeoutAt": "2026-02-10T11:00:00Z",
+  "lastActivityAt": "2026-02-10T10:45:00Z",
+  "isRevoked": false,
   "createdAt": "2026-02-10T10:30:00Z",
-  "updatedAt": "2026-02-10T14:22:15Z",
-  "metadata": {}
+  "updatedAt": "2026-02-10T10:45:00Z",
+  "isValid": true,
+  "minutesUntilExpiry": 480,
+  "minutesUntilInactivityTimeout": 15
 }
 ```
 
 **Example Response (404)**:
+
 ```json
 {
-  "isValid": false,
-  "code": "SESSION_NOT_FOUND",
-  "message": "Session 550e8400-e29b-41d4-a716-446655440000 not found or you lack access",
-  "errors": []
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+  "title": "Session Not Found",
+  "status": 404,
+  "detail": "Session with ID 550e8400-e29b-41d4-a716-446655440000 not found",
+  "traceId": "00-..."
 }
 ```
 
@@ -68,43 +81,58 @@ Authorization: Bearer {jwt_token}
 **Summary**: Create a new session
 
 **Request Body**:
-- `userId` (string, required, UUID): User creating the session
-- `initialData` (object, optional): Initial session data
+
+- `ipAddress` (string, required): Client IP address (optional; server will derive if omitted)
+- `userAgent` (string, required): Browser user agent (optional; server will derive if omitted)
+- `timeoutMinutes` (integer, optional): Absolute session timeout (default 30)
+- `inactivityTimeoutMinutes` (integer, optional): Sliding inactivity timeout (default 15)
 
 **Security**: Requires JWT Bearer token
 
 **Responses**:
 
-| Status | Description | Schema |
-|--------|-------------|--------|
-| 201 | Session created successfully | Session |
-| 400 | Invalid request body | ValidationResult |
-| 401 | Unauthorized | ValidationResult |
-| 500 | Server error | ValidationResult |
+| Status | Description                  | Schema         |
+| ------ | ---------------------------- | -------------- |
+| 201    | Session created successfully | SessionDto     |
+| 400    | Invalid request body         | ProblemDetails |
+| 401    | Unauthorized                 | ProblemDetails |
+| 500    | Server error                 | ProblemDetails |
 
 **Example Request**:
+
 ```
 POST /api/sessions
 Authorization: Bearer {jwt_token}
 Content-Type: application/json
 
 {
-  "userId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "initialData": null
+  "ipAddress": "192.168.1.100",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "timeoutMinutes": 30,
+  "inactivityTimeoutMinutes": 15
 }
 ```
 
 **Example Response (201)**:
+
 ```json
 {
-  "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-  "userId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "status": "draft",
-  "startedAt": "2026-02-10T10:30:00Z",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "state": "draft",
+  "userId": null,
+  "ipAddress": "192.168.1.100",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+  "sessionType": "anonymous",
+  "encryptionKeyVersion": 1,
+  "expiresAt": "2026-02-10T18:30:00Z",
+  "inactivityTimeoutAt": "2026-02-10T11:00:00Z",
   "lastActivityAt": "2026-02-10T10:30:00Z",
+  "isRevoked": false,
   "createdAt": "2026-02-10T10:30:00Z",
   "updatedAt": "2026-02-10T10:30:00Z",
-  "metadata": {}
+  "isValid": true,
+  "minutesUntilExpiry": 480,
+  "minutesUntilInactivityTimeout": 15
 }
 ```
 
@@ -115,52 +143,62 @@ Content-Type: application/json
 **Summary**: Add or update an answer to a question in a session
 
 **Path Parameters**:
+
 - `sessionId` (string, required, UUID): Session to add answer to
 
 **Request Body**:
-- `questionId` (string, required): Question identifier
-- `answerValue` (string/number/object, required): User's response
-- `dataType` (enum, required): "string", "number", "date", "boolean", or "object"
+
+- `fieldKey` (string, required): Question identifier
+- `fieldType` (enum, required): "currency", "integer", "string", "boolean", "date", "text"
+- `answerValue` (string, required): User's response (plain text representation)
+- `isPii` (boolean, required): Whether the field contains PII
 
 **Security**: Requires JWT Bearer token
 
 **Responses**:
 
-| Status | Description | Schema |
-|--------|-------------|--------|
-| 200 | Answer saved successfully | SessionAnswer |
-| 400 | Invalid request body or validation failed | ValidationResult |
-| 401 | Unauthorized | ValidationResult |
-| 404 | Session not found | ValidationResult |
-| 500 | Server error | ValidationResult |
+| Status | Description                               | Schema           |
+| ------ | ----------------------------------------- | ---------------- |
+| 201    | Answer saved successfully                 | SessionAnswerDto |
+| 400    | Invalid request body or validation failed | ProblemDetails   |
+| 401    | Unauthorized                              | ProblemDetails   |
+| 404    | Session not found                         | ProblemDetails   |
+| 500    | Server error                              | ProblemDetails   |
 
 **Example Request**:
+
 ```
 POST /api/sessions/550e8400-e29b-41d4-a716-446655440000/answers
 Authorization: Bearer {jwt_token}
 Content-Type: application/json
 
 {
-  "questionId": "annual_income",
-  "answerValue": 45000,
-  "dataType": "number"
+  "fieldKey": "income_annual",
+  "fieldType": "currency",
+  "answerValue": "45000.00",
+  "isPii": true
 }
 ```
 
 **Example Response (200)**:
+
 ```json
 {
-  "answerId": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
+  "id": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6",
   "sessionId": "550e8400-e29b-41d4-a716-446655440000",
-  "questionId": "annual_income",
-  "answerValue": 45000,
-  "dataType": "number",
+  "fieldKey": "income_annual",
+  "fieldType": "currency",
+  "answerValue": "45000.00",
+  "isPii": true,
+  "keyVersion": 1,
+  "validationErrors": null,
   "createdAt": "2026-02-10T10:32:00Z",
   "updatedAt": "2026-02-10T10:32:00Z"
 }
 ```
 
 **Example Response (400)**:
+
 ```json
 {
   "isValid": false,
@@ -182,32 +220,29 @@ Content-Type: application/json
 **Summary**: Retrieve all answers for a session
 
 **Path Parameters**:
-- `sessionId` (string, required, UUID): Session to retrieve answers for
 
-**Query Parameters**:
-- `questionId` (string, optional): Filter answers by specific question ID
-- `skip` (integer, optional): Number of records to skip (default: 0)
-- `take` (integer, optional): Number of records to return (default: 100, max: 1000)
+- `sessionId` (string, required, UUID): Session to retrieve answers for
 
 **Security**: Requires JWT Bearer token
 
 **Responses**:
 
-| Status | Description | Schema |
-|--------|-------------|--------|
-| 200 | Answers retrieved successfully | Array of SessionAnswer |
-| 400 | Invalid query parameters | ValidationResult |
-| 401 | Unauthorized | ValidationResult |
-| 404 | Session not found | ValidationResult |
-| 500 | Server error | ValidationResult |
+| Status | Description                    | Schema                    |
+| ------ | ------------------------------ | ------------------------- |
+| 200    | Answers retrieved successfully | Array of SessionAnswerDto |
+| 401    | Unauthorized                   | ProblemDetails            |
+| 404    | Session not found              | ProblemDetails            |
+| 500    | Server error                   | ProblemDetails            |
 
 **Example Request**:
+
 ```
 GET /api/sessions/550e8400-e29b-41d4-a716-446655440000/answers?skip=0&take=50
 Authorization: Bearer {jwt_token}
 ```
 
 **Example Response (200)**:
+
 ```json
 [
   {
@@ -238,29 +273,33 @@ Authorization: Bearer {jwt_token}
 **Summary**: Export complete session data including answers and metadata
 
 **Path Parameters**:
+
 - `sessionId` (string, required, UUID): Session to export
 
 **Query Parameters**:
+
 - `format` (enum, optional): "json" (default) or "csv"
 
 **Security**: Requires JWT Bearer token
 
 **Responses**:
 
-| Status | Description | Schema |
-|--------|-------------|--------|
-| 200 | Session exported successfully | SessionData |
-| 401 | Unauthorized | ValidationResult |
-| 404 | Session not found | ValidationResult |
-| 500 | Server error | ValidationResult |
+| Status | Description                   | Schema           |
+| ------ | ----------------------------- | ---------------- |
+| 200    | Session exported successfully | SessionData      |
+| 401    | Unauthorized                  | ValidationResult |
+| 404    | Session not found             | ValidationResult |
+| 500    | Server error                  | ValidationResult |
 
 **Example Request**:
+
 ```
 GET /api/sessions/550e8400-e29b-41d4-a716-446655440000/export
 Authorization: Bearer {jwt_token}
 ```
 
 **Example Response (200)**:
+
 ```json
 {
   "sessionId": "550e8400-e29b-41d4-a716-446655440000",
@@ -295,6 +334,7 @@ Authorization: Bearer {jwt_token}
 **Header**: `Authorization: Bearer {token}`
 
 **Example JWT Payload**:
+
 ```json
 {
   "sub": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
@@ -326,9 +366,10 @@ All error responses follow this standardized format:
 ```
 
 **Common Error Codes**:
+
 - `VALIDATION_ERROR`: Request validation failed
 - `AUTHENTICATION_FAILED`: JWT token invalid or expired
-- `AUTHORIZATION_DENIED`: User lacks permission to access resource  
+- `AUTHORIZATION_DENIED`: User lacks permission to access resource
 - `NOT_FOUND`: Resource does not exist
 - `INTERNAL_ERROR`: Unexpected server error
 

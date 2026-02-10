@@ -12,8 +12,10 @@ using MAA.Infrastructure.Data;
 using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Writers;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Swagger;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -114,11 +116,11 @@ try
 
     // Add controllers
     builder.Services.AddControllers();
-    builder.Services.AddOpenApi();
 
     // Configure Swagger/OpenAPI documentation if enabled
     var swaggerSettings = builder.Configuration.GetSection("Swagger");
-    if (swaggerSettings.GetValue<bool>("Enabled", false))
+    var swaggerEnabled = swaggerSettings.GetValue<bool>("Enabled", false);
+    if (swaggerEnabled)
     {
         var swaggerTitle = swaggerSettings.GetValue<string>("Title", "API");
         var swaggerVersion = swaggerSettings.GetValue<string>("Version", "1.0.0");
@@ -166,8 +168,6 @@ try
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
             });
 
-            options.AddFluentValidationRulesProvider();
-
             // Require Bearer token for all endpoints with [Authorize] attribute
             options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
             {
@@ -194,7 +194,7 @@ try
         app.UseDeveloperExceptionPage();
 
         // Enable Swagger UI in development and test environments
-        if (swaggerSettings.GetValue<bool>("Enabled", false))
+        if (swaggerEnabled)
         {
             app.UseSwagger(options =>
             {
@@ -205,6 +205,15 @@ try
                 options.SwaggerEndpoint("/openapi/v1.json", "MAA API v1");
                 options.RoutePrefix = "swagger";
                 options.DefaultModelsExpandDepth(2);
+            });
+
+            app.MapGet("/openapi/v1.yaml", (ISwaggerProvider swaggerProvider) =>
+            {
+                var document = swaggerProvider.GetSwagger("v1");
+                using var writer = new StringWriter();
+                var yamlWriter = new OpenApiYamlWriter(writer);
+                document.SerializeAsV3(yamlWriter);
+                return Results.Text(writer.ToString(), "application/yaml");
             });
         }
     }

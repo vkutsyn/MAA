@@ -1,0 +1,441 @@
+openapi: 3.0.3
+info:
+  title: Eligibility Wizard UI API
+  version: 1.0.0
+  description: API contracts for the Eligibility Wizard UI.
+servers:
+  - url: http://localhost:5008
+paths:
+  /api/sessions:
+    post:
+      summary: Create anonymous session
+      operationId: createSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionDto"
+      responses:
+        "201":
+          description: Session created
+          headers:
+            Set-Cookie:
+              description: Session cookie (MAA_SessionId)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionDto"
+        "400":
+          description: Invalid request
+        "500":
+          description: Server error
+  /api/sessions/{sessionId}:
+    get:
+      summary: Get session by id
+      operationId: getSession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Session details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionDto"
+        "401":
+          description: Session expired
+        "404":
+          description: Session not found
+      security:
+        - sessionCookie: []
+  /api/sessions/{sessionId}/status:
+    get:
+      summary: Get session status
+      operationId: getSessionStatus
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Session status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStatusDto"
+        "401":
+          description: Session expired
+        "404":
+          description: Session not found
+      security:
+        - sessionCookie: []
+  /api/sessions/{sessionId}/answers:
+    get:
+      summary: Get answers for a session
+      operationId: getSessionAnswers
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Answer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionAnswerDto"
+        "401":
+          description: Session expired
+        "404":
+          description: Session not found
+      security:
+        - sessionCookie: []
+    post:
+      summary: Save or update an answer
+      operationId: saveSessionAnswer
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveAnswerDto"
+      responses:
+        "201":
+          description: Answer saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionAnswerDto"
+        "400":
+          description: Validation failed
+        "401":
+          description: Session expired
+        "404":
+          description: Session not found
+      security:
+        - sessionCookie: []
+  /api/states:
+    get:
+      summary: List supported states
+      operationId: listStates
+      responses:
+        "200":
+          description: State list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StateInfo"
+  /api/states/lookup:
+    get:
+      summary: Lookup state by zip
+      operationId: lookupStateByZip
+      parameters:
+        - name: zip
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]{5}$"
+      responses:
+        "200":
+          description: State match
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StateLookupResponse"
+        "404":
+          description: No state found for zip
+  /api/questions:
+    get:
+      summary: Get question taxonomy for a state
+      operationId: getQuestions
+      parameters:
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 2
+      responses:
+        "200":
+          description: Question list and flow metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionSet"
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: MAA_SessionId
+  schemas:
+    CreateSessionDto:
+      type: object
+      properties:
+        ipAddress:
+          type: string
+          maxLength: 45
+        userAgent:
+          type: string
+          maxLength: 500
+        timeoutMinutes:
+          type: integer
+          minimum: 15
+          maximum: 480
+        inactivityTimeoutMinutes:
+          type: integer
+          minimum: 5
+          maximum: 60
+      required:
+        - ipAddress
+        - userAgent
+    SessionDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        sessionType:
+          type: string
+        encryptionKeyVersion:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+        inactivityTimeoutAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: string
+          format: date-time
+        isRevoked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - state
+        - ipAddress
+        - userAgent
+        - sessionType
+        - encryptionKeyVersion
+        - expiresAt
+        - inactivityTimeoutAt
+        - lastActivityAt
+        - isRevoked
+        - createdAt
+        - updatedAt
+    SessionStatusDto:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        isValid:
+          type: boolean
+        minutesUntilExpiry:
+          type: integer
+        minutesUntilInactivity:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+        inactivityTimeoutAt:
+          type: string
+          format: date-time
+      required:
+        - sessionId
+        - isValid
+    SaveAnswerDto:
+      type: object
+      properties:
+        fieldKey:
+          type: string
+          maxLength: 200
+        fieldType:
+          type: string
+          enum: [currency, integer, string, boolean, date, text]
+        answerValue:
+          type: string
+          maxLength: 10000
+        isPii:
+          type: boolean
+      required:
+        - fieldKey
+        - fieldType
+        - answerValue
+        - isPii
+    SessionAnswerDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        fieldKey:
+          type: string
+        fieldType:
+          type: string
+        answerValue:
+          type: string
+          nullable: true
+        isPii:
+          type: boolean
+        keyVersion:
+          type: integer
+        validationErrors:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sessionId
+        - fieldKey
+        - fieldType
+        - isPii
+        - keyVersion
+        - createdAt
+        - updatedAt
+    StateInfo:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 2
+          maxLength: 2
+        name:
+          type: string
+        isPilot:
+          type: boolean
+      required:
+        - code
+        - name
+        - isPilot
+    StateLookupResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        source:
+          type: string
+          enum: [zip]
+      required:
+        - code
+        - name
+        - source
+    QuestionSet:
+      type: object
+      properties:
+        state:
+          type: string
+        version:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionDto"
+      required:
+        - state
+        - version
+        - questions
+    QuestionDto:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [currency, integer, string, boolean, date, text, select, multiselect]
+        required:
+          type: boolean
+        helpText:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionOption"
+        conditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionCondition"
+      required:
+        - key
+        - label
+        - type
+        - required
+    QuestionOption:
+      type: object
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+      required:
+        - value
+        - label
+    QuestionCondition:
+      type: object
+      properties:
+        fieldKey:
+          type: string
+        operator:
+          type: string
+          enum: [equals, not_equals, gt, gte, lt, lte, includes]
+        value:
+          type: string
+      required:
+        - fieldKey
+        - operator
+        - value

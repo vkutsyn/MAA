@@ -7,7 +7,8 @@
 
 Add Swagger/OpenAPI documentation to the MAA API to enable automated, discoverable, and testable endpoint documentation. Developers will access interactive Swagger UI to understand endpoints, test requests, and download the OpenAPI schema. No new entities are introduced; Swagger documents existing domain model (Session, SessionAnswer, SessionData, User, etc.) and automatically keeps documentation in sync with code changes via Swashbuckle code generation.
 
-**Technical Approach**: 
+**Technical Approach**:
+
 - Use Swashbuckle `AddSwaggerGen()` with `UseSwagger()` + `UseSwaggerUI()`
 - Expose OpenAPI documents at `/openapi/v1.json` and `/openapi/v1.yaml`
 - XML comments on controllers for endpoint descriptions
@@ -138,6 +139,7 @@ src/
 ### Configuration Changes
 
 **appsettings.json** (all environments):
+
 ```json
 {
   "Swagger": {
@@ -150,6 +152,7 @@ src/
 ```
 
 **appsettings.Development.json**:
+
 ```json
 {
   "Swagger": {
@@ -159,6 +162,7 @@ src/
 ```
 
 **appsettings.Test.json**:
+
 ```json
 {
   "Swagger": {
@@ -168,6 +172,7 @@ src/
 ```
 
 **appsettings.Production.json**:
+
 ```json
 {
   "Swagger": {
@@ -181,6 +186,7 @@ src/
 ## Phase Breakdown
 
 ### Phase 0: Research (COMPLETE)
+
 - ✅ Researched .NET OpenAPI/Swashbuckle stack
 - ✅ Documented JWT authentication strategy
 - ✅ Identified endpoint documentation approach (XML comments + FluentValidation)
@@ -190,19 +196,23 @@ src/
 **Deliverable**: [research.md](./research.md)
 
 ### Phase 1: Design (COMPLETE)
+
 - ✅ Defined all entities and their schemas: Session, SessionAnswer, SessionData, User, ValidationResult
 - ✅ Created API contract examples with request/response samples
 - ✅ Wrote developer quickstart guide
 - ✅ Planned test structure for schema validation
 - ✅ Re-evaluated Constitution Check – all principles satisfied
 
-**Deliverables**: 
+**Deliverables**:
+
 - [data-model.md](./data-model.md)
 - [contracts/sessions-api.md](./contracts/sessions-api.md)
 - [quickstart.md](./quickstart.md)
 
 ### Phase 2: Implementation (NEXT)
+
 Will include:
+
 - Configure Swashbuckle in Program.cs
 - Add XML comments to all controllers and DTOs
 - Add [ProducesResponseType] attributes for response documentation
@@ -216,20 +226,20 @@ Will include:
 ## Dependencies
 
 **NuGet Packages** (to be added):
+
 - `Swashbuckle.AspNetCore` (v6.4.0+) – OpenAPI/Swagger generation
 - `Swashbuckle.AspNetCore.Filters` (v7.0.0+) – FluentValidation schema mapping (optional but recommended)
 
 **Tooling** (for CI/CD validation):
+
 - `openapi-generator-cli` (npm global) – validates schema compliance
 
 **Existing Dependencies** (already in use):
+
 - `FluentValidation` – rule metadata maps to schema constraints
 - `AutoMapper` – DTO mapping
 - `Serilog` – structured logging (benefits from documented endpoints)
 
-
-
 ## Structure Decision
 
 Use the existing repository layout shown above. No new project structure is required for this feature.
-

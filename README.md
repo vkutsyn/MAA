@@ -52,9 +52,9 @@ The Medicaid Application Assistant (MAA) API is a web service that handles eligi
    ```
 
 5. **Access the API**
-   - **Swagger UI**: http://localhost:5000/swagger
-   - **OpenAPI spec**: http://localhost:5000/openapi/v1.json
-   - **Health check**: http://localhost:5000/health
+   - **Swagger UI**: http://localhost:5008/swagger
+   - **OpenAPI spec**: http://localhost:5008/openapi/v1.json
+   - **Health check**: http://localhost:5008/health
 
 ## API Documentation
 
@@ -63,7 +63,7 @@ The Medicaid Application Assistant (MAA) API is a web service that handles eligi
 The API documentation is **auto-generated from code comments** and available at:
 
 ```
-http://localhost:5000/swagger (Development/Test only)
+http://localhost:5008/swagger (Development/Test only)
 ```
 
 **Key Features**:
@@ -83,7 +83,8 @@ See [specs/003-add-swagger/quickstart.md](specs/003-add-swagger/quickstart.md) f
 The OpenAPI 3.0 schema is available at:
 
 ```
-http://localhost:5000/openapi/v1.json
+http://localhost:5008/openapi/v1.json
+http://localhost:5008/openapi/v1.yaml
 ```
 
 This can be imported into tools like Postman, code generators (OpenAPI Generator, NSwag), or used for contract testing.
@@ -187,7 +188,7 @@ Key configuration sections in `appsettings.json`:
 
 ### Schema validation errors
 
-- Run validation script: `.\.specify\scripts\powershell\swagger-validation.ps1`
+- Run validation script: `./swagger-validation.ps1`
 - Ensure all DTO properties have XML documentation
 - Verify `[ProducesResponseType]` attributes are present on controller methods
 
