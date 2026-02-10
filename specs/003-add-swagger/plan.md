@@ -1,16 +1,15 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Add Swagger to API Project
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Branch**: `003-add-swagger` | **Date**: February 10, 2026 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/003-add-swagger/spec.md`
 
 ## Summary
 
 Add Swagger/OpenAPI documentation to the MAA API to enable automated, discoverable, and testable endpoint documentation. Developers will access interactive Swagger UI to understand endpoints, test requests, and download the OpenAPI schema. No new entities are introduced; Swagger documents existing domain model (Session, SessionAnswer, SessionData, User, etc.) and automatically keeps documentation in sync with code changes via Swashbuckle code generation.
 
 **Technical Approach**: 
-- Use ASP.NET Core 9.0's built-in OpenAPI support with Swashbuckle
+- Use Swashbuckle `AddSwaggerGen()` with `UseSwagger()` + `UseSwaggerUI()`
+- Expose OpenAPI documents at `/openapi/v1.json` and `/openapi/v1.yaml`
 - XML comments on controllers for endpoint descriptions
 - FluentValidation metadata for schema constraints
 - Environment-based configuration: enabled in Development/Test, disabled in Production
@@ -39,7 +38,7 @@ Add Swagger/OpenAPI documentation to the MAA API to enable automated, discoverab
 - [x] Domain logic can be isolated from I/O (testable without DB/HTTP)
   - ✅ Swagger configuration isolated in Program.cs and appsettings; testable independently
 - [x] Dependencies are explicitly injected (no service locator pattern)
-  - ✅ Swashbuckle configured via `builder.Services.AddOpenApi()` in DI container
+  - ✅ Swashbuckle configured via `builder.Services.AddSwaggerGen()` in DI container
 - [x] No classes exceed ~300 lines; single responsibility clear
   - ✅ Controllers and DTOs have single responsibility; Swagger configuration minimal (~20 lines)
 - [x] DTO contracts explicitly defined (backend) or type-safe (frontend)
@@ -230,37 +229,7 @@ Will include:
 
 
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+## Structure Decision
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
+Use the existing repository layout shown above. No new project structure is required for this feature.
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
-```
-
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
-
-## Complexity Tracking
-
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
-| -------------------------- | ------------------ | ------------------------------------ |
-| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |

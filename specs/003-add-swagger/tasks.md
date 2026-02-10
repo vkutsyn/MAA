@@ -17,10 +17,10 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 **Purpose**: Add Swashbuckle dependencies and initialize OpenAPI support
 
-- [ ] T001 Add Swashbuckle.AspNetCore NuGet package (v6.4.0+) to MAA.API.csproj
-- [ ] T002 Add Swashbuckle.AspNetCore.Filters NuGet package (v7.0.0+) to MAA.API.csproj
-- [ ] T003 Create `appsettings.Swagger.json` configuration schema definition (optional centralized schema)
-- [ ] T004 [P] Create `swagger-validation.ps1` script for CI/CD pipeline to validate OpenAPI 3.0 compliance
+- [x] T001 Add Swashbuckle.AspNetCore NuGet package (v6.4.0+) to MAA.API.csproj
+- [x] T002 Add Swashbuckle.AspNetCore.Filters NuGet package (v7.0.0+) to MAA.API.csproj
+- [x] T003 Create `appsettings.Swagger.json` configuration schema definition (optional centralized schema)
+- [x] T004 [P] Create `swagger-validation.ps1` script for CI/CD pipeline to validate OpenAPI 3.0 compliance
 
 ---
 
@@ -32,24 +32,24 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 ### Infrastructure Setup
 
-- [ ] T005 Update `Program.cs` to add `builder.Services.AddOpenApi()` call
-- [ ] T006 Configure Swashbuckle in `Program.cs`:
+- [x] T005 Update `Program.cs` to add `builder.Services.AddSwaggerGen()` call
+- [x] T006 Configure Swashbuckle in `Program.cs`:
   - `SwaggerUIOptions` with title "MAA API", version "1.0.0", description
   - XML documentation file loading for MAA.API, MAA.Application
   - OpenAPI security scheme definition for JWT Bearer tokens
-- [ ] T007 Add environment check in `Program.cs` to map Swagger UI routes only in Development/Test:
+- [x] T007 Add environment check in `Program.cs` to map Swagger UI routes only in Development/Test:
   - `if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))`
-  - Map `app.MapOpenApi()` endpoint
-  - Map Swagger UI routes
-- [ ] T008 Update `appsettings.json` with Swagger configuration section:
+  - Map `app.UseSwagger()` with route template for `/openapi/v1.json`
+  - Map Swagger UI routes via `app.UseSwaggerUI()`
+- [x] T008 Update `appsettings.json` with Swagger configuration section:
   - `"Swagger": { "Enabled": true, "Title": "MAA API", "Version": "1.0.0" }`
-- [ ] T009 [P] Update `appsettings.Development.json`: `"Swagger": { "Enabled": true }`
-- [ ] T010 [P] Update `appsettings.Test.json`: `"Swagger": { "Enabled": true }`
-- [ ] T011 [P] Update `appsettings.Production.json`: `"Swagger": { "Enabled": false }`
-- [ ] T012 Enable XML documentation in `MAA.API.csproj`:
+- [x] T009 [P] Update `appsettings.Development.json`: `"Swagger": { "Enabled": true }`
+- [x] T010 [P] Update `appsettings.Test.json`: `"Swagger": { "Enabled": true }`
+- [x] T011 [P] Update `appsettings.Production.json`: `"Swagger": { "Enabled": false }`
+- [x] T012 Enable XML documentation in `MAA.API.csproj`:
   - Set `<GenerateDocumentationFile>true</GenerateDocumentationFile>`
   - Set `<DocumentationFile>bin\$(Configuration)\MAA.API.xml</DocumentationFile>`
-- [ ] T013 [P] Enable FluentValidation integration in Swashbuckle (Program.cs):
+- [x] T013 [P] Enable FluentValidation integration in Swashbuckle (Program.cs):
   - Call `.AddFluentValidationRulesProvider()` to map validation rules to schema constraints
 
 **Checkpoint**: Foundational infrastructure ready - both `http://localhost:5000/swagger` and `http://localhost:5000/openapi/v1.json` endpoints functional (but mostly empty until user stories add content)
@@ -60,7 +60,8 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 **Goal**: Developers can access Swagger UI and see all endpoints with "Try it out" capability
 
-**Independent Test**: 
+**Independent Test**:
+
 1. Start API with `dotnet run --configuration Development`
 2. Navigate to `http://localhost:5000/swagger`
 3. Verify all controllers/endpoints listed with HTTP methods and paths
@@ -69,18 +70,17 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 ### Tests for US1 (Written FIRST - must FAIL before implementation)
 
-- [ ] T014 Unit test: Verify OpenAPI schema includes all controller endpoints (test in `MAA.Tests/Unit/Schemas/OpenApiSchemaTests.cs`)
+- [x] T014 Unit test: Verify OpenAPI schema includes all controller endpoints (test in `MAA.Tests/Unit/Schemas/OpenApiSchemaTests.cs`)
   - Test method: `VerifyAllControllersExposed_In_Schema()`
   - Reflection: Enumerate all controller classes, verify each endpoint appears in schema
   - Assertion: Schema endpoints count >= controller endpoint count
-  
-- [ ] T015 Integration test: Verify Swagger UI endpoint returns 200 OK in Development (test in `MAA.Tests/Integration/SchemaGeneration/SwaggerIntegrationTests.cs`)
+- [x] T015 Integration test: Verify Swagger UI endpoint returns 200 OK in Development (test in `MAA.Tests/Integration/SchemaGeneration/SwaggerIntegrationTests.cs`)
   - Test method: `SwaggerUI_Returns_200_In_Development_Environment()`
   - Use TestWebApplicationFactory with Development environment
   - GET `/swagger` should return 200 with HTML content type
   - Assertion: StatusCode == 200
 
-- [ ] T016 Integration test: Verify OpenAPI JSON schema is valid and retrievable
+- [x] T016 Integration test: Verify OpenAPI JSON schema is valid and retrievable
   - Test method: `OpenApiSchema_IsValid_And_Retrievable()`
   - GET `/openapi/v1.json` should return 200 with valid JSON
   - JSON should contain `"openapi": "3.0.0"` or `"3.0.1"`
@@ -88,7 +88,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 ### Implementation for US1
 
-- [ ] T017 Add XML documentation comments to `SessionsController.cs`:
+- [x] T017 Add XML documentation comments to `SessionsController.cs`:
   - Class summary: "Endpoints for managing user application sessions"
   - GET /api/sessions/{sessionId} summary and description
   - POST /api/sessions summary and description
@@ -96,42 +96,43 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - Return value descriptions using `<returns>` tags
   - Example: `/// <summary>Retrieve a session by ID</summary>`
 
-- [ ] T018 [P] Add XML documentation comments to `RulesController.cs`:
+- [x] T018 [P] Add XML documentation comments to `RulesController.cs`:
   - Class summary
   - All endpoints documented with summaries, parameter descriptions, return descriptions
 
-- [ ] T019 [P] Add XML documentation comments to `AuthController.cs`:
+- [x] T019 [P] Add XML documentation comments to `AuthController.cs`:
   - Class summary
   - All authentication endpoints documented
   - Note security behavior in documentation
 
-- [ ] T020 [P] Add XML documentation comments to `AdminController.cs`:
+- [x] T020 [P] Add XML documentation comments to `AdminController.cs`:
   - Class summary
   - All admin endpoints documented
   - Mark authorization requirements
 
-- [ ] T021 [P] Add `[ProducesResponseType]` attributes to `SessionsController.cs` methods:
+- [x] T021 [P] Add `[ProducesResponseType]` attributes to `SessionsController.cs` methods:
   - GET endpoint: `[ProducesResponseType(200, Type = typeof(SessionDto))]` `[ProducesResponseType(400)]` `[ProducesResponseType(401)]` `[ProducesResponseType(404)]` `[ProducesResponseType(500)]`
   - POST endpoint: `[ProducesResponseType(201, Type = typeof(SessionDto))]` `[ProducesResponseType(400)]` `[ProducesResponseType(401)]` `[ProducesResponseType(500)]`
   - Follow pattern in `specs/003-add-swagger/contracts/sessions-api.md`
 
-- [ ] T022 [P] Add `[ProducesResponseType]` attributes to `RulesController.cs` methods
-- [ ] T023 [P] Add `[ProducesResponseType]` attributes to `AuthController.cs` methods  
-- [ ] T024 [P] Add `[ProducesResponseType]` attributes to `AdminController.cs` methods
+- [x] T022 [P] Add `[ProducesResponseType]` attributes to `RulesController.cs` methods
+- [x] T023 [P] Add `[ProducesResponseType]` attributes to `AuthController.cs` methods
+- [x] T024 [P] Add `[ProducesResponseType]` attributes to `AdminController.cs` methods
 
-- [ ] T025 Create `ValidationResultDto` class in `src/MAA.Application/DTOs/ValidationResultDto.cs` if not exists:
+- [x] T025 Create `ValidationResultDto` class in `src/MAA.Application/DTOs/ValidationResultDto.cs` if not exists:
   - Properties: `bool IsValid`, `string Code`, `string Message`, `List<ValidationErrorDto> Errors`
   - Serves as standard error response wrapper per `data-model.md`
 
-- [ ] T026 [P] Create/update `SessionDto.cs` in `src/MAA.Application/DTOs/`:
+- [x] T026 [P] Create/update `SessionDto.cs` in `src/MAA.Application/DTOs/`:
   - Add XML documentation to all properties (descriptions used in schema)
   - Ensure all fields from `data-model.md` Session entity are present
   - Include field constraints in XML comments: `/// <summary>Session ID</summary> /// <remarks>UUID format, required</remarks>`
 
-- [ ] T027 [P] Create/update `SessionAnswerDto.cs` in DTOs folder with documentation
-- [ ] T028 [P] Create/update `UserDto.cs` in DTOs folder with documentation
+- [x] T027 [P] Create/update `SessionAnswerDto.cs` in DTOs folder with documentation
+- [x] T028 [P] Create/update `UserDto.cs` in DTOs folder with documentation
 
-**Checkpoint**: 
+**Checkpoint**:
+
 - All endpoints visible in Swagger UI with descriptions
 - "Try it out" works for at least one endpoint
 - Tests T014-T016 all pass
@@ -144,6 +145,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 **Goal**: Developers see complete request/response schemas with field descriptions and validation constraints
 
 **Independent Test**:
+
 1. In Swagger UI, expand POST /api/sessions/{sessionId}/answers endpoint
 2. Expand "Request body" schema
 3. Verify all fields visible with types and descriptions
@@ -203,7 +205,8 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - Examples: SessionId = "550e8400-e29b-41d4-a716-446655440000", income="45000.00", date="2026-02-10"
   - Status: ✅ COMPLETE
 
-**Checkpoint**: 
+**Checkpoint**:
+
 - ✅ All DTOs have complete XML documentation
 - ✅ Swagger UI shows field descriptions for all properties
 - ✅ Validation constraints visible in schema (MaxLength, Required, Regex patterns)
@@ -218,6 +221,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 **Goal**: Ensure documentation automatically updates when endpoint code changes - no manual maintenance
 
 **Independent Test**:
+
 1. First: Run implementation and verify test suite passes
 2. Then: Modify a controller method (e.g., add parameter)
 3. Rebuild project (`dotnet build`)
@@ -267,6 +271,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - "No separate step to update OpenAPI.json needed"
 
 **Checkpoint**:
+
 - Documentation is truly auto-generated and auto-synced
 - New developers understand no manual doc maintenance needed
 - CI/CD prevents invalid schemas from reaching production
@@ -279,6 +284,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 **Goal**: Developers understand how to authenticate and which endpoints require auth
 
 **Independent Test**:
+
 1. In Swagger UI, look for security lock icon on protected endpoints
 2. Click Authorize button, understand JWT Bearer format
 3. Enter test JWT token
@@ -336,6 +342,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - Document token expiration behavior
 
 **Checkpoint**:
+
 - All protected endpoints have [Authorize] attribute
 - Swagger UI shows lock icons on protected endpoints
 - Authorize button functional and accepts bearer tokens
@@ -349,6 +356,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 **Goal**: Developers see API version information; foundation for future multi-version support
 
 **Independent Test**:
+
 1. In Swagger UI, verify version "1.0.0" displayed in header/title
 2. Verify in OpenAPI JSON: `"info": { "version": "1.0.0" }`
 3. No v2 endpoints yet (P3 - nice to have for MVP)
@@ -386,6 +394,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - Example: Can add `[Obsolete("Use v2 endpoint instead")]` to deprecated endpoints
 
 **Checkpoint**:
+
 - Version "1.0.0" visible in Swagger UI
 - OpenAPI schema includes version in info section
 - Versioning strategy documented for future reference
@@ -424,11 +433,11 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - Extract complex configuration to helper method if needed for readability
   - Verify no unused variables
 
-- [ ] T071 Performance verification:
-  - Measure schema generation time during API startup
-  - Verify < 100ms per research.md requirement
-  - Verify < 5ms per-request overhead per research.md requirement
-  - Document metrics in a comment or separate performance report
+- [ ] T071 Performance verification (CONST-IV):
+  - Add integration test: `OpenApiDocument_Generation_Under_5ms()`
+  - Measure schema generation time with `Stopwatch` and assert < 5ms per request
+  - Measure startup time for Swagger registration and assert < 100ms
+  - Document metrics in a short performance report (e.g., `specs/003-add-swagger/PHASE-8-PERFORMANCE.md`)
 
 - [ ] T072 Documentation audit:
   - Verify all user-facing documentation reflects current behavior
@@ -440,6 +449,22 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
   - How to add documentation to new endpoints (checklist)
   - How to update API version
   - Common mistakes to avoid
+
+- [ ] T074 Add "Try it out" UI verification test (FR-005):
+  - Integration test hits `/swagger` and asserts UI includes "Try it out" and "Execute"
+  - Document the manual smoke test for one endpoint (GET /api/sessions/{sessionId})
+
+- [ ] T075 Add YAML OpenAPI endpoint + test (FR-009):
+  - Configure `UseSwagger()` route template to serve `/openapi/v1.yaml`
+  - Integration test GET `/openapi/v1.yaml` returns 200 and contains `openapi: 3.0`
+
+- [ ] T076 Accessibility verification for Swagger UI (CONST-III):
+  - Run axe DevTools (or equivalent) against `/swagger`
+  - Record results (zero violations) in a short report under `specs/003-add-swagger/`
+
+- [ ] T077 Validate documentation usability (SC-007):
+  - Run a quickstart walkthrough: find 3 endpoints, identify required fields, download spec
+  - Record completion time and blockers in a short report
 
 **Checkpoint**: Feature complete and production-ready
 
@@ -453,25 +478,19 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 - **Phase 2 (Foundational)**: Depends on Phase 1 ✓
   - BLOCKS all user stories - must complete before Phase 3+
   - Estimated: 2-3 hours
-  
 - **Phase 3 (US1)**: Depends on Phase 2
   - Starts after foundational; takes ~4-6 hours
   - Can be parallelized: T017-T024 independent controller documentation
-  
 - **Phase 4 (US2)**: Depends on Phase 2 (may start parallel to US1 end)
   - T029-T034 can start while US1 finishing controllers
   - Estimated: 3-4 hours
-  
 - **Phase 5 (US3)**: Depends on Phase 3 (US1) complete
   - Integrated throughout; mainly documentation/CI setup
   - Estimated: 2-3 hours
-  
 - **Phase 6 (US4)**: Depends on Phase 2+Phase 3
   - Can overlap with US1/US2; estimated: 2-3 hours
-  
 - **Phase 7 (US5)**: Depends on Phase 2 (can start anytime after foundational)
   - Low effort; ~1-2 hours
-  
 - **Phase 8 (Polish)**: Depends on all phases complete
   - Final pass; ~1-2 hours
 
@@ -479,18 +498,21 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 
 **Within Phase 1**: All tasks can run sequentially (install packages first)
 
-**Within Phase 2**: 
+**Within Phase 2**:
+
 - T001-T002 (install packages) must complete first
 - T003-T004 (scripts) can run in parallel with T005-T013 (configuration)
 - T009-T011 (appsettings files) can run in parallel
 - After T005 completes, T006-T007 can run together
 
 **Across User Stories** (after Phase 2):
+
 - All 5 user stories can be worked in parallel by different team members
 - Each story is independently deliverable, independently testable
 - Suggested sequencing: US1 (MVP) → US2 (end-user clarity) → US4 (security) → US3 (process) → US5 (nice-to-have)
 
 **Within Each Story**:
+
 - US1 (T017-T024): All controller documentation tasks marked [P] can run in parallel
 - US2 (T033-T036): All DTO documentation tasks marked [P] can run in parallel
 - US4 (T051-T053): Authorize attributes marked [P] can run in parallel
@@ -499,45 +521,50 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 ### Execution Sequencing (Recommended)
 
 **Option A: Sequential by Story (Single Developer)**
+
 1. Phase 1 (Setup) → 1 hour
-2. Phase 2 (Foundation) → 2-3 hours  
+2. Phase 2 (Foundation) → 2-3 hours
 3. US1 (MVP) → 4-6 hours
 4. US2 (Schemas) → 3-4 hours
 5. US4 (Auth) → 2-3 hours [can interleave with US2]
 6. US3 (Auto-sync) → 2-3 hours [integrated throughout]
 7. US5 (Versioning) → 1-2 hours [fast, do last]
 8. Phase 8 (Polish) → 1-2 hours
-**Total: ~16-24 hours**
+   **Total: ~16-24 hours**
 
 **Option B: Parallel by Team (2-3 Developers)**
+
 - Dev 1: Phase 1-2 - Setup foundation (2-3 hours)
 - Dev 2: Waiting for Phase 2 completion
 - All together Phase 2 completion (2-3 hours)
 - Dev 1: US1 controllers (4-6 hours)
 - Dev 2: US2 DTOs + validation (3-4 hours)
-- Dev 3: US4 auth + US5 versioning (3-4 hours) 
+- Dev 3: US4 auth + US5 versioning (3-4 hours)
 - Parallel Phase 8 (1-2 hours)
-**Total Elapsed: ~8-10 hours**
+  **Total Elapsed: ~8-10 hours**
 
 ---
 
 ## Success Criteria
 
 ✅ **All acceptance criteria from spec.md met**:
+
 - [ ] SC-001: 100% endpoint coverage in Swagger
 - [ ] SC-002: Auto-updates without manual intervention
-- [ ] SC-003: 90%+ of endpoints testable via "Try it out"
-- [ ] SC-004: < 3 second UI load time
+- [ ] SC-003: 9 of 10 representative endpoints succeed via "Try it out" with valid auth
+- [ ] SC-004: Swagger UI p50 load time <= 3s (cache disabled, local dev)
 - [ ] SC-005: JWT authentication works in Swagger
 - [ ] SC-006: OpenAPI schema valid and passes validation
-- [ ] SC-007: New developers understand API from Swagger alone
-- [ ] SC-008: WCAG 2.1 AA accessibility (Swagger UI built-in)
+- [ ] SC-007: Quickstart tasks completed in <= 15 minutes without other docs
+- [ ] SC-008: Axe scan on `/swagger` reports zero violations (or documented exceptions)
 
 ✅ **All test cases pass**:
+
 - [ ] T014-T050 unit/integration tests all pass
 - [ ] Code coverage maintained per Constitution II
 
 ✅ **Documentation complete**:
+
 - [ ] README updated with Swagger access instructions
 - [ ] AUTHENTICATION.md created
 - [ ] API-VERSIONING.md created
@@ -545,6 +572,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 - [ ] quickstart.md validated accurate
 
 ✅ **Ready for production**:
+
 - [ ] All environments configured (Dev/Test enabled, Prod disabled)
 - [ ] Schema validation in CI/CD pipeline
 - [ ] Performance verified < 100ms startup, < 5ms per-request
@@ -559,7 +587,7 @@ description: "Implementation tasks for Swagger API documentation feature (003-ad
 - **Swagger UI is Read-Only**: The UI doesn't modify anything; it's purely documentation. Safe to experiment.
 - **Schema Non-Breaking**: Adding properties to DTOs is backward-compatible; removing is breaking. Keep existing fields!
 - **Versioning Flexible**: Single version now (1.0.0); multi-version support can be added later without breaking changes.
-- **Reference Documentation**: 
+- **Reference Documentation**:
   - [research.md](../research.md) - Technology decisions
   - [data-model.md](../data-model.md) - Entity schema definitions
   - [contracts/sessions-api.md](../contracts/sessions-api.md) - Example OpenAPI contracts

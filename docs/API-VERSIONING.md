@@ -45,19 +45,23 @@ Example: 1.0.0
 **Pattern**: `/api/v{version}/resource`
 
 **Example**:
+
 - `GET /api/v1/sessions/{id}` (current - 1.0.0)
 - `GET /api/v2/sessions/{id}` (new - 2.0.0, with breaking changes)
 
 **Advantages**:
+
 - Clear, visible in URL
 - Easy to route to different handlers
 - Browsers cache by URL
 
 **Disadvantages**:
+
 - More endpoints to maintain
 - Code duplication if only minor changes
 
 **Implementation**:
+
 ```csharp
 // Program.cs
 app.MapControllers(); // Uses [Route("api/v1/[controller]")] attributes
@@ -78,16 +82,19 @@ public class SessionsControllerV2 : ControllerBase { ... }
 **Pattern**: `Accept-Version: 1.0.0` header
 
 **Example**:
+
 ```bash
 GET /api/sessions/{id}
 Accept-Version: 1.0.0
 ```
 
 **Advantages**:
+
 - Keeps URLs clean
 - All versions on same route
 
 **Disadvantages**:
+
 - Less visible
 - More complex routing logic
 - Cache issues
@@ -97,11 +104,13 @@ Accept-Version: 1.0.0
 **Pattern**: `?api-version=1.0.0`
 
 **Example**:
+
 ```bash
 GET /api/sessions/{id}?api-version=1.0.0
 ```
 
 **Disadvantages**:
+
 - Easy to forget
 - Cache issues
 - Not REST-compliant
@@ -123,6 +132,7 @@ The MAA API will use **URL path versioning** when v2 is needed:
 These changes do **not** require a new major version:
 
 ✅ **Safe to Add** (Backward Compatible):
+
 - New optional query parameters (default to sensible values)
 - New optional request body fields (defaults applied)
 - New response fields (clients ignore unknown fields)
@@ -130,6 +140,7 @@ These changes do **not** require a new major version:
 - Additional status codes (subsume old ones)
 
 ❌ **Breaking** (Requires New Major Version):
+
 - Removing required fields
 - Removing endpoints
 - Changing field types
@@ -139,6 +150,7 @@ These changes do **not** require a new major version:
 ### Examples
 
 **Minor Change (1.0.0 → 1.1.0)**:
+
 ```json
 // 1.0.0 Response
 {"sessionId": "...", "status": "draft"}
@@ -148,6 +160,7 @@ These changes do **not** require a new major version:
 ```
 
 **Breaking Change (1.x.x → 2.0.0)**:
+
 ```json
 // 1.0.0 Request
 {"fieldKey": "income", "fieldValue": "50000"}
@@ -178,6 +191,7 @@ When retiring an API version:
 ### Deprecation Notification
 
 **HTTP Header** (when endpoint deprecated):
+
 ```
 Deprecation: true
 Sunset: Fri, 13 Dec 2026 00:00:00 GMT
@@ -185,6 +199,7 @@ Link: </api/v2/sessions>; rel="successor-version"
 ```
 
 **XML Documentation** (in code):
+
 ```csharp
 /// <summary>
 /// [DEPRECATED] Use /api/v2/sessions instead.
@@ -196,6 +211,7 @@ public async Task<IActionResult> GetSession(Guid sessionId) { ... }
 ```
 
 **Swagger Documentation**:
+
 ```csharp
 // Swagger displays [Obsolete] marked endpoints with strikethrough
 // and deprecation notice
@@ -208,6 +224,7 @@ public async Task<IActionResult> GetSession(Guid sessionId) { ... }
 ### Current Version Configuration
 
 **appsettings.json**:
+
 ```json
 {
   "Swagger": {
@@ -283,12 +300,14 @@ When a new major version is released:
 ### Example Migration
 
 **Before (v1)**:
+
 ```csharp
 var client = new HttpClient { BaseAddress = new Uri("https://api.maa.gov/api/v1/") };
 var response = await client.GetAsync("sessions/123");
 ```
 
 **After (v2)**:
+
 ```csharp
 var client = new HttpClient { BaseAddress = new Uri("https://api.maa.gov/api/v2/") };
 var response = await client.GetAsync("sessions/123");
@@ -298,11 +317,11 @@ var response = await client.GetAsync("sessions/123");
 
 ## Version Support Matrix
 
-| Version | Status | Released | Deprecated | Sunset | Supported |
-|---------|--------|----------|-----------|--------|-----------|
-| 1.0.x   | Active | Feb 2026 | TBD | TBD | ✅ Yes |
-| 2.0.x   | Planned | TBD | TBD | TBD | Planned |
-| 3.0.x   | Future | TBD | TBD | TBD | Future |
+| Version | Status  | Released | Deprecated | Sunset | Supported |
+| ------- | ------- | -------- | ---------- | ------ | --------- |
+| 1.0.x   | Active  | Feb 2026 | TBD        | TBD    | ✅ Yes    |
+| 2.0.x   | Planned | TBD      | TBD        | TBD    | Planned   |
+| 3.0.x   | Future  | TBD      | TBD        | TBD    | Future    |
 
 ---
 
@@ -352,6 +371,7 @@ public class VersioningTests
 **Decision**: Use semantic versioning with URL path strategy
 
 **Rationale**:
+
 1. Clear, visible versioning (URL path)
 2. Easy routing and handler separation
 3. Standard approach in RESTful APIs
@@ -360,6 +380,7 @@ public class VersioningTests
 **Alternative Rejected**: Header-based versioning (too complex for initial release)
 
 **Revision History**:
+
 - 2026-02-10: Initial document (T063 - Phase 7 implementation)
 
 ---

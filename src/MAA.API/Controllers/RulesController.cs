@@ -44,7 +44,9 @@ public class RulesController : ControllerBase
     [HttpPost("evaluate")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EligibilityResultDto))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> EvaluateEligibility([FromBody] UserEligibilityInputDto input)
     {
         try

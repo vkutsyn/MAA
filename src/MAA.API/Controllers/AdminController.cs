@@ -37,7 +37,9 @@ public class AdminController : ControllerBase
     /// <response code="403">Insufficient permissions</response>
     [HttpGet("rules")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetRules()
     {
         _logger.LogInformation("GetRules called (stub endpoint)");
@@ -67,7 +69,9 @@ public class AdminController : ControllerBase
     /// <response code="403">Insufficient permissions</response>
     [HttpPost("rules")]
     [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult CreateRule([FromBody] object request)
     {
         _logger.LogInformation("CreateRule called (stub endpoint)");
@@ -94,7 +98,9 @@ public class AdminController : ControllerBase
     /// <response code="403">Insufficient permissions</response>
     [HttpGet("approval-queue")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetApprovalQueue()
     {
         _logger.LogInformation("GetApprovalQueue called (stub endpoint)");
@@ -122,7 +128,9 @@ public class AdminController : ControllerBase
     /// <response code="403">Insufficient permissions</response>
     [HttpGet("analytics")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetAnalytics()
     {
         _logger.LogInformation("GetAnalytics called (stub endpoint)");
@@ -148,7 +156,9 @@ public class AdminController : ControllerBase
     /// <response code="403">Insufficient permissions</response>
     [HttpGet("users")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetUsers()
     {
         _logger.LogInformation("GetUsers called (stub endpoint)");

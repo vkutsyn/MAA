@@ -13,6 +13,7 @@ using MAA.Infrastructure.DataAccess;
 using MAA.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Swashbuckle.AspNetCore.Filters;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -25,6 +26,8 @@ try
     Log.Information("Starting MAA API application");
 
     var builder = WebApplication.CreateBuilder(args);
+
+    builder.Configuration.AddJsonFile("appsettings.Swagger.json", optional: true, reloadOnChange: true);
 
     // Add Serilog
     builder.Host.UseSerilog();
@@ -111,6 +114,7 @@ try
 
     // Add controllers
     builder.Services.AddControllers();
+    builder.Services.AddOpenApi();
 
     // Configure Swagger/OpenAPI documentation if enabled
     var swaggerSettings = builder.Configuration.GetSection("Swagger");
@@ -162,6 +166,8 @@ try
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
             });
 
+            options.AddFluentValidationRulesProvider();
+
             // Require Bearer token for all endpoints with [Authorize] attribute
             options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
             {
@@ -190,10 +196,13 @@ try
         // Enable Swagger UI in development and test environments
         if (swaggerSettings.GetValue<bool>("Enabled", false))
         {
-            app.UseSwagger();
+            app.UseSwagger(options =>
+            {
+                options.RouteTemplate = "openapi/{documentName}.json";
+            });
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "MAA API v1");
+                options.SwaggerEndpoint("/openapi/v1.json", "MAA API v1");
                 options.RoutePrefix = "swagger";
                 options.DefaultModelsExpandDepth(2);
             });

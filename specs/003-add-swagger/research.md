@@ -22,7 +22,7 @@
 - API versioning tools: Separate from Swagger; not required for MVP
 
 **Implementation Approach**:
-- Use existing `builder.Services.AddOpenApi()` already in Program.cs
+- Use Swashbuckle `builder.Services.AddSwaggerGen()` in Program.cs
 - Update appsettings to configure Swagger UI exposure in dev/test only
 - Add Swashbuckle NuGet package for enhanced Swagger UI features (v6.x for .NET 9)
 

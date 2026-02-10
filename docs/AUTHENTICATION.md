@@ -51,7 +51,7 @@ sequenceDiagram
 - **Public Endpoints**: `/api/auth/register`, `/api/auth/login`, `/health/*`
 - **Protected Endpoints**: All `/api/sessions`, `/api/rules`, `/api/admin` endpoints
 - **Token Type**: Bearer JWT (JSON Web Token)
-- **Token Lifetime**: 
+- **Token Lifetime**:
   - Access Token: 15 minutes
   - Refresh Token: 7 days
 - **Max Concurrent Sessions**: 3 per user
@@ -65,6 +65,7 @@ sequenceDiagram
 **Endpoint**: `POST /api/auth/register`
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -74,6 +75,7 @@ sequenceDiagram
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "userId": "550e8400-e29b-41d4-a716-446655440000"
@@ -81,6 +83,7 @@ sequenceDiagram
 ```
 
 **Password Requirements**:
+
 - Minimum 8 characters
 - Must contain uppercase, lowercase, number, and special character
 
@@ -89,6 +92,7 @@ sequenceDiagram
 **Endpoint**: `POST /api/auth/login`
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -97,6 +101,7 @@ sequenceDiagram
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -108,6 +113,7 @@ sequenceDiagram
 ```
 
 **Notes**:
+
 - `token`: Access token (short-lived, 15 minutes)
 - `refreshToken`: Used to get new access token (stored in HTTP-only cookie)
 - `expiresIn`: Token lifetime in seconds (900 = 15 minutes)
@@ -127,6 +133,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### Interactive Testing with Swagger
 
 1. **Navigate to Swagger UI**:
+
    ```
    http://localhost:5000/swagger
    ```
@@ -184,7 +191,7 @@ var loginResponse = await client.PostAsJsonAsync("/api/auth/login", loginRequest
 var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
 
 // Use token in subsequent requests
-client.DefaultRequestHeaders.Authorization = 
+client.DefaultRequestHeaders.Authorization =
     new AuthenticationHeaderValue("Bearer", loginResult.Token);
 
 // Call protected endpoint
@@ -198,27 +205,27 @@ var session = await sessionResponse.Content.ReadFromJsonAsync<SessionDto>();
 
 ```javascript
 // Login to get token
-const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const loginResponse = await fetch("http://localhost:5000/api/auth/login", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    email: 'user@example.com',
-    password: 'SecurePassword123!'
-  })
+    email: "user@example.com",
+    password: "SecurePassword123!",
+  }),
 });
 
 const { token } = await loginResponse.json();
 
 // Use token in subsequent requests
 const sessionResponse = await fetch(
-  'http://localhost:5000/api/sessions/550e8400-e29b-41d4-a716-446655440000',
+  "http://localhost:5000/api/sessions/550e8400-e29b-41d4-a716-446655440000",
   {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  }
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  },
 );
 
 const session = await sessionResponse.json();
@@ -289,6 +296,7 @@ Instead of re-prompting users for credentials, use the **refresh token** to get 
 **Endpoint**: `POST /api/auth/refresh`
 
 **Request**:
+
 ```json
 {
   "refreshToken": "7d8f9a0b-1c2d-3e4f-5a6b-7c8d9e0f1a2b"
@@ -296,6 +304,7 @@ Instead of re-prompting users for credentials, use the **refresh token** to get 
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -327,11 +336,13 @@ public async Task<string> EnsureValidTokenAsync(string currentToken, string refr
 **Endpoint**: `POST /api/auth/logout`
 
 **Request** (with Authorization header):
+
 ```
 Authorization: Bearer {token}
 ```
 
 **Response (200 OK)**:
+
 ```json
 {
   "message": "Logged out successfully"
@@ -339,6 +350,7 @@ Authorization: Bearer {token}
 ```
 
 **Effect**:
+
 - Invalidates refresh token
 - Ends current session
 - Access token remains valid until expiration (15 min) but can't be refreshed
@@ -354,6 +366,7 @@ Authorization: Bearer {token}
 **Cause**: No token provided or invalid token
 
 **Solution**:
+
 ```bash
 # Verify token is included in Authorization header
 curl -X GET http://localhost:5000/api/sessions/{id} \
@@ -362,6 +375,7 @@ curl -X GET http://localhost:5000/api/sessions/{id} \
 ```
 
 Check for:
+
 - Authorization header present
 - Bearer prefix included
 - Token not expired (< 15 minutes old)
@@ -371,6 +385,7 @@ Check for:
 **Cause**: Token format incorrect
 
 **Solution in Swagger UI**:
+
 - Click "Authorize"
 - Paste token **without** "Bearer " prefix (Swagger adds it automatically)
 - Click "Authorize" then "Close"
@@ -379,6 +394,7 @@ Check for:
 #### 3. **Token Expired Error**
 
 **Response**:
+
 ```json
 {
   "status": 401,
@@ -387,6 +403,7 @@ Check for:
 ```
 
 **Solution**: Use refresh token to get new access token:
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/refresh \
   -H "Content-Type: application/json" \
@@ -396,11 +413,16 @@ curl -X POST http://localhost:5000/api/auth/refresh \
 #### 4. **Max Concurrent Sessions (409 Conflict)**
 
 **Response**:
+
 ```json
 {
   "error": "Maximum concurrent sessions reached (3)",
   "activeSessions": [
-    { "sessionId": "...", "startedAt": "2026-02-10T10:00:00Z", "ipAddress": "192.168.1.1" }
+    {
+      "sessionId": "...",
+      "startedAt": "2026-02-10T10:00:00Z",
+      "ipAddress": "192.168.1.1"
+    }
   ]
 }
 ```
@@ -410,6 +432,7 @@ curl -X POST http://localhost:5000/api/auth/refresh \
 #### 5. **Invalid Credentials (Login Failed)**
 
 **Response (401 Unauthorized)**:
+
 ```json
 {
   "error": "Invalid email or password"
@@ -417,6 +440,7 @@ curl -X POST http://localhost:5000/api/auth/refresh \
 ```
 
 **Solution**:
+
 - Verify email is correct (case-insensitive)
 - Verify password matches registration
 - Check if account exists (try registering)
@@ -424,11 +448,13 @@ curl -X POST http://localhost:5000/api/auth/refresh \
 #### 6. **Token Missing "Bearer" Prefix**
 
 **Incorrect**:
+
 ```
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **Correct**:
+
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
@@ -462,11 +488,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### For Frontend Applications
 
 **Recommended Token Storage**:
+
 - **Web Apps**: HTTP-only cookies (managed by API) for refresh tokens
 - **Single-Page Apps (SPA)**: Memory or sessionStorage for access tokens
 - **Mobile Apps**: Secure storage (Keychain on iOS, Keystore on Android)
 
 **Do NOT**:
+
 - Store tokens in localStorage (vulnerable to XSS attacks)
 - Store tokens in plain text files
 - Include tokens in URL query parameters
@@ -478,19 +506,21 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **JWT Format**: `header.payload.signature`
 
 **Example Token**:
+
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlIjoiVXNlciIsImV4cCI6MTY0NDUxMjAwMH0.signature
 ```
 
 **Decoded Payload**:
+
 ```json
 {
-  "sub": "550e8400-e29b-41d4-a716-446655440000",  // User ID
-  "email": "user@example.com",                    // Email
-  "role": "User",                                 // User role
-  "exp": 1644512000,                              // Expiration timestamp (Unix epoch)
-  "iat": 1644511100,                              // Issued at timestamp
-  "nbf": 1644511100                               // Not before timestamp
+  "sub": "550e8400-e29b-41d4-a716-446655440000", // User ID
+  "email": "user@example.com", // Email
+  "role": "User", // User role
+  "exp": 1644512000, // Expiration timestamp (Unix epoch)
+  "iat": 1644511100, // Issued at timestamp
+  "nbf": 1644511100 // Not before timestamp
 }
 ```
 
@@ -520,6 +550,7 @@ See [Swagger UI](http://localhost:5000/swagger) for interactive API documentatio
 ---
 
 **Questions or Issues?**
+
 - Check Swagger UI for endpoint documentation
 - Review troubleshooting section above
 - Open an issue on GitHub

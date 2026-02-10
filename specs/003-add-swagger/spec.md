@@ -131,12 +131,12 @@ As the API evolves, developers need to understand breaking changes and see API v
 
 - **SC-001**: All API endpoints must be documented in Swagger, with 100% endpoint coverage (0 undocumented endpoints)
 - **SC-002**: API documentation must automatically update within 1 minute of code deployment with zero manual intervention
-- **SC-003**: Developers must be able to execute at least 90% of typical endpoint requests from Swagger UI "Try it out" without errors or additional setup
-- **SC-004**: Swagger UI must load in under 3 seconds on a standard network connection
+- **SC-003**: Using valid auth, at least 9 of 10 representative endpoints (minimum one per controller) succeed via Swagger UI "Try it out" without 5xx responses
+- **SC-004**: Swagger UI initial load time p50 is <= 3 seconds on a local dev machine with cache disabled (Chrome Performance tab)
 - **SC-005**: Authentication documentation must allow users to pass authentication in Swagger "Try it out" without external tools
 - **SC-006**: OpenAPI schema must be valid and pass OpenAPI 3.0 validation with zero schema errors
-- **SC-007**: New developers must be able to discover and understand API functionality using Swagger UI alone without additional documentation (usability goal)
-- **SC-008**: Swagger UI must maintain accessibility compliance with WCAG 2.1 AA standard
+- **SC-007**: A developer following quickstart.md completes 3 tasks (find endpoint, identify required fields, download spec) in <= 15 minutes without other documentation
+- **SC-008**: Axe scan on `/swagger` reports zero violations (or documented acceptable exceptions)
 
 ## Assumptions
 
