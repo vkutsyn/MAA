@@ -3,6 +3,7 @@ using MAA.Tests.Fixtures;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Xunit;
@@ -30,7 +31,46 @@ public class RulesApiIntegrationTests : IAsyncLifetime
     {
         _factory = new TestWebApplicationFactory(_databaseFixture);
         _httpClient = _factory.CreateClient();
-        await Task.CompletedTask;
+
+        await _databaseFixture.ClearAllDataAsync();
+        
+        // Setup authentication for all tests
+        await AuthenticateAsync();
+    }
+    
+    /// <summary>
+    /// Helper method to register a test user and authenticate for API calls.
+    /// Sets the Authorization header on the HttpClient for all subsequent requests.
+    /// </summary>
+    private async Task AuthenticateAsync()
+    {
+        // Register test user
+        var registerRequest = new
+        {
+            email = "rulesapi.testuser@example.com",
+            password = "TestPassword123!",
+            fullName = "Rules API Test User"
+        };
+
+        var registerResponse = await _httpClient!.PostAsJsonAsync("/api/auth/register", registerRequest);
+        registerResponse.EnsureSuccessStatusCode();
+
+        // Login to get access token
+        var loginRequest = new
+        {
+            email = "rulesapi.testuser@example.com",
+            password = "TestPassword123!"
+        };
+
+        var loginResponse = await _httpClient.PostAsJsonAsync("/api/auth/login", loginRequest);
+        loginResponse.EnsureSuccessStatusCode();
+
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var accessToken = loginResult.GetProperty("accessToken").GetString();
+
+        // Set authorization header for all subsequent requests
+        _httpClient.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", accessToken);
     }
 
     public async Task DisposeAsync()

@@ -76,6 +76,17 @@ try
     builder.Services.AddScoped<ISessionService, SessionService>();
     builder.Services.AddScoped<IEncryptionService, MAA.Infrastructure.Security.EncryptionService>(); // US4: Production implementation with Azure Key Vault
 
+    // Register JWT token provider and settings (Phase 5: Auth feature)
+    var jwtSettings = new MAA.Infrastructure.Security.JwtSettings();
+    builder.Configuration.GetSection("Jwt").Bind(jwtSettings);
+    builder.Services.AddSingleton(jwtSettings);
+    builder.Services.AddScoped<ITokenProvider>(sp => 
+        new MAA.Infrastructure.Security.JwtTokenProvider(
+            jwtSettings,
+            sp.GetRequiredService<ILogger<MAA.Infrastructure.Security.JwtTokenProvider>>()
+        )
+    );
+
     // Register command/query handlers (US2: Session Data Persistence)
     builder.Services.AddScoped<MAA.Application.Sessions.Commands.SaveAnswerCommandHandler>();
     builder.Services.AddScoped<MAA.Application.Sessions.Queries.GetAnswersQueryHandler>();
@@ -101,13 +112,39 @@ try
     // Add controllers
     builder.Services.AddControllers();
 
+    // Configure Swagger/OpenAPI documentation if enabled
+    var swaggerSettings = builder.Configuration.GetSection("Swagger");
+    if (swaggerSettings.GetValue<bool>("Enabled", false))
+    {
+        var swaggerTitle = swaggerSettings.GetValue<string>("Title", "API");
+        var swaggerVersion = swaggerSettings.GetValue<string>("Version", "1.0.0");
+        var swaggerDescription = swaggerSettings.GetValue<string>("Description", "");
+
+        // Add Swagger/OpenAPI
+        builder.Services.AddSwaggerGen();
+    }
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
     {
         app.MapOpenApi();
         app.UseDeveloperExceptionPage();
+
+        // Enable Swagger UI in development and test environments
+        if (swaggerSettings.GetValue<bool>("Enabled", false))
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/openapi/v1.json", "MAA API v1");
+                options.RoutePrefix = "swagger";
+                options.DefaultModelsExpandDepth(2);
+                options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+                options.DisplayOperationId();
+            });
+        }
     }
 
     // Global exception handler middleware

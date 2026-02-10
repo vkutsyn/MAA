@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MAA.Infrastructure.Migrations
 {
     [DbContext(typeof(SessionContext))]
-    [Migration("20260209233645_EnablePgcrypto")]
-    partial class EnablePgcrypto
+    [Migration("20260209234440_AddUserRole")]
+    partial class AddUserRole
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

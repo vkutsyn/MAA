@@ -58,6 +58,7 @@ public class JwtTokenProvider : ITokenProvider
     public async Task<string> GenerateAccessTokenAsync(
         Guid userId,
         IEnumerable<string> roles,
+        Guid? sessionId = null,
         CancellationToken cancellationToken = default)
     {
         return await Task.Run(() =>
@@ -69,6 +70,11 @@ public class JwtTokenProvider : ITokenProvider
                     new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                     new Claim("sub", userId.ToString()),
                 };
+
+                if (sessionId.HasValue && sessionId.Value != Guid.Empty)
+                {
+                    claims.Add(new Claim("sessionId", sessionId.Value.ToString()));
+                }
 
                 // Add role claims
                 foreach (var role in roles)

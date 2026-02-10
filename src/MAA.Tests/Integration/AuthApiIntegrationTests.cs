@@ -2,6 +2,7 @@ using FluentAssertions;
 using MAA.Application.Sessions.DTOs;
 using MAA.Domain.Sessions;
 using MAA.Infrastructure.Data;
+using MAA.Tests.Integration.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -166,15 +167,15 @@ public class AuthApiIntegrationTests : IAsyncLifetime
 
         // Act
         var loginResponse = await _httpClient!.PostAsJsonAsync("/api/auth/login", loginRequest);
-        var loginResult = await loginResponse.Content.ReadAsAsync<dynamic>();
-
-        // Assert
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Login with valid credentials should return 200 OK");
 
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+
+        // Assert
         loginResult.Should().NotBeNull("Response should contain tokens");
-        var accessToken = loginResult?.accessToken?.ToString();
-        accessToken.Should().NotBeNullOrEmpty("Response should include access token");
+        loginResult!.AccessToken.Should().NotBeNullOrEmpty("Response should include access token");
+        var accessToken = loginResult.AccessToken;
 
         // Verify access token is valid JWT
         var handler = new JwtSecurityTokenHandler();
@@ -273,19 +274,19 @@ public class AuthApiIntegrationTests : IAsyncLifetime
 
         var loginRequest = new { email = "testuser@example.com", password = "Password123!" };
         var loginResponse = await _httpClient!.PostAsJsonAsync("/api/auth/login", loginRequest);
-        var loginResult = await loginResponse.Content.ReadAsAsync<dynamic>();
-        var originalAccessToken = loginResult?.accessToken?.ToString();
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        var originalAccessToken = loginResult!.AccessToken;
 
         // Act - Refresh token
-        var refreshRequest = new { refreshToken = loginResult?.refreshToken?.ToString() };
+        var refreshRequest = new { refreshToken = loginResult.RefreshToken };
         var refreshResponse = await _httpClient.PostAsJsonAsync("/api/auth/refresh", refreshRequest);
-        var refreshResult = await refreshResponse.Content.ReadAsAsync<dynamic>();
+        var refreshResult = await refreshResponse.Content.ReadFromJsonAsync<LoginResponse>();
 
         // Assert
         refreshResponse.StatusCode.Should().Be(HttpStatusCode.OK,
             "Token refresh should return 200 OK");
 
-        var newAccessToken = refreshResult?.accessToken?.ToString();
+        var newAccessToken = refreshResult!.AccessToken;
         newAccessToken.Should().NotBeNullOrEmpty("Refresh response should include new access token");
         newAccessToken.Should().NotBe(originalAccessToken, "New token should be different from old");
 
@@ -337,13 +338,13 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         var loginRequest = new { email = "testuser@example.com", password = "Password123!" };
 
         // Act - Login 3 times (should succeed)
-        var tokens = new List<dynamic>();
+        var tokens = new List<LoginResponse>();
         for (int i = 0; i < 3; i++)
         {
             var response = await _httpClient!.PostAsJsonAsync("/api/auth/login", loginRequest);
             response.StatusCode.Should().Be(HttpStatusCode.OK, $"Login {i + 1} should succeed");
-            var result = await response.Content.ReadAsAsync<dynamic>();
-            tokens.Add(result);
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            tokens.Add(result!);
         }
 
         // Act - Fourth login (should fail)
@@ -353,10 +354,10 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         fourthResponse.StatusCode.Should().Be(HttpStatusCode.Conflict,
             "Fourth concurrent login should return 409 Conflict");
 
-        var conflictResult = await fourthResponse.Content.ReadAsAsync<dynamic>();
+        var conflictResult = await fourthResponse.Content.ReadFromJsonAsync<ConflictResponse>();
         conflictResult.Should().NotBeNull("Response should include active session list");
-        conflictResult?.activeSessions.Should().NotBeNull("Response should list active sessions");
-        ((List<dynamic>)conflictResult?.activeSessions).Count.Should().Be(3,
+        conflictResult!.ActiveSessions.Should().NotBeNull("Response should list active sessions");
+        conflictResult.ActiveSessions.Count.Should().Be(3,
             "Should show 3 active sessions");
     }
 
@@ -398,9 +399,9 @@ public class AuthApiIntegrationTests : IAsyncLifetime
         for (int i = 0; i < 3; i++)
         {
             var response = await _httpClient!.PostAsJsonAsync("/api/auth/login", loginRequest);
-            var result = await response.Content.ReadAsAsync<dynamic>();
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
             if (i == 0)
-                firstSessionToken = result?.accessToken?.ToString();
+                firstSessionToken = result!.AccessToken;
         }
 
         // Get session ID from token
@@ -469,8 +470,8 @@ public class AuthApiIntegrationTests : IAsyncLifetime
 
         var loginRequest = new { email = "testuser@example.com", password = "Password123!" };
         var loginResponse = await _httpClient!.PostAsJsonAsync("/api/auth/login", loginRequest);
-        var loginResult = await loginResponse.Content.ReadAsAsync<dynamic>();
-        var accessToken = loginResult?.accessToken?.ToString();
+        var loginResult = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        var accessToken = loginResult!.AccessToken;
 
         // Act - Logout
         _httpClient.DefaultRequestHeaders.Authorization = 

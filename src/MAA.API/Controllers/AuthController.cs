@@ -2,8 +2,11 @@ using AutoMapper;
 using MAA.Application.Services;
 using MAA.Application.Sessions.DTOs;
 using MAA.Domain.Sessions;
+using MAA.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace MAA.API.Controllers;
@@ -20,6 +23,7 @@ public class AuthController : ControllerBase
     private readonly ITokenProvider _tokenProvider;
     private readonly IMapper _mapper;
     private readonly ILogger<AuthController> _logger;
+    private readonly SessionContext _dbContext;
     
     private const int MaxConcurrentSessions = 3;
     private const string RefreshTokenCookieName = "refreshToken";
@@ -28,11 +32,13 @@ public class AuthController : ControllerBase
         ISessionService sessionService,
         ITokenProvider tokenProvider,
         IMapper mapper,
+        SessionContext dbContext,
         ILogger<AuthController> logger)
     {
         _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
         _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -58,10 +64,14 @@ public class AuthController : ControllerBase
 
         try
         {
-            // This would be implemented in a UserService
-            // For now, we're showing the controller structure
             _logger.LogInformation("User registration request for email {Email}", 
                 request.Email);
+
+            var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(normalizedEmail))
+            {
+                return BadRequest(new { error = "Email is required" });
+            }
 
             // Validate password strength
             if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
@@ -69,10 +79,29 @@ public class AuthController : ControllerBase
                 return BadRequest(new { error = "Password must be at least 8 characters" });
             }
 
-            // User registration would be handled by application service
-            // var userId = await _userService.RegisterAsync(request, cancellationToken);
+            var existingUser = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
+            if (existingUser)
+            {
+                return Conflict(new { error = "Email is already registered" });
+            }
 
             var userId = Guid.NewGuid();
+            var user = new User
+            {
+                Id = userId,
+                Email = normalizedEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Role = UserRole.User,
+                EmailVerified = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Version = 1
+            };
+
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("User registered successfully: {UserId}", userId);
 
@@ -114,44 +143,60 @@ public class AuthController : ControllerBase
 
         try
         {
-            // Validate user credentials
-            // var user = await _userService.AuthenticateAsync(request.Email, request.Password, cancellationToken);
-            // if (user == null)
-            //     return Unauthorized(new { error = "Invalid email or password" });
-
-            // For demo, we'll create a sample user
-            var userId = Guid.NewGuid();
-            var userRoles = new[] { UserRole.User.ToString() };
-
             _logger.LogInformation("Login attempt for email {Email}", request.Email);
 
+            var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(normalizedEmail))
+            {
+                return Unauthorized(new { error = "Invalid email or password" });
+            }
+
+            var user = await _dbContext.Users.FirstOrDefaultAsync(
+                u => u.Email == normalizedEmail,
+                cancellationToken);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            {
+                return Unauthorized(new { error = "Invalid email or password" });
+            }
+
+            var userId = user.Id;
+            var userRoles = new[] { user.Role.ToString() };
+
             // Check max concurrent sessions
-            // var activeSessions = await _sessionService.GetActiveSessionsAsync(userId, cancellationToken);
-            // if (activeSessions.Count >= MaxConcurrentSessions)
-            // {
-            //     return Conflict(new
-            //     {
-            //         error = "You're logged in on 3 devices. End another session to continue?",
-            //         activeSessions = activeSessions.Select(s => new
-            //         {
-            //             sessionId = s.Id,
-            //             device = "Unknown", // Would extract from user agent
-            //             ipAddress = s.IpAddress,
-            //             loginTime = s.CreatedAt
-            //         }).ToList()
-            //     });
-            // }
+            var activeSessions = await _sessionService.GetActiveSessionsAsync(userId, cancellationToken);
+            if (activeSessions.Count >= MaxConcurrentSessions)
+            {
+                return Conflict(new
+                {
+                    error = "You're logged in on 3 devices. End another session to continue?",
+                    activeSessions = activeSessions.Select(s => new
+                    {
+                        sessionId = s.Id,
+                        device = "Unknown",
+                        ipAddress = s.IpAddress,
+                        loginTime = s.CreatedAt
+                    }).ToList()
+                });
+            }
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+            if (string.IsNullOrWhiteSpace(userAgent))
+            {
+                userAgent = "Unknown";
+            }
+
+            var session = await _sessionService.CreateAuthenticatedSessionAsync(
+                userId, ipAddress, userAgent, cancellationToken);
 
             // Generate tokens
-            var accessToken = await _tokenProvider.GenerateAccessTokenAsync(userId, userRoles, cancellationToken);
+            var accessToken = await _tokenProvider.GenerateAccessTokenAsync(
+                userId,
+                userRoles,
+                session.Id,
+                cancellationToken);
             var refreshToken = await _tokenProvider.GenerateRefreshTokenAsync(userId, cancellationToken);
-
-            // Create authenticated session
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
-            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString() ?? "Unknown";
-            
-            // var session = await _sessionService.CreateAuthenticatedSessionAsync(
-            //     userId, ipAddress, userAgent, cancellationToken);
 
             // Set refresh token in HttpOnly secure cookie
             var cookieOptions = new CookieOptions
@@ -225,7 +270,7 @@ public class AuthController : ControllerBase
             var roles = new[] { UserRole.User.ToString() };  // Demo
 
             // Generate new access token
-            var newAccessToken = await _tokenProvider.GenerateAccessTokenAsync(userId, roles, cancellationToken);
+            var newAccessToken = await _tokenProvider.GenerateAccessTokenAsync(userId, roles, null, cancellationToken);
 
             _logger.LogInformation("Token refreshed for user {UserId}", userId);
 
@@ -259,19 +304,35 @@ public class AuthController : ControllerBase
     {
         try
         {
-            // Extract user ID from claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            // Get access token from headers
+            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized(new { error = "Missing authorization token" });
+            }
+
+            var accessToken = authHeader.Replace("Bearer ", string.Empty);
+
+            Guid userId;
+            try
+            {
+                userId = _tokenProvider.GetUserIdFromToken(accessToken);
+            }
+            catch (Exception)
             {
                 return Unauthorized(new { error = "Invalid user context" });
             }
 
-            // Get access token from headers
-            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
-            var accessToken = authHeader.Replace("Bearer ", "");
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(accessToken);
+            var sessionIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == "sessionId")?.Value;
 
-            // Revoke session
-            // await _sessionService.RevokeSessionAsync(userId, accessToken, cancellationToken);
+            if (string.IsNullOrWhiteSpace(sessionIdClaim) || !Guid.TryParse(sessionIdClaim, out var sessionId))
+            {
+                return Unauthorized(new { error = "Invalid session context" });
+            }
+
+            await _sessionService.RevokeSessionAsync(sessionId, cancellationToken);
 
             // Clear refresh token cookie
             Response.Cookies.Delete(RefreshTokenCookieName);
@@ -303,18 +364,33 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized(new { error = "Missing authorization token" });
+            }
+
+            var accessToken = authHeader.Replace("Bearer ", string.Empty);
+            Guid userId;
+            try
+            {
+                userId = _tokenProvider.GetUserIdFromToken(accessToken);
+            }
+            catch (Exception)
             {
                 return Unauthorized(new { error = "Invalid user context" });
             }
 
-            // Get active sessions
-            // var sessions = await _sessionService.GetActiveSessionsAsync(userId, cancellationToken);
+            var sessions = await _sessionService.GetActiveSessionsAsync(userId, cancellationToken);
+            var sessionDtos = sessions.Select(s => new SessionInfo
+            {
+                SessionId = s.Id,
+                Device = "Unknown",
+                IpAddress = s.IpAddress,
+                LoginTime = s.CreatedAt
+            }).ToList();
 
-            var sessions = new List<SessionInfo>();  // Demo
-
-            return Ok(new { sessions = sessions });
+            return Ok(new { sessions = sessionDtos });
         }
         catch (Exception ex)
         {
@@ -343,21 +419,33 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized(new { error = "Missing authorization token" });
+            }
+
+            var accessToken = authHeader.Replace("Bearer ", string.Empty);
+            Guid userId;
+            try
+            {
+                userId = _tokenProvider.GetUserIdFromToken(accessToken);
+            }
+            catch (Exception)
             {
                 return Unauthorized(new { error = "Invalid user context" });
             }
 
-            // Verify session belongs to current user
-            // var session = await _sessionService.GetSessionAsync(sessionId, cancellationToken);
-            // if (session == null || session.UserId != userId)
-            // {
-            //     return NotFound(new { error = "Session not found" });
-            // }
+            var session = await _dbContext.Sessions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
 
-            // Revoke session
-            // await _sessionService.RevokeSessionAsync(sessionId, cancellationToken);
+            if (session == null || session.UserId != userId)
+            {
+                return NotFound(new { error = "Session not found" });
+            }
+
+            await _sessionService.RevokeSessionAsync(sessionId, cancellationToken);
 
             _logger.LogInformation("Session revoked for user {UserId}: {SessionId}", userId, sessionId);
 

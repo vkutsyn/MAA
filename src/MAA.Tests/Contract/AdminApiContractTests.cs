@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MAA.Tests.Fixtures;
+using MAA.Tests.Integration;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
@@ -11,21 +11,14 @@ namespace MAA.Tests.Contract;
 /// Tests US3: Role-Based Access Control enforcement at API level.
 /// Validates that admin endpoints properly reject unauthorized requests.
 /// </summary>
-[Collection("Database collection")]
 public class AdminApiContractTests : IAsyncLifetime
 {
-    private readonly DatabaseFixture _databaseFixture;
     private TestWebApplicationFactory? _factory;
     private HttpClient? _httpClient;
 
-    public AdminApiContractTests(DatabaseFixture databaseFixture)
-    {
-        _databaseFixture = databaseFixture;
-    }
-
     public async Task InitializeAsync()
     {
-        _factory = new TestWebApplicationFactory(_databaseFixture.ConnectionString);
+        _factory = new TestWebApplicationFactory();
         _httpClient = _factory.CreateClient();
         await Task.CompletedTask;
     }

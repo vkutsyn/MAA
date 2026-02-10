@@ -1,4 +1,5 @@
 using MAA.Application.Services;
+using MAA.Domain.Rules;
 using MAA.Infrastructure.Data;
 using MAA.Infrastructure.Security;
 using Microsoft.AspNetCore.Hosting;
@@ -120,11 +121,84 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             mockKeyVaultClient
                 .Setup(x => x.GetKeyAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("test-encryption-key-material-32-bytes-long-1234567890");
+            mockKeyVaultClient
+                .Setup(x => x.GetCurrentKeyVersionAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1); // Return version 1 (seeded by migration)
             
             services.AddScoped(_ => mockKeyVaultClient.Object);
+
+            if (_databaseFixture == null)
+            {
+                using var serviceProvider = services.BuildServiceProvider();
+                using var scope = serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<SessionContext>();
+
+                dbContext.Database.EnsureCreated();
+
+                if (!dbContext.EligibilityRules.Any())
+                {
+                    SeedContractTestRules(dbContext);
+                }
+            }
 
             // DO NOT validate the service provider here - let the host do it
             // This allows the host to properly initialize all services
         });
+    }
+
+    private static void SeedContractTestRules(SessionContext dbContext)
+    {
+        var now = DateTime.UtcNow;
+        var effectiveDate = now.Date.AddDays(-1);
+        const string alwaysEligibleRuleLogic = "{ \"<=\": [ { \"var\": \"monthly_income_cents\" }, 9999999999 ] }";
+
+        var programs = new List<MedicaidProgram>
+        {
+            CreateProgram("IL", "IL Contract Program", "IL_CONTRACT", EligibilityPathway.MAGI, now),
+            CreateProgram("CA", "CA Contract Program", "CA_CONTRACT", EligibilityPathway.MAGI, now),
+            CreateProgram("NY", "NY Contract Program", "NY_CONTRACT", EligibilityPathway.MAGI, now),
+            CreateProgram("TX", "TX Contract Program", "TX_CONTRACT", EligibilityPathway.MAGI, now),
+            CreateProgram("FL", "FL Contract Program", "FL_CONTRACT", EligibilityPathway.MAGI, now)
+        };
+
+        var rules = programs.Select(program => new EligibilityRule
+        {
+            RuleId = Guid.NewGuid(),
+            ProgramId = program.ProgramId,
+            Program = program,
+            StateCode = program.StateCode,
+            RuleName = $"{program.StateCode} Contract Rule",
+            Version = 1.0m,
+            RuleLogic = alwaysEligibleRuleLogic,
+            EffectiveDate = effectiveDate,
+            EndDate = null,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Description = "Contract test rule: always eligible"
+        }).ToList();
+
+        dbContext.MedicaidPrograms.AddRange(programs);
+        dbContext.EligibilityRules.AddRange(rules);
+        dbContext.SaveChanges();
+    }
+
+    private static MedicaidProgram CreateProgram(
+        string stateCode,
+        string programName,
+        string programCode,
+        EligibilityPathway pathway,
+        DateTime now)
+    {
+        return new MedicaidProgram
+        {
+            ProgramId = Guid.NewGuid(),
+            StateCode = stateCode,
+            ProgramName = programName,
+            ProgramCode = programCode,
+            EligibilityPathway = pathway,
+            Description = "Contract test program",
+            CreatedAt = now,
+            UpdatedAt = now
+        };
     }
 }
