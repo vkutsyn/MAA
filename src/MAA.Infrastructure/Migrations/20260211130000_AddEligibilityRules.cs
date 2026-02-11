@@ -11,129 +11,90 @@ namespace MAA.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Create medicaid_programs table for MAA.Domain.Rules.MedicaidProgram
             migrationBuilder.CreateTable(
-                name: "eligibility_rule_set_versions",
+                name: "medicaid_programs",
                 columns: table => new
                 {
-                    rule_set_version_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    state_code = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
-                    version = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    effective_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false, defaultValue: "Active"),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
+                    ProgramId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StateCode = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
+                    ProgramName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    ProgramCode = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    EligibilityPathway = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_eligibility_rule_set_versions", x => x.rule_set_version_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "program_definitions",
-                columns: table => new
-                {
-                    program_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    state_code = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
-                    program_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true),
-                    category = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
-                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_program_definitions", x => x.program_code);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "federal_poverty_levels_v2",
-                columns: table => new
-                {
-                    fpl_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    year = table.Column<int>(type: "integer", nullable: false),
-                    household_size = table.Column<int>(type: "integer", nullable: false),
-                    annual_amount = table.Column<decimal>(type: "numeric(12,2)", nullable: false),
-                    state_code = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_federal_poverty_levels_v2", x => x.fpl_id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "eligibility_rules_v2",
-                columns: table => new
-                {
-                    eligibility_rule_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    rule_set_version_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    program_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    rule_logic = table.Column<string>(type: "jsonb", nullable: false),
-                    priority = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_eligibility_rules_v2", x => x.eligibility_rule_id);
-                    table.ForeignKey(
-                        name: "FK_eligibility_rules_v2_eligibility_rule_set_versions_rule_set_version_id",
-                        column: x => x.rule_set_version_id,
-                        principalTable: "eligibility_rule_set_versions",
-                        principalColumn: "rule_set_version_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_eligibility_rules_v2_program_definitions_program_code",
-                        column: x => x.program_code,
-                        principalTable: "program_definitions",
-                        principalColumn: "program_code",
-                        onDelete: ReferentialAction.Restrict);
+                    table.PrimaryKey("PK_medicaid_programs", x => x.ProgramId);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_RuleSetVersions_State_EffectiveDate",
-                table: "eligibility_rule_set_versions",
-                columns: new[] { "state_code", "effective_date" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RuleSetVersions_State_Version",
-                table: "eligibility_rule_set_versions",
-                columns: new[] { "state_code", "version" },
+                name: "IX_MedicaidPrograms_ProgramCode",
+                table: "medicaid_programs",
+                column: "ProgramCode",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProgramDefinitions_State",
-                table: "program_definitions",
-                column: "state_code");
+                name: "IX_MedicaidPrograms_State_Pathway",
+                table: "medicaid_programs",
+                columns: new[] { "StateCode", "EligibilityPathway" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_FplV2_Year_Size_State",
-                table: "federal_poverty_levels_v2",
-                columns: new[] { "year", "household_size", "state_code" },
+                name: "IX_MedicaidPrograms_State_ProgramName",
+                table: "medicaid_programs",
+                columns: new[] { "StateCode", "ProgramName" },
+                unique: true);
+
+            // Create eligibility_rules table for MAA.Domain.Rules.EligibilityRule
+            migrationBuilder.CreateTable(
+                name: "eligibility_rules",
+                columns: table => new
+                {
+                    RuleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProgramId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StateCode = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
+                    RuleName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Version = table.Column<decimal>(type: "numeric(4,2)", nullable: false),
+                    RuleLogic = table.Column<string>(type: "jsonb", nullable: false),
+                    EffectiveDate = table.Column<DateTime>(type: "date", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "date", nullable: true),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    Description = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_eligibility_rules", x => x.RuleId);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EligibilityRules_Program_Version",
+                table: "eligibility_rules",
+                columns: new[] { "ProgramId", "Version" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_EligibilityRulesV2_ProgramCode",
-                table: "eligibility_rules_v2",
-                column: "program_code");
+                name: "IX_EligibilityRules_State_EffectiveDate",
+                table: "eligibility_rules",
+                columns: new[] { "StateCode", "EffectiveDate" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_EligibilityRulesV2_RuleSetVersion",
-                table: "eligibility_rules_v2",
-                column: "rule_set_version_id");
+                name: "IX_EligibilityRules_Program_Dates",
+                table: "eligibility_rules",
+                columns: new[] { "ProgramId", "EffectiveDate", "EndDate" });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "eligibility_rules_v2");
+                name: "eligibility_rules");
 
             migrationBuilder.DropTable(
-                name: "federal_poverty_levels_v2");
-
-            migrationBuilder.DropTable(
-                name: "eligibility_rule_set_versions");
-
-            migrationBuilder.DropTable(
-                name: "program_definitions");
+                name: "medicaid_programs");
         }
     }
 }

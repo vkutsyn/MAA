@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: MAA Eligibility Results API
+  version: 1.0.0
+  description: API contract for eligibility evaluation results used by the Eligibility Result UI.
+servers:
+  - url: http://localhost:5000
+security:
+  - bearerAuth: []
+paths:
+  /api/rules/evaluate:
+    post:
+      summary: Evaluate eligibility
+      description: Returns an eligibility result for the provided user input.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEligibilityInput'
+            example:
+              state_code: CA
+              household_size: 2
+              monthly_income_cents: 250000
+              age: 34
+              has_disability: false
+              is_pregnant: false
+              receives_ssi: false
+              is_citizen: true
+              assets_cents: 100000
+      responses:
+        '200':
+          description: Eligibility evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityResult'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not found (unsupported state or rules missing)
+        '500':
+          description: Server error
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserEligibilityInput:
+      type: object
+      required:
+        - state_code
+        - household_size
+        - monthly_income_cents
+        - age
+        - is_citizen
+      properties:
+        state_code:
+          type: string
+          description: Two-letter state code
+          example: CA
+        household_size:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 2
+        monthly_income_cents:
+          type: integer
+          minimum: 0
+          example: 250000
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+          example: 34
+        has_disability:
+          type: boolean
+          default: false
+        is_pregnant:
+          type: boolean
+          default: false
+        receives_ssi:
+          type: boolean
+          default: false
+        is_citizen:
+          type: boolean
+        assets_cents:
+          type: integer
+          minimum: 0
+          nullable: true
+          example: 100000
+    EligibilityResult:
+      type: object
+      required:
+        - evaluationDate
+        - overallStatus
+        - confidenceScore
+        - explanation
+        - matchedPrograms
+        - stateCode
+      properties:
+        evaluationDate:
+          type: string
+          format: date-time
+          example: "2026-02-10T15:00:00Z"
+        overallStatus:
+          type: string
+          enum:
+            - Likely Eligible
+            - Possibly Eligible
+            - Unlikely Eligible
+        confidenceScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        explanation:
+          type: string
+        matchedPrograms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramMatch'
+        failedProgramEvaluations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgramMatch'
+        ruleVersionUsed:
+          type: number
+          format: double
+          nullable: true
+        stateCode:
+          type: string
+          example: CA
+        evaluationDurationMs:
+          type: integer
+          format: int64
+        userInputSummary:
+          type: string
+          nullable: true
+    ProgramMatch:
+      type: object
+      required:
+        - programId
+        - programName
+        - confidenceScore
+      properties:
+        programId:
+          type: string
+          format: uuid
+        programName:
+          type: string
+        eligibilityStatus:
+          type: string
+          nullable: true
+          enum:
+            - Likely Eligible
+            - Possibly Eligible
+            - Unlikely Eligible
+        confidenceScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        explanation:
+          type: string
+          nullable: true
+        matchingFactors:
+          type: array
+          items:
+            type: string
+        disqualifyingFactors:
+          type: array
+          items:
+            type: string
+        ruleVersionUsed:
+          type: number
+          format: double
+          nullable: true
+        evaluatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        eligibilityPathway:
+          type: string
+          nullable: true
+          enum:
+            - MAGI
+            - NonMAGI_Aged
+            - NonMAGI_Disabled
+            - SSI_Linked
+            - Pregnancy
+            - Other
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string

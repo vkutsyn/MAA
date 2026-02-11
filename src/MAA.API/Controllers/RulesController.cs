@@ -19,7 +19,6 @@ namespace MAA.API.Controllers;
 /// </remarks>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class RulesController : ControllerBase
 {
     private readonly ILogger<RulesController> _logger;
