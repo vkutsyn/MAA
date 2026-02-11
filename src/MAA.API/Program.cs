@@ -4,6 +4,7 @@ using MAA.Application.Services;
 using MAA.Application.Sessions;
 using MAA.Application.Eligibility.Handlers;
 using MAA.Application.Eligibility.Repositories;
+using MAA.Application.Eligibility.Queries;
 using MAA.Application.Eligibility.Caching;
 using MAA.Application.Eligibility.Services;
 using MAA.Application.Eligibility.Validators;
@@ -52,12 +53,16 @@ try
     // Note: We're using Swashbuckle/Swagger instead of the built-in OpenApi
 
     // Configure Entity Framework Core with PostgreSQL
-    builder.Services.AddDbContext<SessionContext>(options =>
-        options.UseNpgsql(
-            builder.Configuration.GetConnectionString("DefaultConnection"),
-            npgsqlOptions => npgsqlOptions.MigrationsAssembly("MAA.Infrastructure")
-        )
-    );
+    // In Test environment, skip this - TestWebApplicationFactory will provide the configuration
+    if (!builder.Environment.IsEnvironment("Test"))
+    {
+        builder.Services.AddDbContext<SessionContext>(options =>
+            options.UseNpgsql(
+                builder.Configuration.GetConnectionString("DefaultConnection"),
+                npgsqlOptions => npgsqlOptions.MigrationsAssembly("MAA.Infrastructure")
+            )
+        );
+    }
 
     // Register repositories
     builder.Services.AddScoped<ISessionRepository, SessionRepository>();
@@ -223,6 +228,14 @@ try
     builder.Services.AddScoped<IFPLThresholdCalculator, FPLThresholdCalculator>();
     builder.Services.AddScoped<IFPLCacheService, FPLCacheService>();
 
+    // Register Eligibility v2 repositories and cache service
+    builder.Services.AddScoped<MAA.Domain.Eligibility.IRuleSetRepository, MAA.Infrastructure.Eligibility.RuleSetRepository>();
+    builder.Services.AddScoped<MAA.Domain.Eligibility.IFederalPovertyLevelRepository, MAA.Infrastructure.Eligibility.FederalPovertyLevelRepository>();
+    builder.Services.AddSingleton<MAA.Application.Eligibility.IEligibilityCacheService, MAA.Application.Eligibility.RuleCacheService>();
+    builder.Services.AddScoped<MAA.Domain.Eligibility.ConfidenceScoringPolicy>();
+    builder.Services.AddScoped<MAA.Domain.Eligibility.EligibilityEvaluator>();
+    builder.Services.AddScoped<EvaluateEligibilityQueryHandler>();
+
     // Register UI wizard services (E4: Eligibility Wizard UI)
     builder.Services.AddScoped<IStateMetadataService, StateMetadataService>();
     builder.Services.AddScoped<IQuestionTaxonomyService, QuestionTaxonomyService>();
@@ -316,12 +329,15 @@ try
 
     var app = builder.Build();
 
-    // Seed state configurations on startup
-    using (var scope = app.Services.CreateScope())
+    // Seed state configurations on startup (skip in test environment)
+    if (!app.Environment.IsEnvironment("Test"))
     {
-        var seeder = scope.ServiceProvider.GetRequiredService<MAA.Infrastructure.StateContext.StateConfigurationSeeder>();
-        await seeder.SeedAsync();
-        Log.Information("State configurations seeded successfully");
+        using (var scope = app.Services.CreateScope())
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<MAA.Infrastructure.StateContext.StateConfigurationSeeder>();
+            seeder.SeedAsync().GetAwaiter().GetResult();
+            Log.Information("State configurations seeded successfully");
+        }
     }
 
     // Configure the HTTP request pipeline
@@ -375,6 +391,10 @@ try
     // Enforces Admin/Reviewer/Analyst roles for /api/admin/* endpoints
     app.UseMiddleware<AdminRoleMiddleware>();
 
+    // Performance logging middleware - tracks /api/eligibility/evaluate response times
+    // Logs performance metrics and SLA compliance
+    app.UsePerformanceLogging();
+
     app.UseHttpsRedirection();
 
     app.MapControllers();
@@ -399,13 +419,10 @@ try
         .WithName("LivenessCheck");
 
     app.Run();
-
-    return 0;
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
-    return 1;
 }
 finally
 {

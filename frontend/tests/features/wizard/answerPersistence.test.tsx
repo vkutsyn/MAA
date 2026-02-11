@@ -2,7 +2,7 @@
  * Component Tests: Answer Persistence
  *
  * Verifies that user answers are correctly captured, stored, and preserved
- * as users navigate through the wizard.
+ * as users navigate through the wizard step-by-step.
  *
  * Test Strategy:
  * - Answer value is captured when user types/selects
@@ -191,6 +191,21 @@ describe("Answer Persistence", () => {
       questions: mockQuestions,
     });
 
+  it("should store multiple answers simultaneously", async () => {
+    const user = userEvent.setup();
+
+    useWizardStore.setState({
+      session: {
+        sessionId: "test-123",
+        stateCode: "CA",
+        stateName: "California",
+        currentStep: 0,
+        totalSteps: 3,
+        expiresAt: new Date(Date.now() + 1000 * 60 * 30).toISOString(),
+      },
+      questions: mockQuestions,
+    });
+
     render(
       <MemoryRouter>
         <WizardPage />
@@ -303,4 +318,5 @@ describe("Answer Persistence", () => {
       expect(answer.isPii).toBe(true);
     });
   });
+});
 });

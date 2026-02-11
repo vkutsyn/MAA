@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: MAA Eligibility Evaluation API
+  description: |
+    API endpoint for evaluating Medicaid eligibility based on state, wizard answers,
+    and effective date. Returns status, matched programs, confidence score, and
+    plain-language explanation.
+  version: 1.0.0
+  contact:
+    name: MAA Development Team
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+  - url: https://api-maa.example.com/api
+    description: Production server
+
+tags:
+  - name: EligibilityEvaluation
+    description: Eligibility evaluation operations
+
+paths:
+  /eligibility/evaluate:
+    post:
+      tags:
+        - EligibilityEvaluation
+      summary: Evaluate eligibility
+      description: |
+        Evaluates eligibility using declarative rules for the provided state and
+        effective date.
+
+        **Performance SLO:** <= 2s (p95)
+      operationId: evaluateEligibility
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EligibilityEvaluateRequest"
+            examples:
+              basic:
+                summary: Basic eligibility evaluation
+                value:
+                  stateCode: "IL"
+                  effectiveDate: "2026-02-11"
+                  answers:
+                    householdSize: 2
+                    monthlyIncome: 2000
+                    age: 35
+      responses:
+        "200":
+          description: Eligibility evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EligibilityEvaluateResponse"
+        "400":
+          description: Invalid request (validation error)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rules not found for state or effective date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    EligibilityEvaluateRequest:
+      type: object
+      required:
+        - stateCode
+        - effectiveDate
+        - answers
+      properties:
+        stateCode:
+          type: string
+          description: Two-letter state code
+          pattern: "^[A-Z]{2}$"
+          example: "IL"
+        effectiveDate:
+          type: string
+          format: date
+          description: Date used to select the rule version
+          example: "2026-02-11"
+        answers:
+          type: object
+          additionalProperties: true
+          description: Wizard answers payload
+
+    EligibilityEvaluateResponse:
+      type: object
+      required:
+        - status
+        - matchedPrograms
+        - confidenceScore
+        - explanation
+        - ruleVersionUsed
+        - evaluatedAt
+      properties:
+        status:
+          type: string
+          enum:
+            - Likely
+            - Possibly
+            - Unlikely
+        matchedPrograms:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProgramMatch"
+        confidenceScore:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Overall confidence score for the evaluation
+        explanation:
+          type: string
+          description: Plain-language explanation of the result
+        explanationItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExplanationItem"
+        ruleVersionUsed:
+          type: string
+          description: Version identifier for the applied rule set
+        evaluatedAt:
+          type: string
+          format: date-time
+          description: Evaluation timestamp
+
+    ProgramMatch:
+      type: object
+      required:
+        - programCode
+        - programName
+        - confidenceScore
+        - explanation
+      properties:
+        programCode:
+          type: string
+          description: Program identifier
+        programName:
+          type: string
+          description: Program name
+        confidenceScore:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+        explanation:
+          type: string
+          description: Program-specific explanation
+
+    ExplanationItem:
+      type: object
+      required:
+        - ruleId
+        - message
+        - status
+      properties:
+        ruleId:
+          type: string
+          description: Rule identifier tied to the explanation
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - met
+            - unmet
+            - missing
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+        - timestamp
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+          example: INVALID_REQUEST
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp
+        details:
+          type: object
+          nullable: true
+          description: Additional error details

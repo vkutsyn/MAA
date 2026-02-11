@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-09
 - PostgreSQL 15.x (existing `SessionContext` extended with new tables) (008-question-definitions-api)
 - TypeScript 5.7, React 19 + React Router 7.13, Tanstack Query 5.90, Zustand 5.0, Zod 4.3, React Hook Form 7.71, shadcn/ui (Radix UI), Tailwind CSS 3.4 (001-dynamic-question-ui)
 - Frontend state managed via Zustand; server state cached via Tanstack Query; answers persisted to backend via `/api/session-answers` (001-dynamic-question-ui)
+- C# 13 (.NET 10) + ASP.NET Core Web API, JsonLogic.Net, EF Core, FluentValidation (010-eligibility-evaluation-engine)
+- PostgreSQL 16+ (rules, programs, FPL tables) with JSONB for rule logic (010-eligibility-evaluation-engine)
 
 - C# 13 / .NET 10 + ASP.NET Core 10, EF Core 10, Npgsql.EntityFrameworkCore.PostgreSQL, JSONLogic.Net, Azure.Identity, Azure.Security.KeyVault.Secrets (002-rules-engine)
 - PostgreSQL 16+ (JSONB for rule logic, indexed queries for state/program) (002-rules-engine)
@@ -39,9 +41,9 @@ tests/
 C# 13 / .NET 10: Follow standard conventions
 
 ## Recent Changes
+- 010-eligibility-evaluation-engine: Added C# 13 (.NET 10) + ASP.NET Core Web API, JsonLogic.Net, EF Core, FluentValidation
 - 001-dynamic-question-ui: Added TypeScript 5.7, React 19 + React Router 7.13, Tanstack Query 5.90, Zustand 5.0, Zod 4.3, React Hook Form 7.71, shadcn/ui (Radix UI), Tailwind CSS 3.4
 - 008-question-definitions-api: Added C# 13 (backend), TypeScript 5.x with React 18.x (frontend)
-- 007-wizard-session-api: Added C# 13 on .NET 10 (backend API) + ASP.NET Core Web API, EF Core 10 (Npgsql), MediatR, FluentValidation
 
 
 <!-- MANUAL ADDITIONS START -->

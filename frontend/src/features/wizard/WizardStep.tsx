@@ -295,11 +295,14 @@ export function WizardStep({
     }
   };
 
+  // Use div when embedded (no navigation), form when standalone
+  const Container = showNavigation ? "form" : "div";
+
   return (
-    <form
-      onSubmit={handleSubmit}
+    <Container
+      onSubmit={showNavigation ? handleSubmit : undefined}
       className="space-y-6"
-      aria-label="Question response form"
+      aria-label={showNavigation ? "Question response form" : undefined}
     >
       {/* Question */}
       <fieldset
@@ -377,7 +380,7 @@ export function WizardStep({
           </Button>
         </div>
       )}
-    </form>
+    </Container>
   );
 }
 
