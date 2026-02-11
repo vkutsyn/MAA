@@ -5,6 +5,7 @@ import { RegisterRoute } from "./RegisterRoute";
 import { WizardLandingRoute } from "./WizardLandingRoute";
 import { WizardRoute } from "./WizardRoute";
 import { StateContextStep } from "./StateContextStep";
+import { EligibilityResultRoute } from "./EligibilityResultRoute";
 
 // Define routes
 const routes: RouteObject[] = [
@@ -31,6 +32,10 @@ const routes: RouteObject[] = [
       {
         path: "wizard",
         element: <WizardRoute />,
+      },
+      {
+        path: "results",
+        element: <EligibilityResultRoute />,
       },
     ],
   },
