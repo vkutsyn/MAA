@@ -1,5 +1,6 @@
 using MAA.Domain;
 using MAA.Domain.Rules;
+using EligibilityDomain = MAA.Domain.Eligibility;
 using MAA.Domain.Sessions;
 using MAA.Domain.Wizard;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,30 @@ public class SessionContext : DbContext
     /// Federal Poverty Levels: Annual FPL thresholds (Phase 2)
     /// </summary>
     public DbSet<FederalPovertyLevel> FederalPovertyLevels => Set<FederalPovertyLevel>();
+
+    /// <summary>
+    /// Eligibility rule sets: versioned rule bundles (V2)
+    /// </summary>
+    public DbSet<EligibilityDomain.RuleSetVersion> EligibilityRuleSetVersions =>
+        Set<EligibilityDomain.RuleSetVersion>();
+
+    /// <summary>
+    /// Eligibility rules (V2)
+    /// </summary>
+    public DbSet<EligibilityDomain.EligibilityRule> EligibilityRulesV2 =>
+        Set<EligibilityDomain.EligibilityRule>();
+
+    /// <summary>
+    /// Program definitions (V2)
+    /// </summary>
+    public DbSet<EligibilityDomain.ProgramDefinition> ProgramDefinitions =>
+        Set<EligibilityDomain.ProgramDefinition>();
+
+    /// <summary>
+    /// Federal Poverty Levels (V2)
+    /// </summary>
+    public DbSet<EligibilityDomain.FederalPovertyLevel> FederalPovertyLevelsV2 =>
+        Set<EligibilityDomain.FederalPovertyLevel>();
 
     /// <summary>
     /// State Contexts: Medicaid jurisdiction context per session
@@ -110,6 +135,10 @@ public class SessionContext : DbContext
         modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.WizardSessionConfiguration());
         modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.StepAnswerConfiguration());
         modelBuilder.ApplyConfiguration(new Infrastructure.Wizard.StepProgressConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Eligibility.RuleSetVersionConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Eligibility.ProgramDefinitionConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Eligibility.EligibilityRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new Infrastructure.Eligibility.FederalPovertyLevelConfiguration());
     }
 
     private void ConfigureSessionEntity(ModelBuilder modelBuilder)

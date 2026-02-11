@@ -20,6 +20,7 @@ public class AdminApiContractTests : IAsyncLifetime
     {
         _factory = new TestWebApplicationFactory();
         _httpClient = _factory.CreateClient();
+        _factory.EnsureSeeded(); // Seed database after client is created
         await Task.CompletedTask;
     }
 

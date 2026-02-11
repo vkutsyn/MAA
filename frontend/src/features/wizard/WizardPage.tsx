@@ -7,9 +7,13 @@ import { WizardStep } from "./WizardStep";
 import { useWizardNavigator } from "./useWizardNavigator";
 import { saveWizardState, clearWizardState } from "./useResumeWizard";
 import { Answer } from "./types";
-import { ConditionalQuestionContainer } from "./ConditionalQuestionContainer";
-import { computeVisibility, AnswerMap } from "./conditionEvaluator";
+import { AnswerMap } from "./conditionEvaluator";
 import { debounce } from "./perf";
+import {
+  getNextVisibleIndex,
+  getPreviousVisibleIndex,
+  shouldShowQuestion,
+} from "./flow";
 
 /**
  * Main wizard page that orchestrates the question flow.
@@ -22,9 +26,9 @@ export function WizardPage() {
   const currentStep = useWizardStore((state) => state.currentStep);
   const selectedState = useWizardStore((state) => state.selectedState);
   const answers = useWizardStore((state) => state.answers);
-  const storedAnswerMap = useWizardStore((state) => state.answerMap);
   const setAnswer = useWizardStore((state) => state.setAnswer);
   const updateAnswerMap = useWizardStore((state) => state.updateAnswerMap);
+  const setCurrentStep = useWizardStore((state) => state.setCurrentStep);
 
   const navigator = useWizardNavigator();
 
@@ -34,11 +38,6 @@ export function WizardPage() {
         updateAnswerMap(fieldKey, value);
       }, 150),
     [updateAnswerMap],
-  );
-
-  const visibilityState = useMemo(
-    () => computeVisibility(questions, storedAnswerMap),
-    [questions, storedAnswerMap],
   );
 
   const questionKeySignature = useMemo(
@@ -72,6 +71,33 @@ export function WizardPage() {
       saveWizardState(selectedState.code, selectedState.name, currentStep);
     }
   }, [session, selectedState, currentStep]);
+
+  const currentQuestion = navigator.currentQuestion;
+  const isCurrentVisible = currentQuestion
+    ? shouldShowQuestion(currentQuestion, answers)
+    : false;
+
+  useEffect(() => {
+    if (!currentQuestion || isCurrentVisible) return;
+
+    const nextIndex = getNextVisibleIndex(questions, currentStep, answers);
+    if (nextIndex !== -1) {
+      setCurrentStep(nextIndex);
+      return;
+    }
+
+    const prevIndex = getPreviousVisibleIndex(questions, currentStep, answers);
+    if (prevIndex !== -1) {
+      setCurrentStep(prevIndex);
+    }
+  }, [
+    currentQuestion,
+    isCurrentVisible,
+    questions,
+    currentStep,
+    answers,
+    setCurrentStep,
+  ]);
 
   // Handle answer submission and move to next step
   const handleNext = async (answer: Answer) => {
@@ -108,8 +134,6 @@ export function WizardPage() {
     );
   }
 
-  const currentQuestion = navigator.currentQuestion;
-
   // Show error if navigation failed
   if (!currentQuestion) {
     return (
@@ -125,6 +149,17 @@ export function WizardPage() {
       </div>
     );
   }
+
+  if (!isCurrentVisible) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  const questionNumber = navigator.progress.currentVisibleIndex + 1;
+  const totalVisible = navigator.progress.totalVisibleQuestions;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -145,7 +180,9 @@ export function WizardPage() {
       {/* Question card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Question {currentStep + 1}</CardTitle>
+          <CardTitle className="text-lg">
+            Question {questionNumber} of {totalVisible}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {navigator.saveError && (
@@ -156,33 +193,17 @@ export function WizardPage() {
               <p className="text-sm text-destructive">{navigator.saveError}</p>
             </div>
           )}
-          {questions.map((question) => {
-            const isVisible = visibilityState[question.key] ?? true;
-            const isCurrent = question.key === currentQuestion?.key;
-            const answer = answers[question.key] ?? null;
-
-            return (
-              <ConditionalQuestionContainer
-                key={question.key}
-                question={question}
-                isVisible={isVisible}
-                answer={answer}
-                onAnswer={handleAnswerChange}
-              >
-                <WizardStep
-                  question={question}
-                  answer={answer}
-                  onAnswer={handleAnswerChange}
-                  onNext={handleNext}
-                  onBack={handleBack}
-                  canGoBack={isCurrent ? navigator.canGoBack : false}
-                  canGoNext={isCurrent ? navigator.canGoNext : false}
-                  isSaving={isCurrent ? navigator.isSaving : false}
-                  showNavigation={isCurrent}
-                />
-              </ConditionalQuestionContainer>
-            );
-          })}
+          <WizardStep
+            question={currentQuestion}
+            answer={answers[currentQuestion.key] ?? null}
+            onAnswer={handleAnswerChange}
+            onNext={handleNext}
+            onBack={handleBack}
+            canGoBack={navigator.canGoBack}
+            canGoNext={navigator.canGoNext}
+            isSaving={navigator.isSaving}
+            showNavigation
+          />
         </CardContent>
       </Card>
 

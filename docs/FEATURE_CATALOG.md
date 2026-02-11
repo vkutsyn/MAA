@@ -164,9 +164,9 @@
 
 ---
 
-### **E5: Eligibility Evaluation & Results** 📋 Ready
+### **E5: Eligibility Evaluation & Results** ✅ [Spec](../specs/010-eligibility-evaluation-engine/spec.md)
 
-**Status**: Depends on E2, E4  
+**Status**: Complete (MVP: User Stories 1-3 Implemented)  
 **Effort**: Medium-Large  
 **Team**: Backend + Frontend  
 **Duration**: 3-4 weeks
@@ -175,23 +175,27 @@
 
 **Features**:
 
-- [ ] F5.1: Results Page Layout — Display status prominently; list programs by likelihood
-- [ ] F5.2: Program Cards — Show program name, status, confidence %, key details
-- [ ] F5.3: Plain-Language Explanation — Generate "why eligible/ineligible" tied to user data
-- [ ] F5.4: Confidence Scoring — Calculate confidence (0-100%) based on data completeness
-- [ ] F5.5: Next Steps Guidance — Link to document checklist for matched programs
-- [ ] F5.6: Result Export/Print ⭐ Phase 3 — Generate printable/PDF summary
-- [ ] F5.7: Accessibility — WCAG 2.1 AA: semantic HTML, status indicated by icon+text
-- [ ] F5.8: Error Handling — Handle ambiguous rules gracefully; show "contact support"
+- [x] F5.1: Eligibility Evaluation Engine — JSONLogic rule evaluation with deterministic results
+- [x] F5.2: Rule Versioning & Effective Dates — Version selection by date; immutable rule versions
+- [x] F5.3: Plain-Language Explanation — Template-driven explanations with glossary and readability checks
+- [x] F5.4: Confidence Scoring — Calculate confidence using completeness * certainty formula; 0-100% scale
+- [x] F5.5: Matched Programs — Return list of matching programs with confidence scores
+- [x] F5.6: Explanation Items — Detailed item-by-item criteria breakdown (met, unmet, missing)
+- [ ] F5.7: Results Page Layout — Display status prominently; list programs by likelihood (Frontend)
+- [ ] F5.8: Result Export/Print ⭐ Phase 3 — Generate printable/PDF summary
+- [ ] F5.9: Accessibility — WCAG 2.1 AA: semantic HTML, status indicated by icon+text
+- [ ] F5.10: Error Handling — Handle ambiguous rules gracefully; show "contact support"
 
-**Dependencies**: E2 (rules engine), E4 (wizard completion)
+**Dependencies**: E2 (rules engine partial), database/rules data
 
 **Success Criteria**:
 
-- Same input data → same results (deterministic)
-- Explanation references user's specific data ($2,100 not "$X")
-- Constitution II: Results API contract-tested; snapshot tests for explanations
-- Constitution IV: Results API ≤2 seconds (p95)
+- ✅ Same input data → same results (deterministic)
+- ✅ Explanation references user's specific data (e.g., "You meet: Citizenship, Income (under $25K)")
+- ✅ Constitution II: Results API contract-tested; tests for explanations
+- ✅ Constitution IV: Results API p95 < 2s, p99 < 5s (performance timing middleware)
+- ✅ Stateless evaluation (no result persistence)
+- ✅ Plain-language explanations (no jargon, no unexplained acronyms)
 
 ---
 

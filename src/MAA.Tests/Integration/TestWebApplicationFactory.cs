@@ -1,4 +1,5 @@
 using MAA.Application.Services;
+using EligibilityDomain = MAA.Domain.Eligibility;
 using MAA.Domain.Rules;
 using MAA.Infrastructure.Data;
 using MAA.Infrastructure.Security;
@@ -20,6 +21,8 @@ namespace MAA.Tests.Integration;
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private DatabaseFixture? _databaseFixture;
+    private bool _isSeeded = false;
+    private readonly object _seedLock = new object();
 
     /// <summary>
     /// Constructor for contract tests (no persistent database).
@@ -51,7 +54,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Set test environment so Program.cs skips certain registrations
-        builder.UseEnvironment("test");
+        builder.UseEnvironment("Test");
 
         builder.ConfigureAppConfiguration((context, config) =>
         {
@@ -62,31 +65,13 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 ["ConnectionStrings:DefaultConnection"] = _databaseFixture?.GetConnectionString()
                     ?? "Host=127.0.0.1;Port=5432;Database=maa_test;Username=postgres;Password=postgres"
             };
-            config.AddInMemoryCollection(testConfig);
+            config.AddInMemoryCollection(testConfig!);
         });
 
         builder.ConfigureServices(services =>
         {
-            // Find and remove the old DbContext registration to prevent DI validation errors
-            var dbContextDescriptor = services.FirstOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<SessionContext>));
-
-            if (dbContextDescriptor != null)
-            {
-                services.Remove(dbContextDescriptor);
-            }
-
-            // Find and remove any DbContextOptions registrations to get a clean slate
-            var allDbContextOptions = services.Where(
-                d => d.ServiceType.IsGenericType &&
-                     d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>) &&
-                     d.ServiceType.GetGenericArguments()[0] == typeof(SessionContext)
-            ).ToList();
-
-            foreach (var descriptor in allDbContextOptions)
-            {
-                services.Remove(descriptor);
-            }
+            // No need to remove DbContext - Program.cs skips it in Test environment
+            // Just add our test-specific configuration
 
             // Remove production KeyVaultClient to replace with mock
             var keyVaultDescriptor = services.FirstOrDefault(
@@ -104,19 +89,23 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 var connectionString = _databaseFixture.GetConnectionString();
 
                 services.AddDbContext<SessionContext>(options =>
+                {
                     options.UseNpgsql(
                         connectionString,
                         npgsqlOptions => npgsqlOptions.MigrationsAssembly("MAA.Infrastructure")
-                    )
-                );
+                    );
+                    options.EnableServiceProviderCaching(false);
+                });
             }
             else
             {
                 // Contract tests: Use in-memory database for HTTP testing
                 // This allows contract tests to run without Docker/PostgreSQL
                 services.AddDbContext<SessionContext>(options =>
-                    options.UseInMemoryDatabase("TestDatabase_" + Guid.NewGuid().ToString())
-                );
+                {
+                    options.UseInMemoryDatabase("TestDatabase_" + Guid.NewGuid().ToString());
+                    options.EnableServiceProviderCaching(false);
+                });
             }
 
             // Register mock KeyVaultClient for testing (no Azure Key Vault access needed)
@@ -128,25 +117,50 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 .Setup(x => x.GetCurrentKeyVersionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1); // Return version 1 (seeded by migration)
 
+
+
+
             services.AddScoped(_ => mockKeyVaultClient.Object);
 
-            if (_databaseFixture == null)
+            // DO NOT build service provider here - it will cause multiple provider error
+            // Seeding will happen after the host is built
+        });
+    }
+
+    /// <summary>
+    /// Ensures database is seeded for contract tests after server is created.
+    /// Call this from tests that need seeded data.
+    /// </summary>
+    public void EnsureSeeded()
+    {
+        if (_databaseFixture == null && !_isSeeded)
+        {
+            lock (_seedLock)
             {
-                using var serviceProvider = services.BuildServiceProvider();
-                using var scope = serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<SessionContext>();
-
-                dbContext.Database.EnsureCreated();
-
-                if (!dbContext.EligibilityRules.Any())
+                if (!_isSeeded)
                 {
-                    SeedContractTestRules(dbContext);
+                    // Access Server property to ensure host is built
+                    _ = Server;
+
+                    using var scope = Services.CreateScope();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<SessionContext>();
+
+                    dbContext.Database.EnsureCreated();
+
+                    if (!dbContext.EligibilityRules.Any())
+                    {
+                        SeedContractTestRules(dbContext);
+                    }
+
+                    if (!dbContext.EligibilityRuleSetVersions.Any())
+                    {
+                        SeedEligibilityV2ContractTestRules(dbContext);
+                    }
+
+                    _isSeeded = true;
                 }
             }
-
-            // DO NOT validate the service provider here - let the host do it
-            // This allows the host to properly initialize all services
-        });
+        }
     }
 
     private static void SeedContractTestRules(SessionContext dbContext)
@@ -203,5 +217,47 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             CreatedAt = now,
             UpdatedAt = now
         };
+    }
+
+    private static void SeedEligibilityV2ContractTestRules(SessionContext dbContext)
+    {
+        var now = DateTime.UtcNow;
+        var ruleSet = new EligibilityDomain.RuleSetVersion
+        {
+            RuleSetVersionId = Guid.NewGuid(),
+            StateCode = "IL",
+            Version = "v1",
+            EffectiveDate = now.Date.AddDays(-1),
+            EndDate = null,
+            Status = EligibilityDomain.RuleSetStatus.Active,
+            CreatedAt = now
+        };
+
+        var program = new EligibilityDomain.ProgramDefinition
+        {
+            ProgramCode = "IL_BASIC",
+            StateCode = "IL",
+            ProgramName = "IL Basic Program",
+            Description = "Contract test program",
+            Category = EligibilityDomain.ProgramCategory.Magi,
+            IsActive = true
+        };
+
+        var rule = new EligibilityDomain.EligibilityRule
+        {
+            EligibilityRuleId = Guid.NewGuid(),
+            RuleSetVersionId = ruleSet.RuleSetVersionId,
+            RuleSetVersion = ruleSet,
+            ProgramCode = program.ProgramCode,
+            Program = program,
+            RuleLogic = "{ \"==\": [ { \"var\": \"isCitizen\" }, true ] }",
+            Priority = 0,
+            CreatedAt = now
+        };
+
+        dbContext.EligibilityRuleSetVersions.Add(ruleSet);
+        dbContext.ProgramDefinitions.Add(program);
+        dbContext.EligibilityRulesV2.Add(rule);
+        dbContext.SaveChanges();
     }
 }
