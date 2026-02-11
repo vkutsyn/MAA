@@ -92,9 +92,11 @@ frontend/
 ## Phase 0: Outline & Research
 
 **Completed artifacts**:
+
 - [specs/011-eligibility-result-ui/research.md](specs/011-eligibility-result-ui/research.md)
 
 **Key decisions**:
+
 - Use React Query v5 for eligibility result fetching and caching.
 - Use shadcn/ui primitives with semantic HTML for WCAG compliance.
 - Map confidence scores to plain-language labels with a visual indicator.
@@ -103,11 +105,13 @@ frontend/
 ## Phase 1: Design & Contracts
 
 **Completed artifacts**:
+
 - [specs/011-eligibility-result-ui/data-model.md](specs/011-eligibility-result-ui/data-model.md)
 - [specs/011-eligibility-result-ui/quickstart.md](specs/011-eligibility-result-ui/quickstart.md)
 - [specs/011-eligibility-result-ui/contracts/eligibility-results.openapi.yaml](specs/011-eligibility-result-ui/contracts/eligibility-results.openapi.yaml)
 
 **Design notes**:
+
 - UI maps `EligibilityResultDto` into an `EligibilityResultView` model with derived confidence labels.
 - Results view must handle partial data by showing a fallback message and preserving navigation.
 - Program matches and explanation bullets render as semantic lists with labels and icons.
@@ -122,6 +126,7 @@ frontend/
 ## Phase 2: Planning
 
 **Implementation outline (no tasks yet)**:
+
 1. Add eligibility result types and mapping utilities in `frontend/src/lib`.
 2. Implement data fetching hook using React Query v5 and JWT-aware API client.
 3. Build results UI components (status card, program matches list, explanation bullets, confidence indicator).

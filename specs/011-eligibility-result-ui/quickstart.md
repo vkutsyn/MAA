@@ -24,6 +24,7 @@ From the repository root:
 
 Navigate to the eligibility results route in the frontend.
 Ensure the UI displays:
+
 - Eligibility status
 - Program matches
 - Explanation bullets
@@ -32,7 +33,8 @@ Ensure the UI displays:
 ## Results Route & Implementation Details
 
 ### Route
-- **URL**: `/results`  
+
+- **URL**: `/results`
 - **Prerequisites**: Complete wizard or have valid session context
 - **Auto-redirect**: Wizard automatically navigates to results on completion
 

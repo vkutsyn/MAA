@@ -19,7 +19,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserEligibilityInput'
+              $ref: "#/components/schemas/UserEligibilityInput"
             example:
               state_code: CA
               household_size: 2
@@ -31,23 +31,23 @@ paths:
               is_citizen: true
               assets_cents: 100000
       responses:
-        '200':
+        "200":
           description: Eligibility evaluation result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EligibilityResult'
-        '400':
+                $ref: "#/components/schemas/EligibilityResult"
+        "400":
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ValidationError'
-        '401':
+                $ref: "#/components/schemas/ValidationError"
+        "401":
           description: Unauthorized
-        '404':
+        "404":
           description: Not found (unsupported state or rules missing)
-        '500':
+        "500":
           description: Server error
 components:
   securitySchemes:
@@ -128,11 +128,11 @@ components:
         matchedPrograms:
           type: array
           items:
-            $ref: '#/components/schemas/ProgramMatch'
+            $ref: "#/components/schemas/ProgramMatch"
         failedProgramEvaluations:
           type: array
           items:
-            $ref: '#/components/schemas/ProgramMatch'
+            $ref: "#/components/schemas/ProgramMatch"
         ruleVersionUsed:
           type: number
           format: double

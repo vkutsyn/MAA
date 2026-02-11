@@ -22,11 +22,11 @@ export function EligibilityResultRoute() {
   // Memoize eligibility input to prevent unnecessary recalculations
   const eligibilityInput = useMemo(() => {
     const answers: Answer[] = Object.values(answersRecord);
-    
+
     if (!session || answers.length === 0) {
       return null;
     }
-    
+
     try {
       return mapAnswersToEligibilityInput(session, answers);
     } catch (error) {

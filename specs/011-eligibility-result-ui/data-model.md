@@ -7,6 +7,7 @@
 Represents the eligibility outcome displayed in the UI.
 
 **Fields**:
+
 - `evaluationDate` (ISO 8601 string, required)
 - `overallStatus` (string, required; values: "Likely Eligible", "Possibly Eligible", "Unlikely Eligible")
 - `confidenceScore` (integer, required; 0-100)
@@ -20,6 +21,7 @@ Represents the eligibility outcome displayed in the UI.
 - `evaluationDurationMs` (number, optional)
 
 **Validation rules**:
+
 - `overallStatus` must be one of the allowed status values.
 - `confidenceScore` must be between 0 and 100.
 - `explanation` must be non-empty and under 2000 characters.
@@ -30,6 +32,7 @@ Represents the eligibility outcome displayed in the UI.
 Represents a program match displayed in the results list.
 
 **Fields**:
+
 - `programId` (string UUID, required)
 - `programName` (string, required)
 - `eligibilityStatus` (string | null; same allowed values as overall status)
@@ -39,6 +42,7 @@ Represents a program match displayed in the results list.
 - `disqualifyingFactors` (string[])
 
 **Validation rules**:
+
 - `programName` must be non-empty.
 - `confidenceScore` must be between 0 and 100.
 
@@ -47,11 +51,13 @@ Represents a program match displayed in the results list.
 Derived display metadata for the confidence indicator.
 
 **Fields**:
+
 - `label` (string)
 - `range` (string; e.g., "60-79")
 - `description` (string; plain-language meaning)
 
 **Label thresholds**:
+
 - 0-19: "Uncertain"
 - 20-39: "Low confidence"
 - 40-59: "Some confidence"
