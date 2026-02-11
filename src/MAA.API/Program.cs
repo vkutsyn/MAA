@@ -270,6 +270,10 @@ try
         // Add Swagger/OpenAPI
         builder.Services.AddSwaggerGen(options =>
         {
+            // Use fully qualified names for schema IDs to avoid conflicts
+            // when multiple types have the same name but different namespaces
+            options.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+
             // API metadata
             options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
             {

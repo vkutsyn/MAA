@@ -61,6 +61,7 @@ public class RuleRepository : IRuleRepository
         var now = DateTime.UtcNow;
 
         return await _context.EligibilityRules
+            .Include(r => r.Program)
             .Where(r => r.ProgramId == programId
                      && r.StateCode == stateCode
                      && r.EffectiveDate <= now
@@ -82,6 +83,7 @@ public class RuleRepository : IRuleRepository
         var now = DateTime.UtcNow;
 
         return await _context.EligibilityRules
+            .Include(r => r.Program)
             .Where(r => r.StateCode == stateCode
                      && r.EffectiveDate <= now
                      && (r.EndDate == null || r.EndDate >= now))
@@ -100,6 +102,7 @@ public class RuleRepository : IRuleRepository
         ArgumentException.ThrowIfNullOrEmpty(ruleId.ToString(), nameof(ruleId));
 
         return await _context.EligibilityRules
+            .Include(r => r.Program)
             .FirstOrDefaultAsync(r => r.RuleId == ruleId)
             .ConfigureAwait(false);
     }
@@ -113,6 +116,7 @@ public class RuleRepository : IRuleRepository
         ArgumentException.ThrowIfNullOrEmpty(programId.ToString(), nameof(programId));
 
         return await _context.EligibilityRules
+            .Include(r => r.Program)
             .Where(r => r.ProgramId == programId)
             .OrderByDescending(r => r.Version)
             .ThenByDescending(r => r.CreatedAt)

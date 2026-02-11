@@ -60,7 +60,7 @@ public class QuestionTaxonomyService : IQuestionTaxonomyService
             // Question 2: Annual income
             new QuestionDto
             {
-                Key = "annual_income",
+                Key = "monthly_income_cents",
                 Label = "What is your household's total annual income before taxes?",
                 Type = "currency",
                 Required = true,

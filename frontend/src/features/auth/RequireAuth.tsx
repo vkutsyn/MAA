@@ -9,13 +9,13 @@ interface RequireAuthProps {
 export function RequireAuth({ children }: RequireAuthProps) {
   const location = useLocation();
   const status = useAuthStore((state) => state.status);
-  const setReturnPath = useAuthStore((state) => state.setReturnPath);
   const hasSetReturnPath = useRef(false);
 
   useEffect(() => {
     if (status === "unauthenticated" && !hasSetReturnPath.current) {
       const returnPath = `${location.pathname}${location.search}`;
-      setReturnPath(returnPath);
+      // Call setReturnPath without subscribing to it
+      useAuthStore.getState().setReturnPath(returnPath);
       hasSetReturnPath.current = true;
     }
 
@@ -23,8 +23,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
     if (status === "authenticated") {
       hasSetReturnPath.current = false;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, location.pathname, location.search]);
 
   if (status === "authenticating" || status === "renewing") {
     return (

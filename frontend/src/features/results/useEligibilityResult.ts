@@ -2,25 +2,22 @@
  * React Query hook for eligibility results
  */
 
-import { useQuery, QueryKey } from '@tanstack/react-query';
-import { useAuthStore } from '@/features/auth';
+import { useQuery, QueryKey } from "@tanstack/react-query";
+import { useAuthStore } from "@/features/auth";
 import {
   UserEligibilityInput,
   EligibilityResultView,
   mapDtoToViewModel,
-} from './types';
-import { evaluateEligibility } from './eligibilityResultApi';
+} from "./types";
+import { evaluateEligibility } from "./eligibilityResultApi";
 
 /**
  * Query key factory for eligibility results
  */
 const queryKeyFactory = {
-  all: () => ['eligibilityResult'] as const,
-  evaluation: (input: UserEligibilityInput) => [
-    ...queryKeyFactory.all(),
-    'evaluation',
-    input,
-  ] as const,
+  all: () => ["eligibilityResult"] as const,
+  evaluation: (input: UserEligibilityInput) =>
+    [...queryKeyFactory.all(), "evaluation", input] as const,
 };
 
 /**
@@ -31,28 +28,30 @@ const queryKeyFactory = {
  */
 export function useEligibilityResult(input: UserEligibilityInput | null) {
   const status = useAuthStore((state) => state.status);
-  const token = useAuthStore((state) => state.sessionCredential?.accessToken);
-  
-  const isAuthenticated = status === 'authenticated';
+  const initialized = useAuthStore((state) => state.initialized);
+
+  const isAuthenticated = status === "authenticated";
   const isValid = !!input;
 
-  const queryKey: QueryKey = input ? queryKeyFactory.evaluation(input) : ['disabled'];
+  const queryKey: QueryKey = input
+    ? queryKeyFactory.evaluation(input)
+    : ["disabled"];
 
   return useQuery({
     queryKey,
     queryFn: async (): Promise<EligibilityResultView> => {
       if (!input) {
-        throw new Error('No input provided');
+        throw new Error("No input provided");
       }
 
-      if (!isAuthenticated || !token) {
-        throw new Error('User is not authenticated');
+      if (!isAuthenticated) {
+        throw new Error("User is not authenticated");
       }
 
-      const dto = await evaluateEligibility(input, token);
+      const dto = await evaluateEligibility(input);
       return mapDtoToViewModel(dto);
     },
-    enabled: !!input && isValid && isAuthenticated && !!token,
+    enabled: !!input && isValid && isAuthenticated && initialized,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
     retry: 3,
@@ -69,7 +68,7 @@ export function useEligibilityResultStatus(input: UserEligibilityInput | null) {
   return {
     isLoading,
     isError,
-    error: error instanceof Error ? error.message : 'Unknown error',
+    error: error instanceof Error ? error.message : "Unknown error",
     data,
   };
 }
