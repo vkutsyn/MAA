@@ -185,8 +185,8 @@ function mapToStorageFieldType(
  */
 export function useConditionalQuestions() {
   const updateAnswerMap = (
-    fieldKey: string,
-    value: string | string[] | null,
+    _fieldKey: string,
+    _value: string | string[] | null,
   ) => {
     // This will be used by WizardPage to manage conditional state
     // Implementation depends on WizardStore integration

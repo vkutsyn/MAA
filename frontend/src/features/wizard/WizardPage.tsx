@@ -104,10 +104,9 @@ export function WizardPage() {
     const canContinue = await navigator.goNext(answer);
 
     if (!canContinue) {
-      // Reached the end of the wizard
+      // Reached the end of the wizard - navigate to results
       clearWizardState();
-      alert("Wizard complete! Results page coming in next phase.");
-      navigate("/");
+      navigate("/results");
     }
   };
 
